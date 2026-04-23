@@ -15,6 +15,9 @@ import {
   Loader2,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
+import { AnimatedNumber } from "@/components/animated-number";
+import { LeadFormPanel } from "@/components/lead-form-panel";
 import { formatDistanceToNow, format } from "date-fns";
 import {
   BarChart,
@@ -66,21 +69,23 @@ export default function DashboardPage() {
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [isFormOpen, setIsFormOpen] = useState(false);
+
+  async function fetchData() {
+    try {
+      const res = await fetch("/api/dashboard/stats");
+      if (!res.ok) throw new Error("Failed to fetch dashboard data");
+      const json = await res.json();
+      setData(json);
+    } catch (err) {
+      console.error(err);
+      setError("Failed to load dashboard statistics.");
+    } finally {
+      setLoading(false);
+    }
+  }
 
   useEffect(() => {
-    async function fetchData() {
-      try {
-        const res = await fetch("/api/dashboard/stats");
-        if (!res.ok) throw new Error("Failed to fetch dashboard data");
-        const json = await res.json();
-        setData(json);
-      } catch (err) {
-        console.error(err);
-        setError("Failed to load dashboard statistics.");
-      } finally {
-        setLoading(false);
-      }
-    }
     fetchData();
   }, []);
 
@@ -106,62 +111,78 @@ export default function DashboardPage() {
       title: "Total Leads",
       value: data.stats.totalLeads,
       icon: Users,
-      color: "from-[oklch(0.60_0.22_260)] to-[oklch(0.55_0.25_285)]",
+      color: "blue",
+      trend: "+8%",
     },
     {
       title: "New This Week",
       value: data.stats.newLeadsThisWeek,
       icon: TrendingUp,
-      color: "from-[oklch(0.65_0.20_160)] to-[oklch(0.55_0.18_140)]",
+      color: "emerald",
+      trend: "+12%",
     },
     {
       title: "Contacted",
       value: data.stats.contacted,
       icon: PhoneCall,
-      color: "from-[oklch(0.65_0.22_40)] to-[oklch(0.58_0.20_25)]",
+      color: "orange",
+      trend: "-2%",
     },
     {
       title: "Interested",
       value: data.stats.interested,
       icon: CheckSquare,
-      color: "from-[oklch(0.70_0.18_300)] to-[oklch(0.60_0.20_280)]",
+      color: "indigo",
+      trend: "+5%",
     },
     {
-      title: "Follow-up Required",
+      title: "Follow-up",
       value: data.stats.followUpRequired,
       icon: Clock,
-      color: "from-[oklch(0.65_0.25_30)] to-[oklch(0.55_0.22_20)]",
+      color: "amber",
+      trend: "6 pending",
     },
     {
-      title: "Converted (Won)",
+      title: "Converted",
       value: data.stats.converted,
       icon: Handshake,
-      color: "from-[oklch(0.65_0.20_140)] to-[oklch(0.55_0.18_130)]",
+      color: "teal",
+      trend: "+14%",
     },
     {
-      title: "Lost",
+      title: "Lost Leads",
       value: data.stats.lost,
       icon: Briefcase,
-      color: "from-[oklch(0.55_0.15_20)] to-[oklch(0.45_0.10_15)]",
+      color: "rose",
+      trend: "Low",
     },
     {
       title: "Response Rate",
       value: `${data.stats.responseRate}%`,
       icon: ArrowUpRight,
-      color: "from-[oklch(0.60_0.18_330)] to-[oklch(0.52_0.20_300)]",
+      color: "fuchsia",
+      trend: "+3%",
     },
   ];
 
   return (
     <div className="space-y-6">
-      {/* Page header */}
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight text-foreground lg:text-3xl">
-          Dashboard
-        </h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Welcome back! Here&apos;s your sales overview.
-        </p>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight text-foreground lg:text-3xl">
+            Dashboard
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            Welcome back! Here&apos;s your sales overview for today.
+          </p>
+        </div>
+        <button 
+          onClick={() => setIsFormOpen(true)}
+          className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground shadow-lg shadow-primary/20 transition-all hover:translate-y-[-2px] hover:shadow-xl hover:shadow-primary/30 active:translate-y-0"
+        >
+          <TrendingUp className="h-4 w-4" />
+          Create New Lead
+        </button>
       </div>
 
       {/* Stats Grid */}
@@ -169,21 +190,36 @@ export default function DashboardPage() {
         {statCards.map((stat) => (
           <Card
             key={stat.title}
-            className="border-border bg-card shadow-sm transition-all hover:bg-card/80 hover:shadow-md"
+            className="group overflow-hidden border-border bg-card shadow-sm transition-all duration-300 hover:translate-y-[-4px] hover:shadow-xl hover:shadow-primary/5"
           >
-            <CardContent className="p-4 lg:p-5">
+            <CardContent className="p-5">
               <div className="flex items-start justify-between">
-                <div
-                  className={`flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br ${stat.color} shadow-lg lg:h-10 lg:w-10`}
-                >
-                  <stat.icon className="h-4 w-4 text-foreground lg:h-5 lg:w-5" />
+                <div className={cn(
+                  "flex h-10 w-10 items-center justify-center rounded-2xl bg-muted/50 transition-colors group-hover:bg-primary/10",
+                  stat.color === "blue" && "bg-blue-500/10 text-blue-600 dark:text-blue-400",
+                  stat.color === "emerald" && "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
+                  stat.color === "orange" && "bg-orange-500/10 text-orange-600 dark:text-orange-400",
+                  stat.color === "indigo" && "bg-indigo-500/10 text-indigo-600 dark:text-indigo-400",
+                  stat.color === "amber" && "bg-amber-500/10 text-amber-600 dark:text-amber-400",
+                  stat.color === "teal" && "bg-teal-500/10 text-teal-600 dark:text-teal-400",
+                  stat.color === "rose" && "bg-rose-500/10 text-rose-600 dark:text-rose-400",
+                  stat.color === "fuchsia" && "bg-fuchsia-500/10 text-fuchsia-600 dark:text-fuchsia-400",
+                )}>
+                  <stat.icon className="h-5 w-5" />
                 </div>
+                <span className={cn(
+                  "text-[10px] font-bold uppercase tracking-wider text-muted-foreground",
+                  stat.trend.startsWith('+') && "text-emerald-500",
+                  stat.trend.startsWith('-') && "text-rose-500",
+                )}>
+                  {stat.trend}
+                </span>
               </div>
-              <div className="mt-3">
-                <p className="text-xl font-bold text-[oklch(0.60_0.22_260)] lg:text-2xl">
-                  {stat.value}
+              <div className="mt-4">
+                <p className="text-2xl font-extrabold tracking-tight text-foreground">
+                  <AnimatedNumber value={stat.value} />
                 </p>
-                <p className="mt-0.5 text-xs text-foreground/60">{stat.title}</p>
+                <p className="mt-1 text-xs font-medium text-muted-foreground">{stat.title}</p>
               </div>
             </CardContent>
           </Card>
@@ -305,6 +341,12 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
       </div>
+
+      <LeadFormPanel
+        open={isFormOpen}
+        onOpenChange={setIsFormOpen}
+        onSuccess={fetchData}
+      />
     </div>
   );
 }

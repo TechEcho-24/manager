@@ -61,13 +61,16 @@ function NavLink({
     <Link
       href={href}
       className={cn(
-        "group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200",
+        "group relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200",
         isActive
-          ? "bg-primary/15 text-primary shadow-sm"
+          ? "bg-primary/10 text-primary shadow-sm"
           : "text-sidebar-foreground/50 hover:bg-sidebar-accent hover:text-sidebar-foreground/80",
         collapsed && "justify-center px-2"
       )}
     >
+      {isActive && (
+        <div className="absolute left-0 top-1/2 h-6 w-1 -translate-y-1/2 rounded-r-full bg-primary" />
+      )}
       <Icon
         className={cn(
           "h-[18px] w-[18px] shrink-0 transition-colors",
@@ -112,15 +115,18 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
         {/* Logo */}
         <div
           className={cn(
-            "flex h-16 items-center border-b border-sidebar-border px-4",
+            "flex h-20 items-center border-b border-sidebar-border/50 px-5",
             collapsed ? "justify-center" : "gap-3"
           )}
         >
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-[oklch(0.65_0.25_260)] to-[oklch(0.55_0.28_290)] shadow-md shadow-[oklch(0.50_0.20_270)]/20">
-            <Zap className="h-4 w-4 text-foreground" />
+          <div className="relative">
+            <div className="absolute -inset-1 rounded-xl bg-primary/20 blur-sm" />
+            <div className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary/80 shadow-lg shadow-primary/20">
+              <Zap className="h-5 w-5 text-white" />
+            </div>
           </div>
           {!collapsed && (
-            <span className="text-lg font-bold tracking-tight text-[oklch(0.60_0.22_260)] animate-in fade-in duration-200">
+            <span className="text-xl font-extrabold tracking-tight text-[oklch(0.60_0.22_260)] animate-in fade-in duration-300">
               LeadPro
             </span>
           )}

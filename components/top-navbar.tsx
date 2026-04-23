@@ -52,7 +52,7 @@ export function TopNavbar() {
   };
 
   return (
-    <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-border bg-background/80 px-4 backdrop-blur-xl lg:px-6">
+    <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-border/40 bg-background/60 px-4 backdrop-blur-xl transition-all duration-300 lg:px-6">
       {/* Mobile menu button */}
       <MobileSidebar />
 
@@ -69,11 +69,11 @@ export function TopNavbar() {
       {/* Search bar */}
       <div className="ml-auto flex-1 lg:ml-0 lg:max-w-md" ref={searchRef}>
         <div className="relative hidden sm:block">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground/50" />
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground/40 transition-colors group-hover:text-primary/50" />
           <input
             type="text"
-            placeholder="Search leads..."
-            className="h-9 w-full rounded-lg border border-border bg-muted/30 pl-9 pr-4 text-sm text-foreground placeholder:text-muted-foreground/50 transition-colors focus:border-primary/40 focus:outline-none focus:ring-1 focus:ring-primary/20"
+            placeholder="Search leads, contacts, or tasks..."
+            className="h-10 w-full rounded-xl border border-border/40 bg-muted/20 pl-10 pr-4 text-sm text-foreground placeholder:text-muted-foreground/50 transition-all focus:bg-background focus:ring-2 focus:ring-primary/10 focus:outline-none"
             value={searchQuery}
             onChange={(e) => {
               setSearchQuery(e.target.value);

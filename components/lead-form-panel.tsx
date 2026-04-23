@@ -226,18 +226,18 @@ export function LeadFormPanel({
     <Dialog 
       open={open} 
       onOpenChange={onOpenChange}
-      contentClassName="w-full h-full sm:h-auto sm:max-h-[90vh] sm:max-w-4xl p-0 flex flex-col bg-[oklch(0.15_0.02_260)] sm:border border-white/10 sm:rounded-lg overflow-hidden"
+      contentClassName="w-full h-full sm:h-auto sm:max-h-[90vh] sm:max-w-4xl p-0 flex flex-col bg-card sm:border border-border sm:rounded-2xl shadow-2xl overflow-hidden"
       showCloseButton={false}
     >
-        <div className='flex shrink-0 items-center justify-between border-b border-white/10 px-6 py-4'>
-          <h2 className='text-xl font-bold text-foreground'>
+        <div className='flex shrink-0 items-center justify-between border-b border-border px-6 py-5 bg-muted/20'>
+          <h2 className='text-xl font-bold tracking-tight text-foreground'>
             {isEditMode ? "Edit Lead" : "Add New Lead"}
           </h2>
           <Button
             variant='ghost'
             size='icon'
             onClick={() => onOpenChange(false)}
-            className='h-8 w-8 text-muted-foreground hover:bg-white/10 hover:text-foreground rounded-full'
+            className='h-9 w-9 text-muted-foreground hover:bg-muted hover:text-foreground rounded-full transition-colors'
           >
             <X className='h-4 w-4' />
           </Button>
@@ -255,7 +255,7 @@ export function LeadFormPanel({
               className='flex-1 overflow-y-auto overflow-x-hidden flex flex-col md:flex-row'
             >
               {/* Left Column - Main Form */}
-              <div className='flex-2 p-6 border-r border-white/5 space-y-8'>
+              <div className='flex-2 p-6 border-r border-border space-y-8'>
                 {/* Basic Information */}
                 <div className='space-y-4'>
                   <h3 className='text-sm font-semibold text-[oklch(0.60_0.22_260)] uppercase tracking-wider'>
@@ -267,9 +267,9 @@ export function LeadFormPanel({
                       name='fullName'
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Full Name *</FormLabel>
+                          <FormLabel className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Full Name *</FormLabel>
                           <FormControl>
-                            <Input placeholder='John Doe' {...field} />
+                            <Input className="h-10 rounded-xl bg-muted/10 border-border focus:bg-background focus:ring-4 focus:ring-primary/10 transition-all" placeholder='John Doe' {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -280,9 +280,9 @@ export function LeadFormPanel({
                       name='company'
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Company Name</FormLabel>
+                          <FormLabel className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Company Name</FormLabel>
                           <FormControl>
-                            <Input placeholder='Acme Inc' {...field} />
+                            <Input className="h-10 rounded-xl bg-muted/10 border-border focus:bg-background focus:ring-4 focus:ring-primary/10 transition-all" placeholder='Acme Inc' {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -293,9 +293,9 @@ export function LeadFormPanel({
                       name='phone'
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Phone Number *</FormLabel>
+                          <FormLabel className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Phone Number *</FormLabel>
                           <FormControl>
-                            <Input placeholder='9876543210' {...field} />
+                            <Input className="h-10 rounded-xl bg-muted/10 border-border focus:bg-background focus:ring-4 focus:ring-primary/10 transition-all" placeholder='9876543210' {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -594,13 +594,13 @@ export function LeadFormPanel({
                           <Badge
                             key={tag}
                             variant='secondary'
-                            className='flex items-center gap-1 bg-white/10 hover:bg-white/10'
+                            className='flex items-center gap-1 bg-primary/10 text-primary hover:bg-primary/20 border-none'
                           >
                             {tag}
                             <button
                               type='button'
                               onClick={() => handleRemoveTag(tag)}
-                              className='ml-1 rounded-full p-0.5 hover:bg-white/20'
+                              className='ml-1 rounded-full p-0.5 hover:bg-primary/20 transition-colors'
                             >
                               <X className='h-3 w-3' />
                             </button>
@@ -619,11 +619,11 @@ export function LeadFormPanel({
                       </div>
                     </div>
                     <div className='md:col-span-2 pt-2'>
-                      <Button
-                        type='button'
-                        variant='outline'
-                        className='w-full border-dashed border-white/20 text-foreground/70 hover:bg-white/5 hover:text-foreground'
-                      >
+                        <Button
+                          type='button'
+                          variant='outline'
+                          className='w-full border-dashed border-border text-muted-foreground hover:bg-muted/50 hover:text-foreground transition-all'
+                        >
                         <Paperclip className='mr-2 h-4 w-4' />
                         Attach Files (Visual Mockup)
                       </Button>
@@ -633,7 +633,7 @@ export function LeadFormPanel({
               </div>
 
               {/* Right Panel - Metadata & Actions */}
-              <div className='w-full md:w-[280px] bg-white/[0.02] p-6 flex flex-col gap-6'>
+              <div className='w-full md:w-[280px] bg-muted/10 p-6 flex flex-col gap-6'>
                 {/* Status Selector */}
                 <div className='space-y-2'>
                   <FormField
@@ -662,7 +662,7 @@ export function LeadFormPanel({
 
                 {/* Read Only Meta */}
                 {isEditMode && leadData && (
-                  <div className='space-y-3 rounded-lg border border-white/5 bg-white/5 p-4 text-xs'>
+                  <div className='space-y-3 rounded-xl border border-border bg-muted/20 p-4 text-xs'>
                     <div>
                       <div className='text-muted-foreground/80 mb-1'>Lead ID</div>
                       <div className='font-medium text-foreground'>
@@ -693,7 +693,7 @@ export function LeadFormPanel({
                         leadData.notes.map((note: any, idx: number) => (
                           <div
                             key={idx}
-                            className='rounded border border-white/10 bg-white/5 p-3 text-sm'
+                            className='rounded-xl border border-border bg-card p-3 text-sm shadow-sm'
                           >
                             <p className='text-foreground/80 whitespace-pre-wrap'>
                               {note.text}
@@ -722,7 +722,7 @@ export function LeadFormPanel({
                       <Button
                         type='button'
                         size='sm'
-                        className='w-full mt-2 bg-white/10 hover:bg-white/20 text-foreground'
+                        className='w-full mt-2 bg-muted hover:bg-muted/80 text-foreground'
                         onClick={handleAddNote}
                         disabled={!noteInput.trim()}
                       >
@@ -738,7 +738,7 @@ export function LeadFormPanel({
                     <h3 className='text-sm font-semibold text-foreground'>
                       Timeline
                     </h3>
-                    <div className='space-y-4 max-h-[200px] overflow-y-auto pr-1 relative before:absolute before:inset-0 before:ml-[9px] before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-white/10 before:to-transparent'>
+                    <div className='space-y-4 max-h-[200px] overflow-y-auto pr-1 relative before:absolute before:inset-0 before:ml-[9px] before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-border/50 before:to-transparent'>
                       {leadData.activityTimeline
                         .slice()
                         .reverse()
@@ -747,8 +747,8 @@ export function LeadFormPanel({
                             key={idx}
                             className='relative flex items-start justify-between gap-3'
                           >
-                            <div className='flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[oklch(0.15_0.02_260)] border border-white/20 ring-4 ring-[oklch(0.15_0.02_260)] z-10'>
-                              <Check className='h-3 w-3 text-foreground/60' />
+                            <div className='relative flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-card border border-border ring-4 ring-card z-10'>
+                              <Check className='h-3 w-3 text-primary' />
                             </div>
                             <div className='flex-1 space-y-1'>
                               <p className='text-xs font-medium text-foreground'>
@@ -774,12 +774,12 @@ export function LeadFormPanel({
           </Form>
         )}
 
-        <div className='flex items-center justify-end gap-3 border-t border-white/10 p-4 bg-black/20'>
+        <div className='flex items-center justify-end gap-3 border-t border-border p-5 bg-muted/20'>
           <Button
             type='button'
             variant='outline'
             onClick={() => onOpenChange(false)}
-            className='border-white/10 text-foreground hover:bg-white/10 bg-transparent'
+            className='border-border text-foreground hover:bg-muted bg-background h-10 px-6 rounded-xl'
           >
             Cancel
           </Button>
@@ -787,7 +787,7 @@ export function LeadFormPanel({
             type='submit'
             form='lead-form'
             disabled={isSubmitting || (isEditMode && isLoading)}
-            className='bg-gradient-to-r from-[oklch(0.60_0.22_260)] to-[oklch(0.55_0.25_285)] text-white hover:brightness-110 px-6'
+            className='bg-primary text-white hover:bg-primary/90 h-10 px-8 rounded-xl shadow-lg shadow-primary/20 transition-all font-bold'
           >
             {isSubmitting ? (
               <Loader2 className='mr-2 h-4 w-4 animate-spin' />

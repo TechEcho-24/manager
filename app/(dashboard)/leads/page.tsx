@@ -65,29 +65,27 @@ const fetcher = (url: string) => fetch(url).then((res) => res.json());
 // Status Color Mapping
 const getStatusColor = (status: string) => {
   const map: Record<string, string> = {
-    New: "bg-blue-500/10 text-blue-400 border-blue-500/20",
-    Contacted: "bg-purple-500/10 text-purple-400 border-purple-500/20",
-    Interested: "bg-green-500/10 text-green-400 border-green-500/20",
-    "Not Interested": "bg-gray-500/10 text-gray-400 border-gray-500/20",
-    "Follow-up Required":
-      "bg-orange-500/10 text-orange-400 border-orange-500/20",
-    Qualified: "bg-teal-500/10 text-teal-400 border-teal-500/20",
-    "Proposal Sent": "bg-indigo-500/10 text-indigo-400 border-indigo-500/20",
-    Negotiation: "bg-yellow-500/10 text-yellow-400 border-yellow-500/20",
-    "Converted (Won)":
-      "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
-    Lost: "bg-red-500/10 text-red-400 border-red-500/20",
+    New: "bg-blue-500/15 text-blue-700 dark:text-blue-400 border-blue-500/20",
+    Contacted: "bg-purple-500/15 text-purple-700 dark:text-purple-400 border-purple-500/20",
+    Interested: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/20",
+    "Not Interested": "bg-slate-500/15 text-slate-700 dark:text-slate-400 border-slate-500/20",
+    "Follow-up Required": "bg-orange-500/15 text-orange-700 dark:text-orange-400 border-orange-500/20",
+    Qualified: "bg-teal-500/15 text-teal-700 dark:text-teal-400 border-teal-500/20",
+    "Proposal Sent": "bg-indigo-500/15 text-indigo-700 dark:text-indigo-400 border-indigo-500/20",
+    Negotiation: "bg-yellow-500/15 text-yellow-700 dark:text-yellow-400 border-yellow-500/20",
+    "Converted (Won)": "bg-green-500/15 text-green-700 dark:text-green-400 border-green-500/20",
+    Lost: "bg-rose-500/15 text-rose-700 dark:text-rose-400 border-rose-500/20",
   };
-  return map[status] || "bg-white/10 text-foreground border-white/20";
+  return map[status] || "bg-muted text-muted-foreground border-border";
 };
 
 const getPriorityColor = (priority: string) => {
   const map: Record<string, string> = {
-    High: "bg-red-500/10 text-red-400",
-    Medium: "bg-yellow-500/10 text-yellow-400",
-    Low: "bg-blue-500/10 text-blue-400",
+    High: "bg-rose-500/15 text-rose-700 dark:text-rose-400",
+    Medium: "bg-amber-500/15 text-amber-700 dark:text-amber-400",
+    Low: "bg-blue-500/15 text-blue-700 dark:text-blue-400",
   };
-  return map[priority] || "bg-white/10 text-foreground";
+  return map[priority] || "bg-muted text-muted-foreground";
 };
 
 function LeadsPageContent() {
@@ -223,7 +221,7 @@ function LeadsPageContent() {
           </p>
         </div>
         <Button 
-          className='w-full bg-gradient-to-r from-[oklch(0.60_0.22_260)] to-[oklch(0.55_0.25_285)] text-white hover:brightness-110 sm:w-auto shadow-lg shadow-[oklch(0.45_0.20_270)]/30'
+          className='w-full bg-primary text-white hover:bg-primary/95 sm:w-auto shadow-lg shadow-primary/20 font-semibold'
           onClick={() => {
             setEditingLeadId(undefined);
             setIsFormOpen(true);
@@ -235,12 +233,12 @@ function LeadsPageContent() {
       </div>
 
       {/* Toolbar */}
-      <div className='flex flex-col gap-3 rounded-lg border border-border bg-white/[0.02] p-4 backdrop-blur-sm lg:flex-row lg:items-center'>
+      <div className='flex flex-col gap-3 rounded-xl border border-border bg-card p-4 shadow-sm lg:flex-row lg:items-center'>
         <div className='relative flex-1'>
-          <Search className='absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/80' />
+          <Search className='absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/50' />
           <Input
             placeholder='Search leads...'
-            className='pl-9 border-white/10 bg-white/5'
+            className='pl-9 border-border bg-muted/20 focus:bg-background focus:ring-4 focus:ring-primary/10 transition-all rounded-lg'
             value={searchTerm}
             onChange={(e) => {
               setSearchTerm(e.target.value);
@@ -320,7 +318,7 @@ function LeadsPageContent() {
               <Button
                 variant='outline'
                 size='sm'
-                className='h-8 border-white/10 text-foreground bg-transparent hover:bg-white/10'
+                className='h-8 border-border text-foreground bg-background hover:bg-muted font-medium'
               >
                 Change Status
               </Button>
@@ -354,7 +352,7 @@ function LeadsPageContent() {
       )}
 
       {/* Desktop Table */}
-      <div className='hidden rounded-lg border border-border bg-white/[0.02] md:block'>
+      <div className='hidden rounded-xl border border-border bg-card shadow-sm md:block overflow-hidden'>
         <Table>
           <TableHeader>
             <TableRow>
@@ -496,7 +494,7 @@ function LeadsPageContent() {
                       ? format(new Date(lead.nextFollowupDate), "MMM d, yyyy")
                       : "-"}
                   </TableCell>
-                  <TableCell className='text-sm text-foreground/70'>
+                  <TableCell className='text-sm text-foreground/80'>
                     {format(new Date(lead.createdAt), "MMM d, yyyy")}
                   </TableCell>
                   <TableCell className='text-right'>
@@ -504,7 +502,7 @@ function LeadsPageContent() {
                       <Button
                         variant='outline'
                         size='icon'
-                        className='h-8 w-8 border-white/10 bg-transparent hover:bg-white/10'
+                        className='h-8 w-8 border-border bg-background hover:bg-muted text-muted-foreground hover:text-foreground transition-colors'
                       >
                         <Eye className='h-4 w-4' />
                       </Button>
@@ -549,7 +547,7 @@ function LeadsPageContent() {
           leads.map((lead) => (
             <div
               key={lead.id}
-              className='rounded-lg border border-border bg-white/[0.02] p-4 relative'
+              className='rounded-xl border border-border bg-card p-5 relative shadow-sm hover:shadow-md transition-shadow'
             >
               <div className='absolute right-4 top-4'>
                 <Checkbox
@@ -701,7 +699,7 @@ function LeadsPageContent() {
           <Button
             variant='outline'
             onClick={() => setDeleteDialogOpen(false)}
-            className='border-white/10 bg-transparent text-foreground hover:bg-white/10 hover:text-foreground'
+            className='border-border bg-background text-foreground hover:bg-muted'
           >
             Cancel
           </Button>
