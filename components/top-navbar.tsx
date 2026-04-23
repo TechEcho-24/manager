@@ -1,0 +1,180 @@
+"use client";
+
+import { useState, useRef, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import useSWR from "swr";
+import { useDebounce } from "use-debounce";
+import { MobileSidebar } from "@/components/mobile-sidebar";
+import { Bell, Search, Zap, Loader2, User } from "lucide-react";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+
+const fetcher = (url: string) => fetch(url).then((res) => res.json());
+
+export function TopNavbar() {
+  const router = useRouter();
+  const userName = "Admin User";
+  const userInitials = "AU";
+
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [debouncedQuery] = useDebounce(searchQuery, 300);
+  const searchRef = useRef<HTMLDivElement>(null);
+
+  const { data, isLoading } = useSWR(
+    debouncedQuery ? `/api/leads?search=${encodeURIComponent(debouncedQuery)}&limit=5` : null,
+    fetcher
+  );
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
+        setIsSearchOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const handleResultClick = (leadId: string) => {
+    setIsSearchOpen(false);
+    setSearchQuery("");
+    router.push(`/leads?edit=${leadId}`);
+  };
+
+  const handleSearchSubmit = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter" && searchQuery.trim()) {
+      setIsSearchOpen(false);
+      router.push(`/leads?search=${encodeURIComponent(searchQuery.trim())}`);
+      setSearchQuery("");
+    }
+  };
+
+  return (
+    <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-white/[0.06] bg-[oklch(0.11_0.01_260)]/80 px-4 backdrop-blur-xl lg:px-6">
+      {/* Mobile menu button */}
+      <MobileSidebar />
+
+      {/* Logo (mobile only) */}
+      <div className="flex items-center gap-2 lg:hidden">
+        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-[oklch(0.65_0.25_260)] to-[oklch(0.55_0.28_290)]">
+          <Zap className="h-4 w-4 text-white" />
+        </div>
+        <span className="text-base font-bold tracking-tight text-white">
+          LeadPro
+        </span>
+      </div>
+
+      {/* Search bar */}
+      <div className="ml-auto flex-1 lg:ml-0 lg:max-w-md" ref={searchRef}>
+        <div className="relative hidden sm:block">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/30" />
+          <input
+            type="text"
+            placeholder="Search leads..."
+            className="h-9 w-full rounded-lg border border-white/[0.06] bg-white/[0.03] pl-9 pr-4 text-sm text-white placeholder:text-white/30 transition-colors focus:border-[oklch(0.55_0.20_260)]/40 focus:outline-none focus:ring-1 focus:ring-[oklch(0.55_0.20_260)]/20"
+            value={searchQuery}
+            onChange={(e) => {
+              setSearchQuery(e.target.value);
+              setIsSearchOpen(true);
+            }}
+            onFocus={() => setIsSearchOpen(true)}
+            onKeyDown={handleSearchSubmit}
+          />
+          
+          {/* Search Dropdown */}
+          {isSearchOpen && searchQuery.trim() !== "" && (
+            <div className="absolute top-full left-0 right-0 mt-2 rounded-lg border border-white/10 bg-[oklch(0.15_0.02_260)] shadow-2xl overflow-hidden z-50">
+              {isLoading && (
+                <div className="flex items-center justify-center p-4">
+                  <Loader2 className="h-5 w-5 animate-spin text-white/50" />
+                </div>
+              )}
+              
+              {!isLoading && data?.leads?.length === 0 && (
+                <div className="p-4 text-sm text-white/50 text-center">
+                  No leads found for "{debouncedQuery}"
+                </div>
+              )}
+
+              {!isLoading && data?.leads?.length > 0 && (
+                <div className="py-2">
+                  <div className="px-3 pb-2 text-xs font-semibold text-white/40 uppercase tracking-wider">
+                    Leads
+                  </div>
+                  {data.leads.map((lead: any) => (
+                    <button
+                      key={lead._id}
+                      className="w-full px-4 py-2 text-left hover:bg-white/5 flex flex-col items-start gap-1 transition-colors"
+                      onClick={() => handleResultClick(lead._id)}
+                    >
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium text-white">{lead.fullName}</span>
+                        {lead.company && (
+                          <span className="text-xs text-white/40">· {lead.company}</span>
+                        )}
+                      </div>
+                      <div className="text-xs text-white/50 flex items-center gap-2">
+                        <span>{lead.phone}</span>
+                        <span className="w-1 h-1 rounded-full bg-white/20" />
+                        <span className="text-[oklch(0.65_0.25_260)]">{lead.status}</span>
+                      </div>
+                    </button>
+                  ))}
+                  
+                  <div className="border-t border-white/5 mt-1 pt-1">
+                    <button 
+                      className="w-full px-4 py-2 text-xs text-center text-white/50 hover:text-white hover:bg-white/5 transition-colors"
+                      onClick={() => {
+                        setIsSearchOpen(false);
+                        router.push(`/leads?search=${encodeURIComponent(searchQuery.trim())}`);
+                        setSearchQuery("");
+                      }}
+                    >
+                      View all results
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Right side: search icon (mobile), notifications, avatar */}
+      <div className="flex items-center gap-1.5">
+        {/* Mobile search button */}
+        <button
+          className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-white/50 transition-colors hover:bg-white/[0.06] hover:text-white sm:hidden"
+          aria-label="Search"
+          onClick={() => {
+            router.push('/leads');
+          }}
+        >
+          <Search className="h-5 w-5" />
+        </button>
+
+        {/* Notifications */}
+        <button
+          className="relative inline-flex h-9 w-9 items-center justify-center rounded-lg text-white/50 transition-colors hover:bg-white/[0.06] hover:text-white"
+          aria-label="Notifications"
+        >
+          <Bell className="h-5 w-5" />
+          <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-[oklch(0.65_0.25_30)] ring-2 ring-[oklch(0.11_0.01_260)]" />
+        </button>
+
+        {/* User avatar */}
+        <div className="flex items-center gap-2.5 rounded-lg px-1.5 py-1 transition-colors hover:bg-white/[0.04]">
+          <Avatar className="h-8 w-8">
+            <AvatarFallback className="bg-gradient-to-br from-[oklch(0.55_0.20_260)] to-[oklch(0.50_0.22_290)] text-xs font-semibold text-white">
+              {userInitials}
+            </AvatarFallback>
+          </Avatar>
+          <span className="hidden text-sm font-medium text-white/70 md:block">
+            {userName}
+          </span>
+        </div>
+      </div>
+    </header>
+  );
+}
