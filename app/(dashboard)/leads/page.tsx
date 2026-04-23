@@ -78,7 +78,7 @@ const getStatusColor = (status: string) => {
       "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
     Lost: "bg-red-500/10 text-red-400 border-red-500/20",
   };
-  return map[status] || "bg-white/10 text-white border-white/20";
+  return map[status] || "bg-white/10 text-foreground border-white/20";
 };
 
 const getPriorityColor = (priority: string) => {
@@ -87,7 +87,7 @@ const getPriorityColor = (priority: string) => {
     Medium: "bg-yellow-500/10 text-yellow-400",
     Low: "bg-blue-500/10 text-blue-400",
   };
-  return map[priority] || "bg-white/10 text-white";
+  return map[priority] || "bg-white/10 text-foreground";
 };
 
 function LeadsPageContent() {
@@ -215,10 +215,10 @@ function LeadsPageContent() {
       {/* Header */}
       <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
         <div>
-          <h1 className='text-2xl font-bold tracking-tight text-white lg:text-3xl'>
+          <h1 className='text-2xl font-bold tracking-tight text-foreground lg:text-3xl'>
             Leads
           </h1>
-          <p className='mt-1 text-sm text-white/50'>
+          <p className='mt-1 text-sm text-muted-foreground'>
             Manage and track your sales leads.
           </p>
         </div>
@@ -235,9 +235,9 @@ function LeadsPageContent() {
       </div>
 
       {/* Toolbar */}
-      <div className='flex flex-col gap-3 rounded-lg border border-white/[0.06] bg-white/[0.02] p-4 backdrop-blur-sm lg:flex-row lg:items-center'>
+      <div className='flex flex-col gap-3 rounded-lg border border-border bg-white/[0.02] p-4 backdrop-blur-sm lg:flex-row lg:items-center'>
         <div className='relative flex-1'>
-          <Search className='absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40' />
+          <Search className='absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/80' />
           <Input
             placeholder='Search leads...'
             className='pl-9 border-white/10 bg-white/5'
@@ -310,8 +310,8 @@ function LeadsPageContent() {
 
       {/* Bulk Actions */}
       {selectedIds.size > 0 && (
-        <div className='flex items-center gap-3 rounded-lg border border-white/[0.06] bg-white/[0.05] px-4 py-2 animate-in slide-in-from-top-2'>
-          <span className='text-sm font-medium text-white'>
+        <div className='flex items-center gap-3 rounded-lg border border-border bg-card px-4 py-2 animate-in slide-in-from-top-2'>
+          <span className='text-sm font-medium text-foreground'>
             {selectedIds.size} selected
           </span>
           <div className='h-4 w-px bg-white/20' />
@@ -320,7 +320,7 @@ function LeadsPageContent() {
               <Button
                 variant='outline'
                 size='sm'
-                className='h-8 border-white/10 text-white bg-transparent hover:bg-white/10'
+                className='h-8 border-white/10 text-foreground bg-transparent hover:bg-white/10'
               >
                 Change Status
               </Button>
@@ -330,7 +330,7 @@ function LeadsPageContent() {
                 {LEAD_STATUSES.map((status) => (
                   <button
                     key={status}
-                    className='w-full rounded-md px-2 py-1.5 text-left text-sm text-white/80 hover:bg-white/10 hover:text-white'
+                    className='w-full rounded-md px-2 py-1.5 text-left text-sm text-foreground/80 hover:bg-white/10 hover:text-foreground'
                     onClick={() =>
                       handleStatusUpdate(Array.from(selectedIds), status)
                     }
@@ -354,7 +354,7 @@ function LeadsPageContent() {
       )}
 
       {/* Desktop Table */}
-      <div className='hidden rounded-lg border border-white/[0.06] bg-white/[0.02] md:block'>
+      <div className='hidden rounded-lg border border-border bg-white/[0.02] md:block'>
         <Table>
           <TableHeader>
             <TableRow>
@@ -368,7 +368,7 @@ function LeadsPageContent() {
                 />
               </TableHead>
               <TableHead
-                className='cursor-pointer hover:text-white'
+                className='cursor-pointer hover:text-foreground'
                 onClick={() => handleSort("fullName")}
               >
                 <div className='flex items-center gap-1'>
@@ -378,7 +378,7 @@ function LeadsPageContent() {
               <TableHead>Contact Info</TableHead>
               <TableHead>Source</TableHead>
               <TableHead
-                className='cursor-pointer hover:text-white'
+                className='cursor-pointer hover:text-foreground'
                 onClick={() => handleSort("status")}
               >
                 <div className='flex items-center gap-1'>
@@ -387,7 +387,7 @@ function LeadsPageContent() {
               </TableHead>
               <TableHead>Priority</TableHead>
               <TableHead
-                className='cursor-pointer hover:text-white'
+                className='cursor-pointer hover:text-foreground'
                 onClick={() => handleSort("nextFollowupDate")}
               >
                 <div className='flex items-center gap-1'>
@@ -395,7 +395,7 @@ function LeadsPageContent() {
                 </div>
               </TableHead>
               <TableHead
-                className='cursor-pointer hover:text-white'
+                className='cursor-pointer hover:text-foreground'
                 onClick={() => handleSort("createdAt")}
               >
                 <div className='flex items-center gap-1'>
@@ -416,7 +416,7 @@ function LeadsPageContent() {
               <TableRow>
                 <TableCell
                   colSpan={9}
-                  className='h-24 text-center text-white/50'
+                  className='h-24 text-center text-muted-foreground'
                 >
                   No leads found.
                 </TableCell>
@@ -435,20 +435,20 @@ function LeadsPageContent() {
                     />
                   </TableCell>
                   <TableCell>
-                    <div className='font-medium text-white'>
+                    <div className='font-medium text-foreground'>
                       {lead.fullName}
                     </div>
-                    <div className='text-xs text-white/50'>
+                    <div className='text-xs text-muted-foreground'>
                       {lead.company || "No Company"}
                     </div>
                   </TableCell>
                   <TableCell>
-                    <div className='text-sm text-white/80'>{lead.phone}</div>
-                    <div className='text-xs text-white/50'>
+                    <div className='text-sm text-foreground/80'>{lead.phone}</div>
+                    <div className='text-xs text-muted-foreground'>
                       {lead.email || "No Email"}
                     </div>
                   </TableCell>
-                  <TableCell className='text-sm text-white/70'>
+                  <TableCell className='text-sm text-foreground/70'>
                     {lead.leadSource || "-"}
                   </TableCell>
                   <TableCell>
@@ -462,13 +462,13 @@ function LeadsPageContent() {
                       </PopoverTrigger>
                       <PopoverContent align='center' className='w-[200px] p-2'>
                         <div className='space-y-1'>
-                          <div className='px-2 pb-2 text-xs font-semibold text-white/50'>
+                          <div className='px-2 pb-2 text-xs font-semibold text-muted-foreground'>
                             Change Status
                           </div>
                           {LEAD_STATUSES.map((status) => (
                             <button
                               key={status}
-                              className='flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm text-white/80 hover:bg-white/10 hover:text-white'
+                              className='flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm text-foreground/80 hover:bg-white/10 hover:text-foreground'
                               onClick={() =>
                                 handleStatusUpdate([lead.id], status)
                               }
@@ -491,12 +491,12 @@ function LeadsPageContent() {
                       {lead.priority}
                     </Badge>
                   </TableCell>
-                  <TableCell className='text-sm text-white/70'>
+                  <TableCell className='text-sm text-foreground/70'>
                     {lead.nextFollowupDate
                       ? format(new Date(lead.nextFollowupDate), "MMM d, yyyy")
                       : "-"}
                   </TableCell>
-                  <TableCell className='text-sm text-white/70'>
+                  <TableCell className='text-sm text-foreground/70'>
                     {format(new Date(lead.createdAt), "MMM d, yyyy")}
                   </TableCell>
                   <TableCell className='text-right'>
@@ -542,14 +542,14 @@ function LeadsPageContent() {
       {/* Mobile Cards View */}
       <div className='grid grid-cols-1 gap-4 md:hidden'>
         {isLoading ? (
-          <div className='py-8 text-center text-white/50'>Loading leads...</div>
+          <div className='py-8 text-center text-muted-foreground'>Loading leads...</div>
         ) : leads.length === 0 ? (
-          <div className='py-8 text-center text-white/50'>No leads found.</div>
+          <div className='py-8 text-center text-muted-foreground'>No leads found.</div>
         ) : (
           leads.map((lead) => (
             <div
               key={lead.id}
-              className='rounded-lg border border-white/[0.06] bg-white/[0.02] p-4 relative'
+              className='rounded-lg border border-border bg-white/[0.02] p-4 relative'
             >
               <div className='absolute right-4 top-4'>
                 <Checkbox
@@ -559,19 +559,19 @@ function LeadsPageContent() {
                 />
               </div>
               <div className='mb-3 pr-8'>
-                <h3 className='font-semibold text-white'>{lead.fullName}</h3>
-                <p className='text-sm text-white/60'>
+                <h3 className='font-semibold text-foreground'>{lead.fullName}</h3>
+                <p className='text-sm text-foreground/60'>
                   {lead.company || "No Company"}
                 </p>
               </div>
 
               <div className='mb-4 grid grid-cols-2 gap-y-2 text-sm'>
                 <div>
-                  <span className='text-white/40'>Phone:</span>
-                  <div className='text-white/80'>{lead.phone}</div>
+                  <span className='text-muted-foreground/80'>Phone:</span>
+                  <div className='text-foreground/80'>{lead.phone}</div>
                 </div>
                 <div>
-                  <span className='text-white/40'>Status:</span>
+                  <span className='text-muted-foreground/80'>Status:</span>
                   <div>
                     <Badge className={getStatusColor(lead.status)}>
                       {lead.status}
@@ -579,7 +579,7 @@ function LeadsPageContent() {
                   </div>
                 </div>
                 <div>
-                  <span className='text-white/40'>Priority:</span>
+                  <span className='text-muted-foreground/80'>Priority:</span>
                   <div>
                     <Badge
                       variant='outline'
@@ -590,8 +590,8 @@ function LeadsPageContent() {
                   </div>
                 </div>
                 <div>
-                  <span className='text-white/40'>Follow-up:</span>
-                  <div className='text-white/80'>
+                  <span className='text-muted-foreground/80'>Follow-up:</span>
+                  <div className='text-foreground/80'>
                     {lead.nextFollowupDate
                       ? format(new Date(lead.nextFollowupDate), "MMM d")
                       : "-"}
@@ -599,7 +599,7 @@ function LeadsPageContent() {
                 </div>
               </div>
 
-              <div className='flex items-center gap-2 pt-3 border-t border-white/[0.06]'>
+              <div className='flex items-center gap-2 pt-3 border-t border-border'>
                 <Button
                   variant='outline'
                   size='sm'
@@ -649,16 +649,16 @@ function LeadsPageContent() {
       {/* Pagination */}
       {!isLoading && totalLeads > 0 && (
         <div className='flex flex-col items-center justify-between gap-4 sm:flex-row'>
-          <p className='text-sm text-white/50'>
+          <p className='text-sm text-muted-foreground'>
             Showing{" "}
-            <span className='font-medium text-white'>
+            <span className='font-medium text-foreground'>
               {(page - 1) * 20 + 1}
             </span>{" "}
             to{" "}
-            <span className='font-medium text-white'>
+            <span className='font-medium text-foreground'>
               {Math.min(page * 20, totalLeads)}
             </span>{" "}
-            of <span className='font-medium text-white'>{totalLeads}</span>{" "}
+            of <span className='font-medium text-foreground'>{totalLeads}</span>{" "}
             leads
           </p>
           <div className='flex gap-2'>
@@ -667,11 +667,11 @@ function LeadsPageContent() {
               size='sm'
               onClick={() => setPage((p) => Math.max(1, p - 1))}
               disabled={page === 1}
-              className='border-white/10 bg-white/5 text-white hover:bg-white/10 disabled:opacity-50'
+              className='border-white/10 bg-white/5 text-foreground hover:bg-white/10 disabled:opacity-50'
             >
               <ChevronLeft className='h-4 w-4' />
             </Button>
-            <div className='flex items-center px-3 py-1 rounded-md border border-white/10 bg-white/5 text-sm font-medium text-white'>
+            <div className='flex items-center px-3 py-1 rounded-md border border-white/10 bg-white/5 text-sm font-medium text-foreground'>
               Page {page} of {totalPages}
             </div>
             <Button
@@ -679,7 +679,7 @@ function LeadsPageContent() {
               size='sm'
               onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
               disabled={page === totalPages}
-              className='border-white/10 bg-white/5 text-white hover:bg-white/10 disabled:opacity-50'
+              className='border-white/10 bg-white/5 text-foreground hover:bg-white/10 disabled:opacity-50'
             >
               <ChevronRight className='h-4 w-4' />
             </Button>
@@ -701,7 +701,7 @@ function LeadsPageContent() {
           <Button
             variant='outline'
             onClick={() => setDeleteDialogOpen(false)}
-            className='border-white/10 bg-transparent text-white hover:bg-white/10 hover:text-white'
+            className='border-white/10 bg-transparent text-foreground hover:bg-white/10 hover:text-foreground'
           >
             Cancel
           </Button>
@@ -714,7 +714,7 @@ function LeadsPageContent() {
                 handleDelete(Array.from(selectedIds));
               }
             }}
-            className='bg-red-500 hover:bg-red-600 text-white'
+            className='bg-red-500 hover:bg-red-600 text-foreground'
           >
             Delete
           </Button>
@@ -733,7 +733,7 @@ function LeadsPageContent() {
 
 export default function LeadsPage() {
   return (
-    <Suspense fallback={<div className="p-8 text-center text-white/50">Loading leads...</div>}>
+    <Suspense fallback={<div className="p-8 text-center text-muted-foreground">Loading leads...</div>}>
       <LeadsPageContent />
     </Suspense>
   );

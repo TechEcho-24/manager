@@ -230,14 +230,14 @@ export function LeadFormPanel({
       showCloseButton={false}
     >
         <div className='flex shrink-0 items-center justify-between border-b border-white/10 px-6 py-4'>
-          <h2 className='text-xl font-bold text-white'>
+          <h2 className='text-xl font-bold text-foreground'>
             {isEditMode ? "Edit Lead" : "Add New Lead"}
           </h2>
           <Button
             variant='ghost'
             size='icon'
             onClick={() => onOpenChange(false)}
-            className='h-8 w-8 text-white/50 hover:bg-white/10 hover:text-white rounded-full'
+            className='h-8 w-8 text-muted-foreground hover:bg-white/10 hover:text-foreground rounded-full'
           >
             <X className='h-4 w-4' />
           </Button>
@@ -245,7 +245,7 @@ export function LeadFormPanel({
 
         {isLoading && isEditMode ? (
           <div className='flex-1 flex items-center justify-center'>
-            <Loader2 className='h-8 w-8 animate-spin text-white/50' />
+            <Loader2 className='h-8 w-8 animate-spin text-muted-foreground' />
           </div>
         ) : (
           <Form {...form}>
@@ -580,7 +580,7 @@ export function LeadFormPanel({
                                 className='[&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:inset-0 [&::-webkit-calendar-picker-indicator]:w-full [&::-webkit-calendar-picker-indicator]:cursor-pointer'
                                 {...field}
                               />
-                              <CalendarIcon className='absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40 pointer-events-none' />
+                              <CalendarIcon className='absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/80 pointer-events-none' />
                             </div>
                           </FormControl>
                           <FormMessage />
@@ -608,7 +608,7 @@ export function LeadFormPanel({
                         ))}
                       </div>
                       <div className='relative'>
-                        <TagIcon className='absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40' />
+                        <TagIcon className='absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/80' />
                         <Input
                           placeholder='Type a tag and press Enter'
                           className='pl-9'
@@ -622,7 +622,7 @@ export function LeadFormPanel({
                       <Button
                         type='button'
                         variant='outline'
-                        className='w-full border-dashed border-white/20 text-white/70 hover:bg-white/5 hover:text-white'
+                        className='w-full border-dashed border-white/20 text-foreground/70 hover:bg-white/5 hover:text-foreground'
                       >
                         <Paperclip className='mr-2 h-4 w-4' />
                         Attach Files (Visual Mockup)
@@ -664,20 +664,20 @@ export function LeadFormPanel({
                 {isEditMode && leadData && (
                   <div className='space-y-3 rounded-lg border border-white/5 bg-white/5 p-4 text-xs'>
                     <div>
-                      <div className='text-white/40 mb-1'>Lead ID</div>
-                      <div className='font-medium text-white'>
+                      <div className='text-muted-foreground/80 mb-1'>Lead ID</div>
+                      <div className='font-medium text-foreground'>
                         {leadData.leadId}
                       </div>
                     </div>
                     <div>
-                      <div className='text-white/40 mb-1'>Created On</div>
-                      <div className='text-white/80'>
+                      <div className='text-muted-foreground/80 mb-1'>Created On</div>
+                      <div className='text-foreground/80'>
                         {format(new Date(leadData.createdAt), "PPP p")}
                       </div>
                     </div>
                     <div>
-                      <div className='text-white/40 mb-1'>Last Updated</div>
-                      <div className='text-white/80'>
+                      <div className='text-muted-foreground/80 mb-1'>Last Updated</div>
+                      <div className='text-foreground/80'>
                         {format(new Date(leadData.updatedAt), "PPP p")}
                       </div>
                     </div>
@@ -687,7 +687,7 @@ export function LeadFormPanel({
                 {/* Notes Section */}
                 {isEditMode && (
                   <div className='space-y-3 flex-1 flex flex-col'>
-                    <h3 className='text-sm font-semibold text-white'>Notes</h3>
+                    <h3 className='text-sm font-semibold text-foreground'>Notes</h3>
                     <div className='space-y-2 flex-1 overflow-y-auto pr-1'>
                       {leadData?.notes && leadData.notes.length > 0 ? (
                         leadData.notes.map((note: any, idx: number) => (
@@ -695,10 +695,10 @@ export function LeadFormPanel({
                             key={idx}
                             className='rounded border border-white/10 bg-white/5 p-3 text-sm'
                           >
-                            <p className='text-white/80 whitespace-pre-wrap'>
+                            <p className='text-foreground/80 whitespace-pre-wrap'>
                               {note.text}
                             </p>
-                            <div className='mt-2 text-[10px] text-white/40'>
+                            <div className='mt-2 text-[10px] text-muted-foreground/80'>
                               {format(
                                 new Date(note.createdAt),
                                 "MMM d, h:mm a",
@@ -707,7 +707,7 @@ export function LeadFormPanel({
                           </div>
                         ))
                       ) : (
-                        <div className='text-xs text-white/40 italic'>
+                        <div className='text-xs text-muted-foreground/80 italic'>
                           No notes added yet.
                         </div>
                       )}
@@ -722,7 +722,7 @@ export function LeadFormPanel({
                       <Button
                         type='button'
                         size='sm'
-                        className='w-full mt-2 bg-white/10 hover:bg-white/20 text-white'
+                        className='w-full mt-2 bg-white/10 hover:bg-white/20 text-foreground'
                         onClick={handleAddNote}
                         disabled={!noteInput.trim()}
                       >
@@ -735,7 +735,7 @@ export function LeadFormPanel({
                 {/* Activity Timeline */}
                 {isEditMode && leadData?.activityTimeline && (
                   <div className='space-y-3 pt-4 border-t border-white/10'>
-                    <h3 className='text-sm font-semibold text-white'>
+                    <h3 className='text-sm font-semibold text-foreground'>
                       Timeline
                     </h3>
                     <div className='space-y-4 max-h-[200px] overflow-y-auto pr-1 relative before:absolute before:inset-0 before:ml-[9px] before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-white/10 before:to-transparent'>
@@ -748,16 +748,16 @@ export function LeadFormPanel({
                             className='relative flex items-start justify-between gap-3'
                           >
                             <div className='flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[oklch(0.15_0.02_260)] border border-white/20 ring-4 ring-[oklch(0.15_0.02_260)] z-10'>
-                              <Check className='h-3 w-3 text-white/60' />
+                              <Check className='h-3 w-3 text-foreground/60' />
                             </div>
                             <div className='flex-1 space-y-1'>
-                              <p className='text-xs font-medium text-white'>
+                              <p className='text-xs font-medium text-foreground'>
                                 {activity.action}
                               </p>
-                              <p className='text-[10px] text-white/50'>
+                              <p className='text-[10px] text-muted-foreground'>
                                 {activity.description}
                               </p>
-                              <p className='text-[10px] text-white/30'>
+                              <p className='text-[10px] text-foreground/30'>
                                 {format(
                                   new Date(activity.createdAt),
                                   "MMM d, h:mm a",
@@ -779,7 +779,7 @@ export function LeadFormPanel({
             type='button'
             variant='outline'
             onClick={() => onOpenChange(false)}
-            className='border-white/10 text-white hover:bg-white/10 bg-transparent'
+            className='border-white/10 text-foreground hover:bg-white/10 bg-transparent'
           >
             Cancel
           </Button>

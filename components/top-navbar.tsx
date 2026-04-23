@@ -7,6 +7,7 @@ import { useDebounce } from "use-debounce";
 import { MobileSidebar } from "@/components/mobile-sidebar";
 import { Bell, Search, Zap, Loader2, User } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
@@ -51,16 +52,16 @@ export function TopNavbar() {
   };
 
   return (
-    <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-white/[0.06] bg-[oklch(0.11_0.01_260)]/80 px-4 backdrop-blur-xl lg:px-6">
+    <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-border bg-background/80 px-4 backdrop-blur-xl lg:px-6">
       {/* Mobile menu button */}
       <MobileSidebar />
 
       {/* Logo (mobile only) */}
       <div className="flex items-center gap-2 lg:hidden">
         <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-[oklch(0.65_0.25_260)] to-[oklch(0.55_0.28_290)]">
-          <Zap className="h-4 w-4 text-white" />
+          <Zap className="h-4 w-4 text-foreground" />
         </div>
-        <span className="text-base font-bold tracking-tight text-white">
+        <span className="text-base font-bold tracking-tight text-[oklch(0.60_0.22_260)]">
           LeadPro
         </span>
       </div>
@@ -68,11 +69,11 @@ export function TopNavbar() {
       {/* Search bar */}
       <div className="ml-auto flex-1 lg:ml-0 lg:max-w-md" ref={searchRef}>
         <div className="relative hidden sm:block">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/30" />
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground/50" />
           <input
             type="text"
             placeholder="Search leads..."
-            className="h-9 w-full rounded-lg border border-white/[0.06] bg-white/[0.03] pl-9 pr-4 text-sm text-white placeholder:text-white/30 transition-colors focus:border-[oklch(0.55_0.20_260)]/40 focus:outline-none focus:ring-1 focus:ring-[oklch(0.55_0.20_260)]/20"
+            className="h-9 w-full rounded-lg border border-border bg-muted/30 pl-9 pr-4 text-sm text-foreground placeholder:text-muted-foreground/50 transition-colors focus:border-primary/40 focus:outline-none focus:ring-1 focus:ring-primary/20"
             value={searchQuery}
             onChange={(e) => {
               setSearchQuery(e.target.value);
@@ -84,22 +85,22 @@ export function TopNavbar() {
           
           {/* Search Dropdown */}
           {isSearchOpen && searchQuery.trim() !== "" && (
-            <div className="absolute top-full left-0 right-0 mt-2 rounded-lg border border-white/10 bg-[oklch(0.15_0.02_260)] shadow-2xl overflow-hidden z-50">
+            <div className="absolute top-full left-0 right-0 mt-2 rounded-lg border border-border bg-popover shadow-2xl overflow-hidden z-50">
               {isLoading && (
                 <div className="flex items-center justify-center p-4">
-                  <Loader2 className="h-5 w-5 animate-spin text-white/50" />
+                  <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
                 </div>
               )}
               
               {!isLoading && data?.leads?.length === 0 && (
-                <div className="p-4 text-sm text-white/50 text-center">
+                <div className="p-4 text-sm text-muted-foreground text-center">
                   No leads found for "{debouncedQuery}"
                 </div>
               )}
 
               {!isLoading && data?.leads?.length > 0 && (
                 <div className="py-2">
-                  <div className="px-3 pb-2 text-xs font-semibold text-white/40 uppercase tracking-wider">
+                  <div className="px-3 pb-2 text-xs font-semibold text-muted-foreground/80 uppercase tracking-wider">
                     Leads
                   </div>
                   {data.leads.map((lead: any) => (
@@ -109,12 +110,12 @@ export function TopNavbar() {
                       onClick={() => handleResultClick(lead._id)}
                     >
                       <div className="flex items-center gap-2">
-                        <span className="text-sm font-medium text-white">{lead.fullName}</span>
+                        <span className="text-sm font-medium text-foreground">{lead.fullName}</span>
                         {lead.company && (
-                          <span className="text-xs text-white/40">· {lead.company}</span>
+                          <span className="text-xs text-muted-foreground/80">· {lead.company}</span>
                         )}
                       </div>
-                      <div className="text-xs text-white/50 flex items-center gap-2">
+                      <div className="text-xs text-muted-foreground flex items-center gap-2">
                         <span>{lead.phone}</span>
                         <span className="w-1 h-1 rounded-full bg-white/20" />
                         <span className="text-[oklch(0.65_0.25_260)]">{lead.status}</span>
@@ -124,7 +125,7 @@ export function TopNavbar() {
                   
                   <div className="border-t border-white/5 mt-1 pt-1">
                     <button 
-                      className="w-full px-4 py-2 text-xs text-center text-white/50 hover:text-white hover:bg-white/5 transition-colors"
+                      className="w-full px-4 py-2 text-xs text-center text-muted-foreground hover:text-foreground hover:bg-white/5 transition-colors"
                       onClick={() => {
                         setIsSearchOpen(false);
                         router.push(`/leads?search=${encodeURIComponent(searchQuery.trim())}`);
@@ -142,10 +143,10 @@ export function TopNavbar() {
       </div>
 
       {/* Right side: search icon (mobile), notifications, avatar */}
-      <div className="flex items-center gap-1.5">
+      <div className="ml-auto flex items-center gap-1.5">
         {/* Mobile search button */}
         <button
-          className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-white/50 transition-colors hover:bg-white/[0.06] hover:text-white sm:hidden"
+          className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-white/[0.06] hover:text-foreground sm:hidden"
           aria-label="Search"
           onClick={() => {
             router.push('/leads');
@@ -154,9 +155,12 @@ export function TopNavbar() {
           <Search className="h-5 w-5" />
         </button>
 
+        {/* Theme Toggle */}
+        <ThemeToggle />
+
         {/* Notifications */}
         <button
-          className="relative inline-flex h-9 w-9 items-center justify-center rounded-lg text-white/50 transition-colors hover:bg-white/[0.06] hover:text-white"
+          className="relative inline-flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-white/[0.06] hover:text-foreground"
           aria-label="Notifications"
         >
           <Bell className="h-5 w-5" />
@@ -164,13 +168,13 @@ export function TopNavbar() {
         </button>
 
         {/* User avatar */}
-        <div className="flex items-center gap-2.5 rounded-lg px-1.5 py-1 transition-colors hover:bg-white/[0.04]">
+        <div className="flex items-center gap-2.5 rounded-lg px-1.5 py-1 transition-colors hover:bg-muted">
           <Avatar className="h-8 w-8">
-            <AvatarFallback className="bg-gradient-to-br from-[oklch(0.55_0.20_260)] to-[oklch(0.50_0.22_290)] text-xs font-semibold text-white">
+            <AvatarFallback className="bg-gradient-to-br from-primary to-primary/80 text-xs font-semibold text-primary-foreground">
               {userInitials}
             </AvatarFallback>
           </Avatar>
-          <span className="hidden text-sm font-medium text-white/70 md:block">
+          <span className="hidden text-sm font-medium text-muted-foreground md:block">
             {userName}
           </span>
         </div>

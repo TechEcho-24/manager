@@ -1,7 +1,8 @@
 import mongoose from "mongoose";
-import dotenv from "dotenv";
-dotenv.config({ path: ".env.local" });
+
 const MONGODB_URI = process.env.MONGODB_URI!;
+
+console.log("MONGODB_URI check:", MONGODB_URI ? "Defined (Length: " + MONGODB_URI.length + ")" : "Undefined");
 
 if (!MONGODB_URI) {
   throw new Error(

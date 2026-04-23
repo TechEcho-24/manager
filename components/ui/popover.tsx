@@ -71,7 +71,7 @@ export function PopoverContent({ children, className, align = "center" }: { chil
   return (
     <div
       className={cn(
-        "absolute top-full z-50 mt-2 w-72 rounded-md border border-white/10 bg-[oklch(0.15_0.02_260)] p-4 text-white shadow-md outline-none animate-in fade-in zoom-in-95",
+        "absolute top-full z-50 mt-2 w-72 rounded-md border border-white/10 bg-[oklch(0.15_0.02_260)] p-4 text-foreground shadow-md outline-none animate-in fade-in zoom-in-95",
         alignments[align],
         className
       )}

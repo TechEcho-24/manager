@@ -13,7 +13,7 @@ export default function DashboardLayout({
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   return (
-    <div className="min-h-dvh bg-[oklch(0.11_0.01_260)]">
+    <div className="min-h-dvh bg-background">
       {/* Desktop sidebar */}
       <Sidebar
         collapsed={sidebarCollapsed}

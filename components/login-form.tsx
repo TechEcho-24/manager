@@ -53,19 +53,19 @@ export default function LoginForm() {
       {/* Logo */}
       <div className="mb-8 flex items-center justify-center gap-3">
         <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-[oklch(0.65_0.25_260)] to-[oklch(0.55_0.28_290)] shadow-lg shadow-[oklch(0.50_0.20_270)]/25">
-          <Zap className="h-6 w-6 text-white" />
+          <Zap className="h-6 w-6 text-foreground" />
         </div>
-        <h1 className="text-3xl font-bold tracking-tight text-white">
+        <h1 className="text-3xl font-bold tracking-tight text-foreground">
           LeadPro
         </h1>
       </div>
 
-      <Card className="border-white/[0.08] bg-white/[0.04] shadow-2xl shadow-black/40 backdrop-blur-xl">
+      <Card className="border-border bg-card shadow-2xl">
         <CardHeader className="space-y-1 pb-4 text-center">
-          <CardTitle className="text-xl font-semibold text-white">
+          <CardTitle className="text-xl font-semibold text-foreground">
             Welcome back
           </CardTitle>
-          <CardDescription className="text-white/50">
+          <CardDescription className="text-muted-foreground">
             Sign in to access your dashboard
           </CardDescription>
         </CardHeader>
@@ -80,7 +80,7 @@ export default function LoginForm() {
             )}
 
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-sm text-white/70">
+              <Label htmlFor="email" className="text-sm text-foreground/60">
                 Email
               </Label>
               <Input
@@ -91,12 +91,12 @@ export default function LoginForm() {
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 disabled={isLoading}
-                className="h-11 border-white/[0.08] bg-white/[0.04] text-white placeholder:text-white/30 focus:border-[oklch(0.65_0.25_260)] focus:ring-[oklch(0.65_0.25_260)]/20"
+                className="h-11 border-border bg-muted/20 text-foreground placeholder:text-muted-foreground/40 focus:border-primary focus:ring-primary/20"
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password" className="text-sm text-white/70">
+              <Label htmlFor="password" className="text-sm text-foreground/60">
                 Password
               </Label>
               <div className="relative">
@@ -108,12 +108,12 @@ export default function LoginForm() {
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   disabled={isLoading}
-                  className="h-11 border-white/[0.08] bg-white/[0.04] pr-10 text-white placeholder:text-white/30 focus:border-[oklch(0.65_0.25_260)] focus:ring-[oklch(0.65_0.25_260)]/20"
+                  className="h-11 border-border bg-muted/20 pr-10 text-foreground placeholder:text-muted-foreground/40 focus:border-primary focus:ring-primary/20"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 transition-colors hover:text-white/70"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground/40 transition-colors hover:text-foreground/70"
                   tabIndex={-1}
                 >
                   {showPassword ? (
@@ -143,7 +143,7 @@ export default function LoginForm() {
         </CardContent>
       </Card>
 
-      <p className="mt-6 text-center text-xs text-white/30">
+      <p className="mt-6 text-center text-xs text-muted-foreground/30">
         LeadPro CRM &copy; {new Date().getFullYear()}. All rights reserved.
       </p>
     </div>

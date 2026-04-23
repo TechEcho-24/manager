@@ -152,10 +152,14 @@ export async function GET() {
       }
     });
 
-  } catch (error) {
-    console.error("Dashboard Stats Error:", error);
+  } catch (error: any) {
+    console.error("Dashboard Stats Error Detail:", {
+      message: error.message,
+      stack: error.stack,
+      name: error.name
+    });
     return NextResponse.json(
-      { error: "Failed to fetch dashboard statistics" },
+      { error: "Failed to fetch dashboard statistics", details: error.message },
       { status: 500 }
     );
   }

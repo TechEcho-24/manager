@@ -27,7 +27,7 @@ export function Dialog({ open, onOpenChange, children, contentClassName, showClo
             onClick={() => onOpenChange(false)}
             className="absolute right-4 top-4 z-50 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none"
           >
-            <X className="h-4 w-4 text-white" />
+            <X className="h-4 w-4 text-foreground" />
             <span className="sr-only">Close</span>
           </button>
         )}
@@ -46,9 +46,9 @@ export function DialogFooter({ className, ...props }: React.HTMLAttributes<HTMLD
 }
 
 export function DialogTitle({ className, ...props }: React.HTMLAttributes<HTMLHeadingElement>) {
-  return <h2 className={cn("text-lg font-semibold leading-none tracking-tight text-white", className)} {...props} />;
+  return <h2 className={cn("text-lg font-semibold leading-none tracking-tight text-foreground", className)} {...props} />;
 }
 
 export function DialogDescription({ className, ...props }: React.HTMLAttributes<HTMLParagraphElement>) {
-  return <p className={cn("text-sm text-white/60", className)} {...props} />;
+  return <p className={cn("text-sm text-foreground/60", className)} {...props} />;
 }

@@ -94,7 +94,7 @@ export default function DashboardPage() {
 
   if (error || !data) {
     return (
-      <div className="flex h-[calc(100vh-80px)] flex-col items-center justify-center gap-3 text-white/50">
+      <div className="flex h-[calc(100vh-80px)] flex-col items-center justify-center gap-3 text-muted-foreground">
         <AlertCircle className="h-10 w-10 text-red-500/50" />
         <p>{error || "Something went wrong"}</p>
       </div>
@@ -156,10 +156,10 @@ export default function DashboardPage() {
     <div className="space-y-6">
       {/* Page header */}
       <div>
-        <h1 className="text-2xl font-bold tracking-tight text-white lg:text-3xl">
+        <h1 className="text-2xl font-bold tracking-tight text-foreground lg:text-3xl">
           Dashboard
         </h1>
-        <p className="mt-1 text-sm text-white/50">
+        <p className="mt-1 text-sm text-muted-foreground">
           Welcome back! Here&apos;s your sales overview.
         </p>
       </div>
@@ -169,21 +169,21 @@ export default function DashboardPage() {
         {statCards.map((stat) => (
           <Card
             key={stat.title}
-            className="border-white/[0.06] bg-white/[0.03] backdrop-blur-sm transition-colors hover:bg-white/[0.05]"
+            className="border-border bg-card shadow-sm transition-all hover:bg-card/80 hover:shadow-md"
           >
             <CardContent className="p-4 lg:p-5">
               <div className="flex items-start justify-between">
                 <div
                   className={`flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br ${stat.color} shadow-lg lg:h-10 lg:w-10`}
                 >
-                  <stat.icon className="h-4 w-4 text-white lg:h-5 lg:w-5" />
+                  <stat.icon className="h-4 w-4 text-foreground lg:h-5 lg:w-5" />
                 </div>
               </div>
               <div className="mt-3">
-                <p className="text-xl font-bold text-white lg:text-2xl">
+                <p className="text-xl font-bold text-[oklch(0.60_0.22_260)] lg:text-2xl">
                   {stat.value}
                 </p>
-                <p className="mt-0.5 text-xs text-white/40">{stat.title}</p>
+                <p className="mt-0.5 text-xs text-foreground/60">{stat.title}</p>
               </div>
             </CardContent>
           </Card>
@@ -192,22 +192,22 @@ export default function DashboardPage() {
 
       {/* Charts */}
       <div className="grid gap-4 lg:grid-cols-2">
-        <Card className="border-white/[0.06] bg-white/[0.03] backdrop-blur-sm">
+        <Card className="border-border bg-card shadow-sm">
           <CardHeader>
-            <CardTitle className="text-base font-semibold text-white">
+            <CardTitle className="text-base font-semibold text-foreground">
               Leads by Status
             </CardTitle>
           </CardHeader>
           <CardContent className="h-[300px] w-full px-4 pb-4">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={data.charts.leadsByStatus} margin={{ left: -20, right: 10, top: 10, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
-                <XAxis dataKey="status" stroke="rgba(255,255,255,0.4)" fontSize={12} tickLine={false} axisLine={false} />
-                <YAxis stroke="rgba(255,255,255,0.4)" fontSize={12} tickLine={false} axisLine={false} />
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
+                <XAxis dataKey="status" stroke="var(--foreground)" opacity={0.6} fontSize={12} tickLine={false} axisLine={false} />
+                <YAxis stroke="var(--foreground)" opacity={0.6} fontSize={12} tickLine={false} axisLine={false} />
                 <RechartsTooltip 
-                  cursor={{ fill: 'rgba(255,255,255,0.05)' }} 
-                  contentStyle={{ backgroundColor: 'rgba(20,20,20,0.9)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px' }}
-                  itemStyle={{ color: '#fff' }}
+                  cursor={{ fill: 'var(--muted)' }} 
+                  contentStyle={{ backgroundColor: 'var(--popover)', border: '1px solid var(--border)', borderRadius: '8px' }}
+                  itemStyle={{ color: 'var(--popover-foreground)' }}
                 />
                 <Bar dataKey="count" fill="oklch(0.60 0.22 260)" radius={[4, 4, 0, 0]} />
               </BarChart>
@@ -215,23 +215,23 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
 
-        <Card className="border-white/[0.06] bg-white/[0.03] backdrop-blur-sm">
+        <Card className="border-border bg-card shadow-sm">
           <CardHeader>
-            <CardTitle className="text-base font-semibold text-white">
+            <CardTitle className="text-base font-semibold text-foreground">
               Leads Added (Last 30 Days)
             </CardTitle>
           </CardHeader>
           <CardContent className="h-[300px] w-full px-4 pb-4">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={data.charts.leadsPerDay} margin={{ left: -20, right: 10, top: 10, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
-                <XAxis dataKey="date" stroke="rgba(255,255,255,0.4)" fontSize={12} tickLine={false} axisLine={false} minTickGap={20} />
-                <YAxis stroke="rgba(255,255,255,0.4)" fontSize={12} tickLine={false} axisLine={false} />
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
+                <XAxis dataKey="date" stroke="var(--foreground)" opacity={0.6} fontSize={12} tickLine={false} axisLine={false} minTickGap={20} />
+                <YAxis stroke="var(--foreground)" opacity={0.6} fontSize={12} tickLine={false} axisLine={false} />
                 <RechartsTooltip 
-                  contentStyle={{ backgroundColor: 'rgba(20,20,20,0.9)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px' }}
-                  itemStyle={{ color: '#fff' }}
+                  contentStyle={{ backgroundColor: 'var(--popover)', border: '1px solid var(--border)', borderRadius: '8px' }}
+                  itemStyle={{ color: 'var(--popover-foreground)' }}
                 />
-                <Line type="monotone" dataKey="count" stroke="oklch(0.65 0.20 160)" strokeWidth={2} dot={false} activeDot={{ r: 4 }} />
+                <Line type="monotone" dataKey="count" stroke="oklch(0.60 0.22 260)" strokeWidth={2} dot={false} activeDot={{ r: 4 }} />
               </LineChart>
             </ResponsiveContainer>
           </CardContent>
@@ -240,9 +240,9 @@ export default function DashboardPage() {
 
       {/* Lists */}
       <div className="grid gap-4 lg:grid-cols-2">
-        <Card className="border-white/[0.06] bg-white/[0.03] backdrop-blur-sm">
+        <Card className="border-border bg-card shadow-sm">
           <CardHeader>
-            <CardTitle className="text-base font-semibold text-white">
+            <CardTitle className="text-base font-semibold text-foreground">
               Recent Activity
             </CardTitle>
           </CardHeader>
@@ -250,31 +250,31 @@ export default function DashboardPage() {
             {data.lists.recentActivity.length > 0 ? (
               data.lists.recentActivity.map((activity) => (
                 <div key={activity.id} className="flex items-start gap-3">
-                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white/[0.05]">
-                    <Clock className="h-4 w-4 text-white/40" />
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-muted">
+                    <Clock className="h-4 w-4 text-muted-foreground" />
                   </div>
                   <div className="flex-1 space-y-1">
-                    <p className="text-sm font-medium leading-none text-white/90">
+                    <p className="text-sm font-medium leading-none text-foreground/90">
                       {activity.name}
                     </p>
-                    <p className="text-xs text-white/50">
+                    <p className="text-xs text-muted-foreground">
                       {activity.action} • {activity.status}
                     </p>
                   </div>
-                  <div className="text-xs text-white/40">
+                  <div className="text-xs text-muted-foreground">
                     {formatDistanceToNow(new Date(activity.time), { addSuffix: true })}
                   </div>
                 </div>
               ))
             ) : (
-              <p className="text-center text-sm text-white/40">No recent activity.</p>
+              <p className="text-center text-sm text-muted-foreground/80">No recent activity.</p>
             )}
           </CardContent>
         </Card>
 
-        <Card className="border-white/[0.06] bg-white/[0.03] backdrop-blur-sm">
+        <Card className="border-border bg-card shadow-sm">
           <CardHeader>
-            <CardTitle className="text-base font-semibold text-white">
+            <CardTitle className="text-base font-semibold text-foreground">
               Upcoming Follow-ups
             </CardTitle>
           </CardHeader>
@@ -283,24 +283,24 @@ export default function DashboardPage() {
               data.lists.upcomingFollowUps.map((followup) => (
                 <div key={followup.id} className="flex items-start gap-3">
                   <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-[oklch(0.65_0.22_40)] to-[oklch(0.58_0.20_25)]">
-                    <PhoneCall className="h-4 w-4 text-white" />
+                    <PhoneCall className="h-4 w-4 text-foreground" />
                   </div>
                   <div className="flex-1 space-y-1">
-                    <p className="text-sm font-medium leading-none text-white/90">
+                    <p className="text-sm font-medium leading-none text-foreground/90">
                       {followup.name}
                     </p>
-                    <p className="text-xs text-white/50">
+                    <p className="text-xs text-muted-foreground">
                       {followup.company || "No company"} • {followup.status}
                     </p>
                   </div>
-                  <div className="text-right text-xs text-white/40">
-                    <div className="font-medium text-white/80">{format(new Date(followup.date), "MMM d")}</div>
+                  <div className="text-right text-xs text-muted-foreground">
+                    <div className="font-medium text-foreground/80">{format(new Date(followup.date), "MMM d")}</div>
                     <div>{format(new Date(followup.date), "h:mm a")}</div>
                   </div>
                 </div>
               ))
             ) : (
-              <p className="text-center text-sm text-white/40">No upcoming follow-ups.</p>
+              <p className="text-center text-sm text-muted-foreground">No upcoming follow-ups.</p>
             )}
           </CardContent>
         </Card>

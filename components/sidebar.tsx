@@ -63,8 +63,8 @@ function NavLink({
       className={cn(
         "group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200",
         isActive
-          ? "bg-[oklch(0.60_0.22_260)]/15 text-[oklch(0.78_0.15_260)] shadow-sm"
-          : "text-white/50 hover:bg-white/[0.04] hover:text-white/80",
+          ? "bg-primary/15 text-primary shadow-sm"
+          : "text-sidebar-foreground/50 hover:bg-sidebar-accent hover:text-sidebar-foreground/80",
         collapsed && "justify-center px-2"
       )}
     >
@@ -72,8 +72,8 @@ function NavLink({
         className={cn(
           "h-[18px] w-[18px] shrink-0 transition-colors",
           isActive
-            ? "text-[oklch(0.70_0.20_260)]"
-            : "text-white/40 group-hover:text-white/70"
+            ? "text-primary"
+            : "text-sidebar-foreground/40 group-hover:text-sidebar-foreground/70"
         )}
       />
       {!collapsed && (
@@ -105,22 +105,22 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
     <TooltipProvider delay={0}>
       <aside
         className={cn(
-          "fixed left-0 top-0 z-40 hidden h-dvh flex-col border-r border-white/[0.06] bg-[oklch(0.13_0.01_260)] transition-all duration-300 lg:flex",
+          "fixed left-0 top-0 z-40 hidden h-dvh flex-col border-r border-sidebar-border bg-sidebar transition-all duration-300 lg:flex",
           collapsed ? "w-[68px]" : "w-[240px]"
         )}
       >
         {/* Logo */}
         <div
           className={cn(
-            "flex h-16 items-center border-b border-white/[0.06] px-4",
+            "flex h-16 items-center border-b border-sidebar-border px-4",
             collapsed ? "justify-center" : "gap-3"
           )}
         >
           <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-[oklch(0.65_0.25_260)] to-[oklch(0.55_0.28_290)] shadow-md shadow-[oklch(0.50_0.20_270)]/20">
-            <Zap className="h-4 w-4 text-white" />
+            <Zap className="h-4 w-4 text-foreground" />
           </div>
           {!collapsed && (
-            <span className="text-lg font-bold tracking-tight text-white animate-in fade-in duration-200">
+            <span className="text-lg font-bold tracking-tight text-[oklch(0.60_0.22_260)] animate-in fade-in duration-200">
               LeadPro
             </span>
           )}
@@ -141,7 +141,7 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
         </nav>
 
         {/* Bottom section */}
-        <div className="border-t border-white/[0.06] p-3">
+        <div className="border-t border-sidebar-border p-3">
           {bottomNavItems.map((item) => (
             <NavLink
               key={item.href}
@@ -157,7 +157,7 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
           <button
             onClick={onToggle}
             className={cn(
-              "mt-2 flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-white/40 transition-all duration-200 hover:bg-white/[0.04] hover:text-white/70",
+              "mt-2 flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-sidebar-foreground/40 transition-all duration-200 hover:bg-sidebar-accent hover:text-sidebar-foreground/70",
               collapsed && "justify-center px-2"
             )}
           >
