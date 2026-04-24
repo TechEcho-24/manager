@@ -172,7 +172,7 @@ export function TopNavbar() {
 
         {/* User avatar & Logout */}
         <button 
-          onClick={() => signOut()}
+          onClick={() => signOut({ callbackUrl: "/login", redirect: true })}
           className="group flex items-center gap-2.5 rounded-xl px-2 py-1.5 transition-all hover:bg-destructive/10"
           title="Sign Out"
         >

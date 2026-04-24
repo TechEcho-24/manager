@@ -24,12 +24,18 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           return null;
         }
 
-        // Hardcoded for troubleshooting
-        const adminEmail = "anujsachan98@gmail.com";
-        const adminPasswordHash = "$2b$10$ySZ4ROaFvIl2kMHuGGYV9u6NThK5iYlhygTgT6uzbfEV7pSe3ynma";
+        const adminEmail = process.env.ADMIN_EMAIL;
+        const adminPasswordHash = process.env.ADMIN_PASSWORD_HASH;
 
-        console.log("--- Auth Debug (Hardcoded) ---");
+        console.log("--- Auth Debug ---");
         console.log("Incoming Email:", email);
+        console.log("Admin Email:", adminEmail);
+        console.log("Hash present:", !!adminPasswordHash);
+
+        if (!adminEmail || !adminPasswordHash) {
+          console.error("Admin credentials not configured in environment");
+          return null;
+        }
 
         if (email !== adminEmail) {
           console.log("Email mismatch!");
