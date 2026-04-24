@@ -107,7 +107,7 @@ export function LeadFormPanel({
       leadSource: "Website Form",
       campaignName: "",
       referredBy: "",
-      product: "Product A",
+      product: "Shopify",
       requirementDescription: "",
       budget: "Under ₹10K",
       quantity: "",
@@ -147,7 +147,7 @@ export function LeadFormPanel({
         leadSource: leadData.leadSource || "Website Form",
         campaignName: leadData.campaignName || "",
         referredBy: leadData.referredBy || "",
-        product: leadData.product || "Product A",
+        product: leadData.product || "Shopify",
         requirementDescription: leadData.requirementDescription || "",
         budget: leadData.budget || "Under ₹10K",
         quantity: leadData.quantity || "",
@@ -460,11 +460,11 @@ export function LeadFormPanel({
                           <FormLabel>Interested Product/Service *</FormLabel>
                           <FormControl>
                             <Select {...field}>
-                              <option value='Product A'>Product A</option>
-                              <option value='Product B'>Product B</option>
-                              <option value='Service X'>Service X</option>
-                              <option value='Service Y'>Service Y</option>
-                              <option value='Custom'>Custom</option>
+                              <option value='Shopify'>Shopify</option>
+                              <option value='WordPress'>WordPress</option>
+                              <option value='Custom Website'>Custom Website</option>
+                              <option value='Organic Marketing'>Organic Marketing</option>
+                              <option value='Digital Marketing'>Digital Marketing</option>
                             </Select>
                           </FormControl>
                           <FormMessage />
