@@ -61,15 +61,15 @@ const leadFormSchema = z.object({
   tags: z.array(z.string()).optional(),
   status: z.string(),
   dealDetails: z.object({
-    totalValue: z.coerce.number().default(0),
-    receivedAmount: z.coerce.number().default(0),
-    paymentPlan: z.enum(['one-time', 'monthly', 'milestones']).default('one-time'),
+    totalValue: z.number(),
+    receivedAmount: z.number(),
+    paymentPlan: z.enum(['one-time', 'monthly', 'milestones']),
     installments: z.array(z.object({
-      amount: z.coerce.number(),
+      amount: z.number(),
       dueDate: z.string(),
-      status: z.enum(['pending', 'paid']).default('pending'),
-    })).default([]),
-  }).optional(),
+      status: z.enum(['pending', 'paid']),
+    })),
+  }),
 });
 
 type LeadFormValues = z.infer<typeof leadFormSchema>;
@@ -94,8 +94,9 @@ export function LeadFormPanel({
   const [tagInput, setTagInput] = useState("");
   const [noteInput, setNoteInput] = useState("");
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const form = useForm<LeadFormValues>({
-    resolver: zodResolver(leadFormSchema),
+    resolver: zodResolver(leadFormSchema) as any,
     defaultValues: {
       fullName: "",
       phone: "",
@@ -226,10 +227,24 @@ export function LeadFormPanel({
       const url = isEditMode ? `/api/leads/${leadId}` : "/api/leads";
       const method = isEditMode ? "PATCH" : "POST";
 
+      // Ensure financial fields are numbers before sending
+      const payload = {
+        ...values,
+        dealDetails: {
+          ...values.dealDetails,
+          totalValue: Number(values.dealDetails.totalValue) || 0,
+          receivedAmount: Number(values.dealDetails.receivedAmount) || 0,
+          installments: (values.dealDetails.installments || []).map((inst) => ({
+            ...inst,
+            amount: Number(inst.amount) || 0,
+          })),
+        },
+      };
+
       const res = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(values),
+        body: JSON.stringify(payload),
       });
 
       if (!res.ok) {
