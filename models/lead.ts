@@ -45,6 +45,19 @@ export interface ILead extends Document {
     createdBy?: string;
   }[];
   
+  dealDetails?: {
+    totalValue: number;
+    receivedAmount: number;
+    paymentPlan: 'one-time' | 'monthly' | 'milestones';
+    installments: {
+      amount: number;
+      dueDate: Date;
+      status: 'pending' | 'paid';
+      paidAt?: Date;
+      reminderSentAt?: Date;
+    }[];
+  };
+
   createdAt: Date;
   updatedAt: Date;
 }
@@ -105,10 +118,37 @@ const LeadSchema = new Schema<ILead>(
         createdBy: { type: String },
       },
     ],
+    dealDetails: {
+      totalValue: { type: Number, default: 0 },
+      receivedAmount: { type: Number, default: 0 },
+      paymentPlan: { 
+        type: String, 
+        enum: ['one-time', 'monthly', 'milestones'],
+        default: 'one-time' 
+      },
+      installments: [
+        {
+          amount: { type: Number, required: true },
+          dueDate: { type: Date, required: true },
+          status: { 
+            type: String, 
+            enum: ['pending', 'paid'], 
+            default: 'pending' 
+          },
+          paidAt: { type: Date },
+          reminderSentAt: { type: Date },
+        },
+      ],
+    },
   },
   {
     timestamps: true,
   }
 );
+
+// Clear the model from mongoose if we need to force a schema update in dev
+if (process.env.NODE_ENV === 'development') {
+  delete mongoose.models.Lead;
+}
 
 export const Lead = mongoose.models.Lead || mongoose.model<ILead>("Lead", LeadSchema);

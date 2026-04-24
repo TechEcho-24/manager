@@ -43,14 +43,27 @@ export async function PATCH(
 
     // Determine what changed for the timeline
     const changes: string[] = [];
-    if (data.status && data.status !== lead.status) changes.push(`Status changed to ${data.status}`);
+    if (data.status && data.status !== lead.status) {
+      changes.push(`Status changed to ${data.status}`);
+      if (data.status === "Converted (Won)") changes.push("Deal closed! Financial tracking enabled.");
+    }
     if (data.priority && data.priority !== lead.priority) changes.push(`Priority changed to ${data.priority}`);
     if (data.assignedTo && data.assignedTo !== lead.assignedTo) changes.push(`Reassigned to ${data.assignedTo}`);
+    
+    // Financial tracking
+    if (data.dealDetails && JSON.stringify(data.dealDetails) !== JSON.stringify(lead.dealDetails)) {
+       changes.push("Financial details or payment plan updated");
+    }
     
     const description = changes.length > 0 ? changes.join(", ") : "Lead details updated";
 
     // Update fields
-    Object.assign(lead, data);
+    lead.set(data);
+    
+    // Explicitly handle dealDetails if it's in the data to ensure Mongoose marks it as modified
+    if (data.dealDetails) {
+      lead.markModified('dealDetails');
+    }
     
     // Add activity if requested or if something meaningful changed
     if (changes.length > 0 || data.forceActivityLog) {

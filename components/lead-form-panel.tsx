@@ -14,8 +14,12 @@ import {
   Tag as TagIcon,
   Paperclip,
   Check,
+  Zap,
+  Mail,
+  Trash2,
 } from "lucide-react";
 
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -56,6 +60,16 @@ const leadFormSchema = z.object({
   nextFollowupDate: z.string().optional(),
   tags: z.array(z.string()).optional(),
   status: z.string(),
+  dealDetails: z.object({
+    totalValue: z.coerce.number().default(0),
+    receivedAmount: z.coerce.number().default(0),
+    paymentPlan: z.enum(['one-time', 'monthly', 'milestones']).default('one-time'),
+    installments: z.array(z.object({
+      amount: z.coerce.number(),
+      dueDate: z.string(),
+      status: z.enum(['pending', 'paid']).default('pending'),
+    })).default([]),
+  }).optional(),
 });
 
 type LeadFormValues = z.infer<typeof leadFormSchema>;
@@ -104,6 +118,12 @@ export function LeadFormPanel({
       nextFollowupDate: "",
       tags: [],
       status: "New",
+      dealDetails: {
+        totalValue: 0,
+        receivedAmount: 0,
+        paymentPlan: 'one-time',
+        installments: [],
+      },
     },
   });
 
@@ -140,6 +160,12 @@ export function LeadFormPanel({
           : "",
         tags: leadData.tags || [],
         status: leadData.status || "New",
+        dealDetails: leadData.dealDetails || {
+          totalValue: 0,
+          receivedAmount: 0,
+          paymentPlan: 'one-time',
+          installments: [],
+        },
       });
     } else if (!isEditMode) {
       form.reset();
@@ -630,6 +656,169 @@ export function LeadFormPanel({
                     </div>
                   </div>
                 </div>
+                {/* Deal Details - Only for Converted Leads */}
+                {form.watch("status") === "Converted (Won)" && (
+                  <div className='space-y-6 pt-4 border-t border-border mt-4'>
+                    <div className="flex items-center gap-2">
+                       <Zap className="h-4 w-4 text-primary" />
+                       <h3 className='text-sm font-bold text-foreground uppercase tracking-wider'>
+                        Deal & Payment Tracking
+                      </h3>
+                    </div>
+                    
+                    <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
+                      <FormField
+                        control={form.control}
+                        name='dealDetails.totalValue'
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Deal Value (₹)</FormLabel>
+                            <FormControl>
+                              <Input type="number" className="h-10 rounded-xl bg-primary/5 font-bold text-primary" {...field} />
+                            </FormControl>
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name='dealDetails.receivedAmount'
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Received (₹)</FormLabel>
+                            <FormControl>
+                              <Input type="number" className="h-10 rounded-xl bg-emerald-500/5 font-bold text-emerald-600" {...field} />
+                            </FormControl>
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name='dealDetails.paymentPlan'
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Payment Plan</FormLabel>
+                            <FormControl>
+                              <Select {...field} className="rounded-xl">
+                                <option value='one-time'>One-time</option>
+                                <option value='monthly'>Monthly</option>
+                                <option value='milestones'>Milestones</option>
+                              </Select>
+                            </FormControl>
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <div className="space-y-1">
+                          <FormLabel className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Payment Milestones / Installments</FormLabel>
+                          {form.watch("dealDetails.installments") && form.watch("dealDetails.installments").length > 0 && (
+                            <div className={cn(
+                              "text-[10px] font-bold px-2 py-0.5 rounded-full border",
+                              (form.watch("dealDetails.installments").reduce((acc, curr) => acc + (Number(curr.amount) || 0), 0)) === Number(form.watch("dealDetails.totalValue"))
+                                ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20"
+                                : "bg-amber-500/10 text-amber-600 border-amber-500/20"
+                            )}>
+                              Milestone Total: ₹{form.watch("dealDetails.installments").reduce((acc, curr) => acc + (Number(curr.amount) || 0), 0).toLocaleString()} 
+                              {form.watch("dealDetails.installments").reduce((acc, curr) => acc + (Number(curr.amount) || 0), 0) !== Number(form.watch("dealDetails.totalValue")) && 
+                                ` (Mismatch: Total Deal Value is ₹${Number(form.watch("dealDetails.totalValue")).toLocaleString()})`}
+                            </div>
+                          )}
+                        </div>
+                        <Button 
+                          type="button" 
+                          variant="outline" 
+                          size="sm" 
+                          className="h-7 text-[10px] uppercase font-bold border-primary/20 text-primary hover:bg-primary/5"
+                          onClick={() => {
+                            const current = form.getValues("dealDetails.installments") || [];
+                            form.setValue("dealDetails.installments", [
+                              ...current, 
+                              { amount: 0, dueDate: new Date().toISOString().split('T')[0], status: 'pending' }
+                            ]);
+                          }}
+                        >
+                          + Add Milestone
+                        </Button>
+                      </div>
+
+                      <div className="space-y-3">
+                        {form.watch("dealDetails.installments")?.map((_, index) => (
+                          <div key={index} className="flex gap-3 items-end bg-muted/20 p-3 rounded-xl border border-border">
+                            <FormField
+                              control={form.control}
+                              name={`dealDetails.installments.${index}.dueDate`}
+                              render={({ field }) => (
+                                <FormItem className="flex-1">
+                                  <FormLabel className="text-[10px] uppercase text-muted-foreground">Due Date</FormLabel>
+                                  <FormControl>
+                                    <Input type="date" className="h-8 text-xs rounded-lg" {...field} />
+                                  </FormControl>
+                                </FormItem>
+                              )}
+                            />
+                            <FormField
+                              control={form.control}
+                              name={`dealDetails.installments.${index}.amount`}
+                              render={({ field }) => (
+                                <FormItem className="flex-1">
+                                  <FormLabel className="text-[10px] uppercase text-muted-foreground">Amount (₹)</FormLabel>
+                                  <FormControl>
+                                    <Input type="number" className="h-8 text-xs rounded-lg font-bold" {...field} />
+                                  </FormControl>
+                                </FormItem>
+                              )}
+                            />
+                            <FormField
+                              control={form.control}
+                              name={`dealDetails.installments.${index}.status`}
+                              render={({ field }) => (
+                                <FormItem className="w-[100px]">
+                                  <FormLabel className="text-[10px] uppercase text-muted-foreground">Status</FormLabel>
+                                  <FormControl>
+                                    <Select {...field} className="h-8 text-xs rounded-lg">
+                                      <option value="pending">Pending</option>
+                                      <option value="paid">Paid</option>
+                                    </Select>
+                                  </FormControl>
+                                </FormItem>
+                              )}
+                            />
+                            <div className="flex gap-1 mb-[2px]">
+                               <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                className="h-7 w-7 text-primary hover:bg-primary/10 rounded-lg"
+                                title="Send Reminder"
+                              >
+                                <Mail className="h-3.5 w-3.5" />
+                              </Button>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                className="h-7 w-7 text-rose-500 hover:bg-rose-500/10 rounded-lg"
+                                onClick={() => {
+                                  const current = form.getValues("dealDetails.installments");
+                                  form.setValue("dealDetails.installments", current.filter((_, i) => i !== index));
+                                }}
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </Button>
+                            </div>
+                          </div>
+                        ))}
+                        {(!form.watch("dealDetails.installments") || form.watch("dealDetails.installments").length === 0) && (
+                          <div className="text-center py-6 border-2 border-dashed border-border rounded-2xl text-muted-foreground">
+                            <p className="text-xs italic">No payment milestones added yet</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Right Panel - Metadata & Actions */}
