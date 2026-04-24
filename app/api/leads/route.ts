@@ -63,6 +63,33 @@ export async function GET(request: Request) {
       }
     }
 
+    // Follow-up specific filters
+    const hasFollowup = searchParams.get("hasFollowup");
+    if (hasFollowup === "true") {
+      query.nextFollowupDate = { $exists: true, $ne: "" };
+    } else if (hasFollowup === "false") {
+      query.$or = [
+        { nextFollowupDate: { $exists: false } },
+        { nextFollowupDate: "" },
+        { nextFollowupDate: null }
+      ];
+    }
+
+    const followUpRange = searchParams.get("followUpRange");
+    if (followUpRange) {
+      const now = startOfDay(new Date());
+      if (followUpRange === "Overdue") {
+        query.nextFollowupDate = { $lt: now.toISOString() };
+      } else if (followUpRange === "Today") {
+        query.nextFollowupDate = { 
+          $gte: now.toISOString(), 
+          $lte: endOfDay(now).toISOString() 
+        };
+      } else if (followUpRange === "Upcoming") {
+        query.nextFollowupDate = { $gt: endOfDay(now).toISOString() };
+      }
+    }
+
     const [leads, total] = await Promise.all([
       Lead.find(query).sort(sortOptions).skip(skip).limit(limit).lean(),
       Lead.countDocuments(query),
