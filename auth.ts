@@ -24,19 +24,20 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           return null;
         }
 
-        const adminEmail = process.env.ADMIN_EMAIL;
-        const adminPasswordHash = process.env.ADMIN_PASSWORD_HASH;
+        // Hardcoded for troubleshooting
+        const adminEmail = "anujsachan98@gmail.com";
+        const adminPasswordHash = "$2b$10$ySZ4ROaFvIl2kMHuGGYV9u6NThK5iYlhygTgT6uzbfEV7pSe3ynma";
 
-        if (!adminEmail || !adminPasswordHash) {
-          console.error("Admin credentials not configured in environment");
-          return null;
-        }
+        console.log("--- Auth Debug (Hardcoded) ---");
+        console.log("Incoming Email:", email);
 
         if (email !== adminEmail) {
+          console.log("Email mismatch!");
           return null;
         }
 
         const isValid = await compare(password, adminPasswordHash);
+        console.log("Password Valid:", isValid);
 
         if (!isValid) {
           return null;

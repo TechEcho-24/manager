@@ -6,14 +6,13 @@ import { useRouter } from "next/navigation";
 import {
   Card,
   CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Zap, Eye, EyeOff, Loader2, AlertCircle } from "lucide-react";
+import { Zap, Eye, EyeOff, Loader2, AlertCircle, ShieldCheck, ArrowRight, Star, Mail, Lock } from "lucide-react";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { cn } from "@/lib/utils";
 
 export default function LoginForm() {
   const router = useRouter();
@@ -36,7 +35,7 @@ export default function LoginForm() {
       });
 
       if (result?.error) {
-        setError("Invalid email or password. Please try again.");
+        setError("Invalid credentials. Please verify your email and password.");
       } else {
         router.push("/dashboard");
         router.refresh();
@@ -49,113 +48,176 @@ export default function LoginForm() {
   };
 
   return (
-    <div className="w-full max-w-[420px] animate-in fade-in slide-in-from-bottom-4 duration-700">
-      {/* Logo */}
-      <div className="mb-10 flex flex-col items-center justify-center gap-4">
-        <div className="relative">
-          <div className="absolute -inset-2 rounded-2xl bg-primary/20 blur-md" />
-          <div className="relative flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-primary/80 shadow-xl shadow-primary/25">
-            <Zap className="h-7 w-7 text-white" />
+    <div className="flex w-full max-w-[1100px] flex-col lg:flex-row overflow-hidden rounded-[3rem] border border-white/20 bg-[#0a0a1a]/40 shadow-[0_40px_80px_-15px_rgba(0,0,0,0.8)] backdrop-blur-[40px] animate-in fade-in zoom-in-95 duration-1000">
+      
+      {/* Left Branding Side */}
+      <div className="relative hidden lg:flex flex-1 flex-col p-12 overflow-hidden border-r border-white/10">
+        {/* Actual Image Background Overlay */}
+        <div className="absolute inset-0 z-0">
+          <img 
+            src="/Users/anujsachan/.gemini/antigravity/brain/56d62cc0-ef67-49a3-9d61-361d1a42db1c/crm_dashboard_preview_1777041620913.png" 
+            alt="Dashboard Preview" 
+            className="w-full h-full object-cover opacity-60 scale-105"
+          />
+          <div className="absolute inset-0 bg-gradient-to-br from-[#050510]/95 via-[#050510]/40 to-transparent" />
+          <div className="absolute inset-0 bg-indigo-500/10 mix-blend-overlay" />
+        </div>
+
+        <div className="relative z-10">
+          <div className="flex items-center gap-3 mb-12">
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-600 shadow-[0_0_20px_rgba(79,70,229,0.6)]">
+              <Zap className="h-6 w-6 text-white" />
+            </div>
+            <span className="text-2xl font-black tracking-tighter text-white uppercase italic">LeadPro</span>
+          </div>
+          
+          <div className="space-y-8">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-500/20 border border-indigo-500/30 text-indigo-300 text-[10px] font-black uppercase tracking-widest backdrop-blur-md">
+              <Star className="h-3 w-3 fill-current" />
+              Trusted by 500+ Sales Teams
+            </div>
+            <h2 className="text-6xl font-black text-white leading-[1.1] tracking-tight drop-shadow-2xl">
+              Focus on <br/>
+              <span className="text-transparent bg-clip-text bg-[linear-gradient(135deg,#818cf8_0%,#c084fc_50%,#22d3ee_100%)]">Closing Deals.</span>
+            </h2>
+            <p className="text-xl text-white/70 max-w-[380px] font-medium leading-relaxed drop-shadow-lg">
+              Automate your workflow, track every interaction, and grow your revenue with AI-powered insights.
+            </p>
           </div>
         </div>
-        <h1 className="text-4xl font-extrabold tracking-tight text-foreground">
-          LeadPro
-        </h1>
-        <div className="h-1 w-12 rounded-full bg-primary/20" />
+
+        <div className="mt-auto relative z-10 flex flex-col gap-8">
+          <div className="flex items-center gap-3 text-white/80 drop-shadow-md">
+            <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+            <span className="text-xs font-bold uppercase tracking-widest">Active System Security</span>
+          </div>
+          
+          <div className="flex items-center gap-5">
+            <div className="flex -space-x-3">
+               {[
+                 "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=100&auto=format&fit=crop",
+                 "https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=100&auto=format&fit=crop",
+                 "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=100&auto=format&fit=crop",
+                 "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=100&auto=format&fit=crop"
+               ].map((url, i) => (
+                 <Avatar key={i} className="h-12 w-12 border-2 border-white/10 shadow-2xl transition-transform hover:translate-y-[-4px] hover:z-20">
+                   <AvatarImage src={url} alt={`User ${i}`} />
+                   <AvatarFallback className="bg-indigo-900 font-bold text-white">U{i}</AvatarFallback>
+                 </Avatar>
+               ))}
+               <div className="flex h-12 w-12 items-center justify-center rounded-full border-2 border-white/10 bg-indigo-600 text-[10px] font-black text-white shadow-2xl">
+                 +12k
+               </div>
+            </div>
+            <div className="flex flex-col">
+              <span className="text-xs font-black text-white uppercase tracking-widest">Powering Growth</span>
+              <span className="text-[10px] font-bold text-white/40 uppercase tracking-[0.2em]">Live Connections</span>
+            </div>
+          </div>
+        </div>
       </div>
 
-      <Card className="overflow-hidden border-border/40 bg-card/80 shadow-2xl backdrop-blur-xl">
-        <div className="h-1.5 w-full bg-gradient-to-r from-primary/80 via-primary to-primary/80" />
-        <CardHeader className="space-y-1.5 pb-6 pt-8 text-center">
-          <CardTitle className="text-2xl font-bold tracking-tight text-foreground">
-            Welcome back
-          </CardTitle>
-          <CardDescription className="text-muted-foreground/80">
-            Enter your credentials to manage your leads
-          </CardDescription>
-        </CardHeader>
+      {/* Right Login Side */}
+      <div className="flex-1 p-8 sm:p-12 lg:p-16 flex flex-col justify-center bg-white/[0.02]">
+        <div className="mb-10">
+          <div className="inline-flex items-center gap-2 mb-4 px-3 py-1 rounded-lg bg-indigo-500/10 border border-indigo-500/20">
+            <ShieldCheck className="h-4 w-4 text-indigo-400" />
+            <span className="text-[10px] font-black text-indigo-400 uppercase tracking-widest">Verified Endpoint</span>
+          </div>
+          <h1 className="text-4xl font-black text-white mb-2 tracking-tight">System Login</h1>
+          <p className="text-sm font-bold text-indigo-400/60 uppercase tracking-[0.25em] italic">Elite CRM Terminal</p>
+        </div>
 
-        <CardContent className="pb-8">
-          <form onSubmit={handleSubmit} className="space-y-5">
-            {error && (
-              <div className="flex items-center gap-2 rounded-xl border border-destructive/20 bg-destructive/10 px-4 py-3 text-sm text-destructive animate-in zoom-in-95 duration-300">
-                <AlertCircle className="h-4 w-4 shrink-0" />
-                {error}
+        <form onSubmit={handleSubmit} className="space-y-7">
+          {error && (
+            <div className="flex items-center gap-3 rounded-2xl border border-red-500/30 bg-red-500/10 px-6 py-5 text-sm text-red-400 animate-in slide-in-from-top-2 duration-300">
+              <AlertCircle className="h-5 w-5 shrink-0" />
+              <span className="font-bold">{error}</span>
+            </div>
+          )}
+
+          <div className="space-y-3">
+            <Label htmlFor="email" className="text-[10px] font-black uppercase tracking-[0.3em] text-white/30 ml-1">
+              Terminal ID (Email)
+            </Label>
+            <div className="relative group">
+              <div className="absolute left-5 top-1/2 -translate-y-1/2 text-white/20 transition-colors group-focus-within:text-indigo-400">
+                <Mail className="h-5 w-5" />
               </div>
-            )}
-
-            <div className="space-y-2">
-              <Label htmlFor="email" className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                Email Address
-              </Label>
               <Input
                 id="email"
                 type="email"
-                placeholder="admin@leadpro.com"
+                placeholder="admin@leadpro.io"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 disabled={isLoading}
-                className="h-12 rounded-xl border-border/40 bg-muted/30 px-4 transition-all focus:border-primary/40 focus:bg-background focus:ring-4 focus:ring-primary/10"
+                className="h-16 rounded-2xl border-white/5 bg-white/[0.03] pl-14 pr-6 transition-all focus:border-indigo-500/50 focus:bg-white/[0.06] focus:ring-[6px] focus:ring-indigo-500/10 text-white font-bold text-lg placeholder:text-white/10"
               />
             </div>
+          </div>
 
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="password" className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                  Password
-                </Label>
-                <button type="button" className="text-xs font-medium text-primary hover:underline">
-                  Forgot?
-                </button>
-              </div>
-              <div className="relative">
-                <Input
-                  id="password"
-                  type={showPassword ? "text" : "password"}
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  disabled={isLoading}
-                  className="h-12 rounded-xl border-border/40 bg-muted/30 pl-4 pr-12 transition-all focus:border-primary/40 focus:bg-background focus:ring-4 focus:ring-primary/10"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground/30 transition-colors hover:text-primary"
-                  tabIndex={-1}
-                >
-                  {showPassword ? (
-                    <EyeOff className="h-5 w-5" />
-                  ) : (
-                    <Eye className="h-5 w-5" />
-                  )}
-                </button>
-              </div>
+          <div className="space-y-3">
+            <div className="flex items-center justify-between ml-1">
+              <Label htmlFor="password" className="text-[10px] font-black uppercase tracking-[0.3em] text-white/30">
+                Security Key (Password)
+              </Label>
+              <button type="button" className="text-[10px] font-black uppercase tracking-widest text-indigo-400 hover:text-indigo-200 transition-colors">
+                Reset?
+              </button>
             </div>
+            <div className="relative group">
+              <div className="absolute left-5 top-1/2 -translate-y-1/2 text-white/20 transition-colors group-focus-within:text-indigo-400">
+                <Lock className="h-5 w-5" />
+              </div>
+              <Input
+                id="password"
+                type={showPassword ? "text" : "password"}
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                disabled={isLoading}
+                className="h-16 rounded-2xl border-white/5 bg-white/[0.03] pl-14 pr-16 transition-all focus:border-indigo-500/50 focus:bg-white/[0.06] focus:ring-[6px] focus:ring-indigo-500/10 text-white font-bold text-lg placeholder:text-white/10"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-6 top-1/2 -translate-y-1/2 text-white/20 transition-colors hover:text-indigo-400"
+                tabIndex={-1}
+              >
+                {showPassword ? (
+                  <EyeOff className="h-6 w-6" />
+                ) : (
+                  <Eye className="h-6 w-6" />
+                )}
+              </button>
+            </div>
+          </div>
 
-            <Button
-              type="submit"
-              disabled={isLoading}
-              className="group h-12 w-full rounded-xl bg-primary font-bold text-primary-foreground shadow-lg shadow-primary/20 transition-all hover:translate-y-[-1px] hover:bg-primary/95 hover:shadow-xl hover:shadow-primary/30 active:translate-y-0"
-            >
-              {isLoading ? (
-                <Loader2 className="h-5 w-5 animate-spin" />
-              ) : (
-                <div className="flex items-center justify-center gap-2">
-                  <span>Sign in to Dashboard</span>
-                  <Zap className="h-4 w-4 transition-transform group-hover:scale-125" />
-                </div>
-              )}
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
+          <Button
+            type="submit"
+            disabled={isLoading}
+            className="group relative h-16 w-full overflow-hidden rounded-[1.25rem] bg-indigo-600 font-black text-white shadow-[0_20px_40px_-12px_rgba(79,70,229,0.5)] transition-all hover:translate-y-[-4px] hover:bg-indigo-500 hover:shadow-[0_25px_50px_-12px_rgba(79,70,229,0.6)] active:translate-y-0"
+          >
+            {isLoading ? (
+              <Loader2 className="h-7 w-7 animate-spin" />
+            ) : (
+              <div className="flex items-center justify-center gap-4">
+                <span className="uppercase tracking-[0.25em] text-sm">Access Dashboard</span>
+                <ArrowRight className="h-6 w-6 transition-transform group-hover:translate-x-2" />
+              </div>
+            )}
+            
+            {/* Shimmer effect */}
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]" />
+          </Button>
+        </form>
 
-      <p className="mt-6 text-center text-xs text-muted-foreground/30">
-        LeadPro CRM &copy; {new Date().getFullYear()}. All rights reserved.
-      </p>
+        <p className="mt-16 text-center text-[10px] font-black uppercase tracking-[0.4em] text-white/10">
+          Secure Terminal v4.6 • LeadPro System
+        </p>
+      </div>
     </div>
   );
 }

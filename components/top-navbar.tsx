@@ -5,16 +5,17 @@ import { useRouter } from "next/navigation";
 import useSWR from "swr";
 import { useDebounce } from "use-debounce";
 import { MobileSidebar } from "@/components/mobile-sidebar";
-import { Bell, Search, Zap, Loader2, User } from "lucide-react";
+import { Bell, Search, Zap, Loader2, LogOut } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { signOut } from "next-auth/react";
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 export function TopNavbar() {
   const router = useRouter();
-  const userName = "Admin User";
-  const userInitials = "AU";
+  const userName = "Anuj Sachan";
+  const userInitials = "AS";
 
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -167,17 +168,33 @@ export function TopNavbar() {
           <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-[oklch(0.65_0.25_30)] ring-2 ring-[oklch(0.11_0.01_260)]" />
         </button>
 
-        {/* User avatar */}
-        <div className="flex items-center gap-2.5 rounded-lg px-1.5 py-1 transition-colors hover:bg-muted">
-          <Avatar className="h-8 w-8">
-            <AvatarFallback className="bg-gradient-to-br from-primary to-primary/80 text-xs font-semibold text-primary-foreground">
-              {userInitials}
-            </AvatarFallback>
-          </Avatar>
-          <span className="hidden text-sm font-medium text-muted-foreground md:block">
-            {userName}
-          </span>
-        </div>
+        <div className="h-8 w-[1px] bg-border/40 mx-1 hidden sm:block" />
+
+        {/* User avatar & Logout */}
+        <button 
+          onClick={() => signOut()}
+          className="group flex items-center gap-2.5 rounded-xl px-2 py-1.5 transition-all hover:bg-destructive/10"
+          title="Sign Out"
+        >
+          <div className="relative">
+            <Avatar className="h-8 w-8 ring-2 ring-primary/20 group-hover:ring-destructive/30 transition-all">
+              <AvatarFallback className="bg-gradient-to-br from-primary to-primary/80 text-[10px] font-bold text-primary-foreground">
+                {userInitials}
+              </AvatarFallback>
+            </Avatar>
+            <div className="absolute -bottom-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-white opacity-0 transition-opacity group-hover:opacity-100 shadow-sm">
+              <LogOut className="h-2 w-2" />
+            </div>
+          </div>
+          <div className="hidden flex-col items-start md:flex">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground transition-colors group-hover:text-destructive">
+              {userName}
+            </span>
+            <span className="text-[9px] font-medium text-muted-foreground/50">
+              Sign Out
+            </span>
+          </div>
+        </button>
       </div>
     </header>
   );

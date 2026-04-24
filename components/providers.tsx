@@ -2,6 +2,8 @@
 
 import { createContext, useContext, useEffect, useState } from "react";
 
+import { SessionProvider } from "next-auth/react";
+
 type Theme = "dark" | "light" | "system";
 
 interface ThemeContextType {
@@ -42,9 +44,11 @@ export function Providers({ children }: { children: React.ReactNode }) {
   }, [theme]);
 
   return (
-    <ThemeContext.Provider value={{ theme, setTheme }}>
-      {children}
-    </ThemeContext.Provider>
+    <SessionProvider>
+      <ThemeContext.Provider value={{ theme, setTheme }}>
+        {children}
+      </ThemeContext.Provider>
+    </SessionProvider>
   );
 }
 
