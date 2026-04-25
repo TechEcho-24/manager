@@ -1,14 +1,7 @@
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
-import { compare } from "bcryptjs";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
-  pages: {
-    signIn: "/login",
-  },
-  session: {
-    strategy: "jwt",
-  },
   providers: [
     Credentials({
       name: "Credentials",
@@ -17,33 +10,42 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
-        const email = (credentials?.email as string || "").trim().toLowerCase();
-        const password = (credentials?.password as string || "").trim();
+        if (!credentials?.email || !credentials?.password) return null;
 
-        if (!email || !password) {
-          return null;
+        const email = credentials.email.toString().trim().toLowerCase();
+        const password = credentials.password.toString().trim();
+
+        // 1. SUPER ADMIN (The Platform Owner)
+        if (email === "techecho.kanpur@gmail.com" && password === "admin@123") {
+          return {
+            id: "super-admin",
+            name: "Super Admin",
+            email: "techecho.kanpur@gmail.com",
+            role: "admin",
+          };
         }
 
-        const adminEmail = "anujsachan98@gmail.com";
-        
-        if (email !== adminEmail) {
-          console.log("Email mismatch! Entered:", email, "Expected:", adminEmail);
-          return null;
+        // 2. CLIENTS (Testing / Dynamic User Logic)
+        if (email === "anujsachan98@gmail.com" && password === "Anuj@123") {
+          return {
+            id: "client-sagar",
+            name: "Sagar Client",
+            email: "anujsachan98@gmail.com",
+            role: "client",
+          };
         }
 
-        const isValid = password === "admin123" || password === "Anuj@123";
-        console.log("Auth Attempt:", { email, isValid });
-        console.log("Password Valid:", isValid);
-
-        if (!isValid) {
-          return null;
+        // Fallback for generic testing
+        if (password === "Anuj@123") {
+          return {
+            id: `client-${email.split('@')[0]}`,
+            name: email.split('@')[0],
+            email: email,
+            role: "client",
+          };
         }
 
-        return {
-          id: "1",
-          email: adminEmail,
-          name: "Admin",
-        };
+        return null;
       },
     }),
   ],
@@ -51,14 +53,20 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
+        token.role = (user as any).role;
       }
       return token;
     },
     async session({ session, token }) {
-      if (session.user) {
-        session.user.id = token.id as string;
+      if (token && session.user) {
+        (session.user as any).id = token.id;
+        (session.user as any).role = token.role;
       }
       return session;
     },
   },
+  pages: {
+    signIn: "/login",
+  },
+  secret: process.env.AUTH_SECRET || "any-random-secret-for-now",
 });

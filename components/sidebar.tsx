@@ -24,15 +24,17 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 
-const navItems = [
-  { title: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-  { title: "Leads", href: "/leads", icon: Users },
-  { title: "Follow-ups", href: "/follow-ups", icon: PhoneCall },
-  { title: "Calendar", href: "/calendar", icon: Calendar },
-  { title: "Contacts", href: "/contacts", icon: Contact },
-  { title: "Deals", href: "/deals", icon: Handshake },
-  { title: "Tasks", href: "/tasks", icon: CheckSquare },
-  { title: "Reports", href: "/reports", icon: BarChart3 },
+import { useSession } from "next-auth/react";
+
+const allNavItems = [
+  { title: "Overview", href: "/dashboard", icon: LayoutDashboard },
+  { title: "Leads", href: "/leads", icon: Users, role: "client" },
+  { title: "Follow-ups", href: "/follow-ups", icon: PhoneCall, role: "client" },
+  { title: "Calendar", href: "/calendar", icon: Calendar, role: "client" },
+  { title: "Contacts", href: "/contacts", icon: Contact, role: "client" },
+  { title: "Deals", href: "/deals", icon: Handshake, role: "client" },
+  { title: "Tasks", href: "/tasks", icon: CheckSquare, role: "client" },
+  { title: "Insights", href: "/reports", icon: BarChart3 },
 ];
 
 const bottomNavItems = [
@@ -103,6 +105,13 @@ function NavLink({
 
 export function Sidebar({ collapsed, onToggle }: SidebarProps) {
   const pathname = usePathname();
+  const { data: session } = useSession();
+  const role = (session?.user as any)?.role || "client";
+
+  const navItems = allNavItems.filter(item => {
+    if (role === "admin" && item.role === "client") return false;
+    return true;
+  });
 
   return (
     <TooltipProvider delay={0}>
@@ -115,20 +124,25 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
         {/* Logo */}
         <div
           className={cn(
-            "flex h-20 items-center border-b border-sidebar-border/50 px-5",
+            "flex h-20 items-center border-b border-sidebar-border/50 px-5 relative overflow-hidden",
             collapsed ? "justify-center" : "gap-3"
           )}
         >
           <div className="relative">
             <div className="absolute -inset-1 rounded-xl bg-primary/20 blur-sm" />
-            <div className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary/80 shadow-lg shadow-primary/20">
+            <div className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-blue-600 shadow-lg shadow-primary/20">
               <Zap className="h-5 w-5 text-white" />
             </div>
           </div>
           {!collapsed && (
-            <span className="text-xl font-extrabold tracking-tight text-[oklch(0.60_0.22_260)] animate-in fade-in duration-300">
-              LeadPro
-            </span>
+            <div className="flex flex-col">
+              <span className="text-xl font-extrabold tracking-tight text-primary leading-none">
+                LeadPro
+              </span>
+              <span className="text-[7px] font-black uppercase tracking-[0.2em] text-muted-foreground/40 mt-1">
+                {role === "admin" ? "SaaS Master Terminal" : "Enterprise Hub"}
+              </span>
+            </div>
           )}
         </div>
 

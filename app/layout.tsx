@@ -27,8 +27,10 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <body className="min-h-full font-sans">
-        <Providers>{children}</Providers>
-        <ChatWidget />
+        <Providers>
+          {children}
+          <ChatWidget />
+        </Providers>
       </body>
     </html>
   );

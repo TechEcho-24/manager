@@ -66,6 +66,7 @@ const LeadSchema = new Schema<ILead>(
   {
     fullName: { type: String, required: true },
     phone: { type: String, required: true },
+    userId: { type: String, required: true, index: true }, // Added for Multi-tenancy
     alternatePhone: { type: String },
     email: { type: String },
     company: { type: String },

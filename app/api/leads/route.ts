@@ -2,12 +2,15 @@ import { NextResponse } from "next/server";
 import dbConnect from "@/lib/db";
 import { Lead } from "@/models/lead";
 import { subDays, startOfMonth, subMonths, startOfDay, endOfDay } from "date-fns";
+import { auth } from "@/auth";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(request: Request) {
   try {
     await dbConnect();
+    const session = await auth();
+    if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const { searchParams } = new URL(request.url);
     
@@ -23,7 +26,7 @@ export async function GET(request: Request) {
     sortOptions[sortField] = sortOrder;
 
     // Filters
-    const query: any = {};
+    const query: any = { userId: (session.user as any).id };
 
     const search = searchParams.get("search");
     if (search) {
@@ -122,89 +125,64 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     await dbConnect();
+    const session = await auth();
+    if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
     const data = await request.json();
 
-    // Create the lead
     const lead = new Lead({
       ...data,
+      userId: (session.user as any).id, // AUTO-ASSIGN OWNER
       activityTimeline: [
         {
           action: "Lead created",
           description: "Lead added via system dashboard",
           createdAt: new Date(),
-          createdBy: "System",
+          createdBy: session.user.name || "System",
         }
       ]
     });
 
     await lead.save();
-
-    return NextResponse.json({ message: "Lead created successfully", lead: { ...lead.toObject(), id: lead._id.toString() } }, { status: 201 });
+    return NextResponse.json({ message: "Lead created successfully", id: lead._id }, { status: 201 });
   } catch (error: any) {
-    console.error("Create Lead Error:", error);
-    const errorMessage = error.message || "Failed to create lead";
-    return NextResponse.json(
-      { error: errorMessage },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
 
 export async function DELETE(request: Request) {
   try {
     await dbConnect();
+    const session = await auth();
+    if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
     const { ids } = await request.json();
-
-    if (!ids || !Array.isArray(ids) || ids.length === 0) {
-      return NextResponse.json({ error: "No IDs provided" }, { status: 400 });
-    }
-
-    await Lead.deleteMany({ _id: { $in: ids } });
+    await Lead.deleteMany({ _id: { $in: ids }, userId: (session.user as any).id }); // DELETE ONLY OWN DATA
 
     return NextResponse.json({ message: "Leads deleted successfully" });
   } catch (error) {
-    console.error("Delete Leads Error:", error);
-    return NextResponse.json(
-      { error: "Failed to delete leads" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Failed to delete leads" }, { status: 500 });
   }
 }
 
 export async function PATCH(request: Request) {
   try {
     await dbConnect();
+    const session = await auth();
+    if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
     const { ids, status } = await request.json();
 
-    if (!ids || !Array.isArray(ids) || ids.length === 0) {
-      return NextResponse.json({ error: "No IDs provided" }, { status: 400 });
-    }
-    if (!status) {
-      return NextResponse.json({ error: "No status provided" }, { status: 400 });
-    }
-
-    // Prepare activity timeline entry
-    const activityEntry = {
-      action: "Status updated",
-      description: `Status changed to ${status} via bulk update`,
-      createdAt: new Date(),
-      createdBy: "System",
-    };
-
     await Lead.updateMany(
-      { _id: { $in: ids } },
+      { _id: { $in: ids }, userId: (session.user as any).id }, // UPDATE ONLY OWN DATA
       { 
         $set: { status, updatedAt: new Date() },
-        $push: { activityTimeline: activityEntry }
+        $push: { activityTimeline: { action: "Status updated", description: `Updated to ${status}`, createdAt: new Date(), createdBy: session.user.name } }
       }
     );
 
     return NextResponse.json({ message: "Leads updated successfully" });
   } catch (error) {
-    console.error("Update Leads Error:", error);
-    return NextResponse.json(
-      { error: "Failed to update leads" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Failed to update leads" }, { status: 500 });
   }
 }

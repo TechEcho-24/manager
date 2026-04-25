@@ -1,18 +1,16 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { useSession } from "next-auth/react";
 import { 
   X, 
   Send, 
   MessageSquareMore, 
-  User, 
   ArrowRight,
-  Sparkles,
   Command,
   Zap,
   Mic,
   MicOff,
-  CheckCircle2
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { LEAD_STATUSES, LEAD_PRIORITIES } from "@/lib/constants";
@@ -37,15 +35,16 @@ const STEPS = [
 export function ChatWidget() {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
+  const { data: session } = useSession();
+  const role = (session?.user as any)?.role || "client";
+
   const [inputValue, setInputValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isListening, setIsListening] = useState(false);
 
-  // Advanced State with Cumulative Memory (Ref-based)
   const [stepIndex, setStepIndex] = useState(-1);
   const stepIndexRef = useRef(-1); 
   const leadDataRef = useRef<any>({}); 
-  const tempStepLeadData = useState<any>({}); // Just to force UI re-renders if needed
 
   const updateStep = (index: number) => {
     setStepIndex(index);
@@ -68,7 +67,6 @@ export function ChatWidget() {
 
     recognition.onstart = () => setIsListening(true);
     recognition.onend = () => {
-      // Auto-restart logic for continuous flow
       if (stepIndexRef.current >= 0) {
         try { recognition.start(); } catch(e) {}
       } else {
@@ -98,12 +96,14 @@ export function ChatWidget() {
       setMessages([{
         id: "wel",
         role: "assistant",
-        content: "Neural Core Online. Shall we start capturing new leads, Commander?",
-        suggestions: ["Start Lead Form", "Check status"],
+        content: role === "admin" 
+          ? "Master System Terminal Online. Greetings, Commander. Ready to oversee the LeadPro network?"
+          : "Neural Core Online. Shall we start capturing new leads, Commander?",
+        suggestions: role === "admin" ? ["Platform Health", "Client List"] : ["Start Lead Form", "Check status"],
         timestamp: new Date(),
       }]);
     }
-  }, []);
+  }, [role]);
 
   const scrollRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -122,7 +122,16 @@ export function ChatWidget() {
     setInputValue("");
     setIsLoading(true);
 
-    // --- FORM MACHINE ---
+    const isTriggerWord = cleanContent.toLowerCase().includes("form") || cleanContent.toLowerCase().includes("lead") || cleanContent.toLowerCase().includes("nayi");
+
+    if (role === "admin" && isTriggerWord) {
+      setTimeout(() => {
+        setMessages(p => [...p, { id: "block", role: "assistant", content: "⚠️ **Access Denied.** Administrative accounts are restricted from operational lead entry. Please use a Client profile for data input.", timestamp: new Date() }]);
+        setIsLoading(false);
+      }, 500);
+      return;
+    }
+
     if (stepIndexRef.current >= 0) {
       const currentStep = STEPS[stepIndexRef.current];
       let cleanValue = cleanContent === "Skip" ? "" : cleanContent;
@@ -165,13 +174,13 @@ export function ChatWidget() {
             setMessages(p => [...p, {
               id: "fin",
               role: "assistant",
-              content: `⚡ **Neural Link Secured!** Lead for **${finalPayload.fullName}** has been successfully archived. Ready for next?`,
-              suggestions: ["Start Lead Form", "Back to dashboard"],
+              content: `⚡ **Neural Link Secured!** Lead for **${finalPayload.fullName}** has been successully archived.`,
+              suggestions: ["Start Lead Form"],
               timestamp: new Date()
             }]);
           } else {
             const errData = await res.json();
-            throw new Error(errData.error || "Persistence Rejection");
+            throw new Error(errData.error || "Rejection");
           }
         } catch (e: any) {
           setMessages(p => [...p, { id: "err", role: "assistant", content: `❌ **Signal Failure:** ${e.message}`, timestamp: new Date() }]);
@@ -182,8 +191,7 @@ export function ChatWidget() {
       return;
     }
 
-    // --- TRIGGERS ---
-    if (cleanContent.toLowerCase().includes("form") || cleanContent.toLowerCase().includes("lead") || cleanContent.toLowerCase().includes("nayi")) {
+    if (isTriggerWord) {
       updateStep(0);
       leadDataRef.current = { leadSource: "AI Assistant" };
       setTimeout(() => {
@@ -239,7 +247,6 @@ export function ChatWidget() {
           </div>
 
           <div className="flex-1 relative overflow-hidden flex flex-col">
-            {/* Message Area */}
             <div ref={scrollRef} className="flex-1 overflow-y-auto px-6 py-6 space-y-6 no-scrollbar pb-40">
               {messages.map((msg, idx) => (
                 <div key={msg.id} className={cn("flex flex-col gap-1.5 max-w-[90%] animate-in fade-in slide-in-from-bottom-2", msg.role === "user" ? "ml-auto items-end" : "items-start")}>
@@ -263,7 +270,6 @@ export function ChatWidget() {
               {isLoading && <div className="px-6 text-[8px] font-bold text-indigo-500/50 uppercase tracking-[0.4em] animate-pulse">Syncing...</div>}
             </div>
 
-            {/* Input & Voice Panel */}
             <div className={cn(
               "absolute bottom-0 left-0 right-0 p-6 transition-all duration-300",
               "bg-gradient-to-t from-black via-black/95 to-transparent border-t border-white/5",
@@ -275,7 +281,7 @@ export function ChatWidget() {
                     <div className="relative h-2 w-2 rounded-full bg-indigo-500">
                       <div className="absolute inset-0 rounded-full bg-indigo-500 animate-ping opacity-75" />
                     </div>
-                    <span className="text-[9px] font-black text-indigo-400 uppercase tracking-widest">Awaiting Identity Detail: {STEPS[stepIndexRef.current].key}</span>
+                    <span className="text-[9px] font-black text-indigo-400 uppercase tracking-widest">Awaiting: {STEPS[stepIndexRef.current].key}</span>
                   </div>
                   <button onClick={() => handleSend("Cancel Form")} className="text-[9px] font-black text-red-500/40 uppercase hover:text-red-500">Abort</button>
                 </div>

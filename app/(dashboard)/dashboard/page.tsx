@@ -65,11 +65,17 @@ interface DashboardData {
   };
 }
 
+import { useSession } from "next-auth/react";
+import { AdminDashboard } from "./AdminDashboard";
+
 export default function DashboardPage() {
+  const { data: session, status: sessionStatus } = useSession();
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [isFormOpen, setIsFormOpen] = useState(false);
+
+  const isAdmin = (session?.user as any)?.role === "admin";
 
   async function fetchData() {
     try {
@@ -86,16 +92,18 @@ export default function DashboardPage() {
   }
 
   useEffect(() => {
-    fetchData();
-  }, []);
+    if (!isAdmin) fetchData();
+  }, [isAdmin]);
 
-  if (loading) {
+  if (sessionStatus === "loading" || (loading && !isAdmin)) {
     return (
       <div className="flex h-[calc(100vh-80px)] items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-[oklch(0.60_0.22_260)]" />
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
+
+  if (isAdmin) return <AdminDashboard />;
 
   if (error || !data) {
     return (
