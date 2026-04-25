@@ -140,10 +140,11 @@ export async function POST(request: Request) {
     await lead.save();
 
     return NextResponse.json({ message: "Lead created successfully", lead: { ...lead.toObject(), id: lead._id.toString() } }, { status: 201 });
-  } catch (error) {
+  } catch (error: any) {
     console.error("Create Lead Error:", error);
+    const errorMessage = error.message || "Failed to create lead";
     return NextResponse.json(
-      { error: "Failed to create lead" },
+      { error: errorMessage },
       { status: 500 }
     );
   }

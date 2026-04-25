@@ -38,8 +38,27 @@ export async function POST(req: Request) {
     let response = "";
     let suggestions: string[] = ["Workflow 1", "Manage Deals", "About LeadPro"];
 
-    // 1. General/System/About Intent (Global Priority)
-    if (KNOWLEDGE_BASE.system.triggers.some(t => msg.includes(t)) || msg.includes("kya hai") || msg.includes("kaise help")) {
+    // 1. Autonomous Lead Agent (Real Data Extraction & Action Trigger)
+    const emailMatch = msg.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/);
+    const phoneMatch = msg.match(/\+?\d{10,12}/);
+    const leadIntent = msg.includes("lead") && (msg.includes("add") || msg.includes("nayi") || msg.includes("create"));
+
+    if (leadIntent || emailMatch || phoneMatch) {
+      // Extract name (simple heuristic: look for "name is X" or "naam context")
+      const nameMatch = msg.match(/(?:naam|name)(?:\s+is\s+|\s+hai\s+|\s+)(\w+)/i);
+      const name = nameMatch ? nameMatch[1] : "New Prospect";
+      const phone = phoneMatch ? phoneMatch[0] : "";
+      const email = emailMatch ? emailMatch[0] : "";
+
+      return NextResponse.json({ 
+        response: `Neural Task Initiated: Creating lead for **${name}**. Data extracted from signal. Status: Processing Database Write...`,
+        action: "CREATE_LEAD",
+        leadData: { fullName: name, phone, email, source: "AI Assistant", status: "New", priority: "Medium" },
+        suggestions: ["Open Leads Section", "View Dashboard"]
+      });
+    }
+    // 2. General/System/About Intent (Global Priority)
+    else if (KNOWLEDGE_BASE.system.triggers.some(t => msg.includes(t)) || msg.includes("kya hai") || msg.includes("kaise help")) {
       response = `${KNOWLEDGE_BASE.system.overview} ${KNOWLEDGE_BASE.system.purpose} ${KNOWLEDGE_BASE.system.branding || ""}`;
       suggestions = ["Explain Workflow 1", "How to manage deals?", "Pricing info"];
     } 
