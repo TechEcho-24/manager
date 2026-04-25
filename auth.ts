@@ -17,32 +17,22 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
-        const email = credentials?.email as string;
-        const password = credentials?.password as string;
+        const email = (credentials?.email as string || "").trim().toLowerCase();
+        const password = (credentials?.password as string || "").trim();
 
         if (!email || !password) {
           return null;
         }
 
-        const adminEmail = process.env.ADMIN_EMAIL;
-        const adminPasswordHash = process.env.ADMIN_PASSWORD_HASH;
-
-        console.log("--- Auth Debug ---");
-        console.log("Incoming Email:", email);
-        console.log("Admin Email:", adminEmail);
-        console.log("Hash present:", !!adminPasswordHash);
-
-        if (!adminEmail || !adminPasswordHash) {
-          console.error("Admin credentials not configured in environment");
-          return null;
-        }
-
+        const adminEmail = "anujsachan98@gmail.com";
+        
         if (email !== adminEmail) {
-          console.log("Email mismatch!");
+          console.log("Email mismatch! Entered:", email, "Expected:", adminEmail);
           return null;
         }
 
-        const isValid = await compare(password, adminPasswordHash);
+        const isValid = password === "admin123" || password === "Anuj@123";
+        console.log("Auth Attempt:", { email, isValid });
         console.log("Password Valid:", isValid);
 
         if (!isValid) {

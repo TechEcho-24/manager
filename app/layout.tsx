@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Manrope } from "next/font/google";
 import { Providers } from "@/components/providers";
+import { ChatWidget } from "@/components/chat-widget";
 import "./globals.css";
 
 const manrope = Manrope({
@@ -26,8 +27,8 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <body className="min-h-full font-sans">
-
         <Providers>{children}</Providers>
+        <ChatWidget />
       </body>
     </html>
   );

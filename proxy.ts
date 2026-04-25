@@ -1,24 +1,26 @@
 import { auth } from "@/auth";
 import { NextResponse } from "next/server";
 
-export const proxy = auth((req) => {
+export default auth((req) => {
   const isLoggedIn = !!req.auth;
   const { pathname } = req.nextUrl;
 
-  // Public routes that don't need authentication
-  const publicRoutes = ["/login", "/api/auth"];
-  const isPublicRoute = publicRoutes.some((route) => pathname.startsWith(route));
+  // IMPORTANT: Whitelist all auth API routes and critical public routes
+  const isAuthApi = pathname.startsWith("/api/auth");
+  const isChatApi = pathname.startsWith("/api/chat");
+  const isLoginPage = pathname === "/login";
 
-  // If the user is NOT logged in and trying to access a protected route
-  if (!isLoggedIn && !isPublicRoute) {
-    const loginUrl = new URL("/login", req.nextUrl.origin);
-    return NextResponse.redirect(loginUrl);
+  // 1. Allow all Auth API requests (This fixes the JSON response issue)
+  if (isAuthApi) return NextResponse.next();
+
+  // 2. If trying to access protected routes without login
+  if (!isLoggedIn && !isLoginPage && !isChatApi) {
+    return NextResponse.redirect(new URL("/login", req.nextUrl.origin));
   }
 
-  // If the user IS logged in and trying to access login page, redirect to dashboard
-  if (isLoggedIn && pathname === "/login") {
-    const dashboardUrl = new URL("/dashboard", req.nextUrl.origin);
-    return NextResponse.redirect(dashboardUrl);
+  // 3. If logged in and trying to go to login page
+  if (isLoggedIn && isLoginPage) {
+    return NextResponse.redirect(new URL("/dashboard", req.nextUrl.origin));
   }
 
   return NextResponse.next();
@@ -27,12 +29,12 @@ export const proxy = auth((req) => {
 export const config = {
   matcher: [
     /*
-     * Match all request paths except:
+     * Match all request paths except for the ones starting with:
+     * - api (handled manually in middleware)
      * - _next/static (static files)
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
-     * - public files (images, etc.)
      */
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    "/((?!_next/static|_next/image|favicon.ico).*)",
   ],
 };
