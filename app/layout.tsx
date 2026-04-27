@@ -10,9 +10,11 @@ const manrope = Manrope({
 });
 
 export const metadata: Metadata = {
-  title: "LeadPro — CRM for Sales Teams",
-  description:
-    "LeadPro is a mobile-first CRM application designed for sales employees to manage leads, deals, contacts, and follow-ups on the go.",
+  title: "LeadPro | Cyber Edition",
+  description: "Futuristic B2B Sales Infrastructure",
+  icons: {
+    icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="%237c3aed" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>',
+  },
 };
 
 export default function RootLayout({
@@ -23,7 +25,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${manrope.variable} h-full antialiased`}
+      className={`${manrope.variable} h-full antialiased scroll-smooth`}
       suppressHydrationWarning
     >
       <body className="min-h-full font-sans">

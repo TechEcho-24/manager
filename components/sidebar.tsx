@@ -122,15 +122,16 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
         )}
       >
         {/* Logo */}
-        <div
+        <Link
+          href="/"
           className={cn(
-            "flex h-20 items-center border-b border-sidebar-border/50 px-5 relative overflow-hidden",
+            "flex h-20 items-center border-b border-sidebar-border/50 px-5 relative overflow-hidden group hover:bg-white/[0.02] transition-all",
             collapsed ? "justify-center" : "gap-3"
           )}
         >
           <div className="relative">
-            <div className="absolute -inset-1 rounded-xl bg-primary/20 blur-sm" />
-            <div className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-blue-600 shadow-lg shadow-primary/20">
+            <div className="absolute -inset-1 rounded-xl bg-primary/20 blur-sm group-hover:bg-primary/40 transition-all" />
+            <div className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-blue-600 shadow-lg shadow-primary/20 group-hover:scale-110 transition-transform">
               <Zap className="h-5 w-5 text-white" />
             </div>
           </div>
@@ -144,7 +145,7 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
               </span>
             </div>
           )}
-        </div>
+        </Link>
 
         {/* Navigation */}
         <nav className="flex-1 space-y-1 overflow-y-auto p-3">

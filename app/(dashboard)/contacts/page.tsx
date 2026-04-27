@@ -10,7 +10,9 @@ import {
   UserPlus,
   Eye,
   Building2,
-  Loader2
+  Loader2,
+  Shield,
+  Lock
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -67,8 +69,36 @@ export default function ContactsPage() {
   const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
   const activeLetters = new Set(allLeads.map(c => c.fullName.charAt(0).toUpperCase()));
 
+  // Simulate user plan
+  const userPlan = "starter"; // This would come from auth/session
+  const leadCount = allLeads.length;
+  const leadLimit = userPlan === "starter" ? 50 : Infinity;
+  const usagePercentage = Math.min((leadCount / leadLimit) * 100, 100);
+
   return (
     <div className="space-y-6">
+      {/* Neural Resource Usage Bar */}
+      {userPlan === "starter" && (
+        <div className="p-6 rounded-[2rem] bg-white/[0.02] border border-white/5 backdrop-blur-xl relative overflow-hidden group">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
+            <div className="space-y-1">
+              <h2 className="text-[10px] font-black uppercase tracking-[0.4em] text-purple-400">Resource Allocation: Starter Node</h2>
+              <p className="text-sm font-bold text-white">Synchronization Quota: <span className="text-purple-500">{leadCount}</span> / {leadLimit} Leads</p>
+            </div>
+            <div className="flex-1 max-w-md h-3 bg-white/5 rounded-full overflow-hidden border border-white/5 p-0.5">
+               <div 
+                 className="h-full bg-gradient-to-r from-purple-600 to-indigo-600 rounded-full transition-all duration-1000" 
+                 style={{ width: `${usagePercentage}%` }}
+               />
+            </div>
+            <Button className="rounded-xl px-8 bg-purple-600/10 border border-purple-500/20 text-purple-400 text-[10px] font-black uppercase tracking-widest hover:bg-purple-600 hover:text-white transition-all">
+              Upgrade to Pro Core
+            </Button>
+          </div>
+          <div className="absolute top-0 right-0 h-full w-1/2 bg-gradient-to-l from-purple-600/5 to-transparent pointer-none" />
+        </div>
+      )}
+
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-black tracking-tight text-foreground lg:text-3xl uppercase">
@@ -78,16 +108,27 @@ export default function ContactsPage() {
             Neural Directory Sync: Total Record Count ({allLeads.length})
           </p>
         </div>
-        <Button 
-          className="gap-2 bg-indigo-600 hover:bg-indigo-500 text-white shadow-xl shadow-indigo-600/20 font-black rounded-xl h-12 uppercase tracking-widest text-xs"
-          onClick={() => {
-            setSelectedContactId(undefined);
-            setIsFormOpen(true);
-          }}
-        >
-          <UserPlus className="h-4 w-4" />
-          Initialize New Contact
-        </Button>
+        <div className="flex items-center gap-3">
+          <Button 
+            variant="outline"
+            className="gap-2 border-white/5 bg-white/[0.01] text-white/40 hover:text-purple-400 hover:border-purple-500/30 font-black rounded-xl h-12 uppercase tracking-widest text-[9px] relative group overflow-hidden"
+          >
+            <Shield className="h-4 w-4" />
+            Neural Bulk Sync
+            <Lock className="h-3 w-3 absolute top-1 right-1 opacity-40" />
+            <div className="absolute inset-0 bg-purple-600/5 translate-y-full group-hover:translate-y-0 transition-transform" />
+          </Button>
+          <Button 
+            className="gap-2 bg-indigo-600 hover:bg-indigo-500 text-white shadow-xl shadow-indigo-600/20 font-black rounded-xl h-12 uppercase tracking-widest text-xs"
+            onClick={() => {
+              setSelectedContactId(undefined);
+              setIsFormOpen(true);
+            }}
+          >
+            <UserPlus className="h-4 w-4" />
+            Initialize New Contact
+          </Button>
+        </div>
       </div>
 
       <div className="flex gap-6 items-start">
