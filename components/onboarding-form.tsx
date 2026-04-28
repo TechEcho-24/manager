@@ -54,6 +54,7 @@ const STEPS = [
 export function OnboardingForm() {
   const [currentStep, setCurrentStep] = useState(1);
   const [isFinished, setIsFinished] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     // Command
     fullName: "",

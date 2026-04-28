@@ -41,7 +41,7 @@ export async function POST(req: Request) {
       });
       // if there was a payment with a temp org id, update it
       if (payment && payment.organizationId === "temp_org_id") {
-        payment.organizationId = org._id;
+        payment.organizationId = String(org._id);
         await payment.save();
       }
     } else {
