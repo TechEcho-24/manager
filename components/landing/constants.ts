@@ -19,7 +19,7 @@ import {
 export const plans = [
   {
     name: "Starter Node",
-    price: "0",
+    price: 0,
     trial: "14 Days Full Access",
     limits: "50 Leads/mo (Verify Only)",
     features: ["AI Hub V1 (Limited)", "Standard Latency Sync", "Community Support Only", "Manual Lead Upload"],
@@ -27,7 +27,7 @@ export const plans = [
   },
   {
     name: "Pro Core",
-    price: "9.9",
+    price: 4.99,
     trial: "Full Autonomy",
     limits: "Unlimited Leads",
     features: ["Neural Sync Engine", "AI Voice Synthesis", "Multi-Client Partitions", "Priority API", "Custom Dashboards"],
@@ -36,7 +36,7 @@ export const plans = [
   },
   {
     name: "Enterprise",
-    price: "14.9",
+    price: 9.99,
     trial: "Global Scale",
     limits: "Dedicated Cluster",
     features: ["White Label Core", "Private Database", "24/7 Security Squad", "Custom Fine-Tuning", "Manager Portals"],

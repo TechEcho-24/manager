@@ -7,6 +7,21 @@ import { cn } from "@/lib/utils";
 import { plans } from "./constants";
 
 export function Pricing({ selectedPlan, setSelectedPlan }: { selectedPlan: string, setSelectedPlan: (val: string) => void }) {
+  const [isYearly, setIsYearly] = React.useState(false);
+  const [currency, setCurrency] = React.useState<"USD" | "INR">("USD");
+
+  const getPrice = (basePrice: number) => {
+    if (basePrice === 0) return 0;
+    let price = basePrice;
+    if (isYearly) price = price * 0.9;
+    if (currency === "INR") price = price * 83;
+    
+    if (currency === "INR") return Math.round(price);
+    return price.toFixed(2);
+  };
+
+  const getCurrencySymbol = () => currency === "USD" ? "$" : "₹";
+
   return (
     <section id="pricing" className="py-32 px-6">
        <div className="max-w-7xl mx-auto">
@@ -15,19 +30,17 @@ export function Pricing({ selectedPlan, setSelectedPlan }: { selectedPlan: strin
                 <h2 className="text-3xl md:text-5xl font-black uppercase tracking-tighter mb-6 text-white italic">Select Priority Node.</h2>
                 <p className="text-xs font-bold text-white/40 uppercase tracking-[0.3em] leading-relaxed">Scale your infrastructure without friction. Each node provides a dedicated neural pathway for lead management.</p>
              </div>
-             <div className="flex gap-2 p-2 bg-white/5 border border-white/10 rounded-full">
-                {plans.map(p => (
-                   <button 
-                     key={p.name}
-                     onClick={() => setSelectedPlan(p.name)}
-                     className={cn(
-                       "px-8 py-3 rounded-full text-[10px] font-black uppercase tracking-widest transition-all",
-                       selectedPlan === p.name ? "bg-orange-600 text-white shadow-lg" : "text-white/40 hover:text-white"
-                     )}
-                   >
-                     {p.name}
-                   </button>
-                ))}
+             <div className="flex flex-col gap-4 items-start md:items-end">
+                <div className="flex gap-1 p-1 bg-white/5 border border-white/10 rounded-full">
+                  <button onClick={() => setCurrency("USD")} className={cn("px-6 py-2.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-all", currency === "USD" ? "bg-white/20 text-white shadow-md" : "text-white/40 hover:text-white")}>USD</button>
+                  <button onClick={() => setCurrency("INR")} className={cn("px-6 py-2.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-all", currency === "INR" ? "bg-white/20 text-white shadow-md" : "text-white/40 hover:text-white")}>INR</button>
+                </div>
+                <div className="flex gap-1 p-1 bg-white/5 border border-white/10 rounded-full items-center">
+                  <button onClick={() => setIsYearly(false)} className={cn("px-6 py-2.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-all", !isYearly ? "bg-orange-600 text-white shadow-lg" : "text-white/40 hover:text-white")}>Monthly</button>
+                  <button onClick={() => setIsYearly(true)} className={cn("px-6 py-2.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2", isYearly ? "bg-orange-600 text-white shadow-lg" : "text-white/40 hover:text-white")}>
+                     Yearly <span className={cn("px-2 py-0.5 rounded-full text-[8px]", isYearly ? "bg-white/20 text-white" : "bg-emerald-500/20 text-emerald-400")}>-10%</span>
+                  </button>
+                </div>
              </div>
           </div>
 
@@ -54,8 +67,12 @@ export function Pricing({ selectedPlan, setSelectedPlan }: { selectedPlan: strin
                    
                    <div className="mb-10">
                       <div className="flex items-baseline gap-2">
-                         <span className="text-6xl font-black text-white italic tracking-tighter">${p.price}</span>
-                         <span className="text-sm font-bold text-white/30 uppercase tracking-widest">/node</span>
+                         <span className="text-5xl lg:text-6xl font-black text-white italic tracking-tighter">
+                           {getCurrencySymbol()}{getPrice(p.price as number)}
+                         </span>
+                         <span className="text-sm font-bold text-white/30 uppercase tracking-widest">
+                           /{isYearly ? "yr" : "mo"}
+                         </span>
                       </div>
                    </div>
 
@@ -85,6 +102,30 @@ export function Pricing({ selectedPlan, setSelectedPlan }: { selectedPlan: strin
                    </Link>
                 </div>
              ))}
+          </div>
+
+          {/* Custom Contact Us Section */}
+          <div className="mt-24 reveal relative overflow-hidden rounded-[3rem] border border-white/10 bg-gradient-to-br from-white/[0.05] to-transparent p-12 text-center md:text-left">
+             <div className="flex flex-col md:flex-row items-center justify-between gap-8 relative z-10">
+                <div className="max-w-xl">
+                   <h3 className="text-2xl md:text-3xl font-black uppercase tracking-tighter mb-4 text-white italic">Need a Custom Node?</h3>
+                   <p className="text-sm font-bold text-white/40 uppercase tracking-widest leading-relaxed">
+                      Have unique requirements? Let our engineers build a custom neural pathway tailored specifically for your enterprise.
+                   </p>
+                </div>
+                <div>
+                   <Link 
+                      href="/contact" 
+                      className="inline-flex items-center justify-center px-10 py-5 rounded-full font-black text-xs uppercase tracking-[0.4em] transition-all bg-white text-black hover:scale-105 shadow-[0_0_30px_rgba(255,255,255,0.2)]"
+                   >
+                      Contact Engineering
+                   </Link>
+                </div>
+             </div>
+             
+             {/* Decorative Background Elements */}
+             <div className="absolute -top-24 -right-24 h-64 w-64 rounded-full bg-orange-500/10 blur-[80px] pointer-events-none" />
+             <div className="absolute -bottom-24 -left-24 h-64 w-64 rounded-full bg-indigo-500/10 blur-[80px] pointer-events-none" />
           </div>
        </div>
     </section>
