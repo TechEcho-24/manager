@@ -6,6 +6,7 @@ export { LEAD_STATUSES, LEAD_PRIORITIES };
 export interface ILead extends Document {
   fullName: string;
   phone: string;
+  userId: string;
   alternatePhone?: string;
   email?: string;
   company?: string;

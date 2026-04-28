@@ -131,17 +131,17 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
         >
           <div className="relative">
             <div className="absolute -inset-1 rounded-xl bg-primary/20 blur-sm group-hover:bg-primary/40 transition-all" />
-            <div className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-blue-600 shadow-lg shadow-primary/20 group-hover:scale-110 transition-transform">
-              <Zap className="h-5 w-5 text-white" />
+            <div className="relative flex h-10 w-10 shrink-0 items-center justify-center group-hover:scale-110 transition-transform">
+              <img src="/assets/logo.png" alt="Pinglly Logo" className="h-8 object-contain" />
             </div>
           </div>
           {!collapsed && (
             <div className="flex flex-col">
               <span className="text-xl font-extrabold tracking-tight text-primary leading-none">
-                LeadPro
+                Pinglly
               </span>
               <span className="text-[7px] font-black uppercase tracking-[0.2em] text-muted-foreground/40 mt-1">
-                {role === "admin" ? "SaaS Master Terminal" : "Enterprise Hub"}
+                by TechEcho • {role === "admin" ? "SaaS Master" : "Enterprise Hub"}
               </span>
             </div>
           )}

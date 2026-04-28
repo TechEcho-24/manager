@@ -57,13 +57,10 @@ export function TopNavbar() {
       {/* Mobile menu button */}
       <MobileSidebar />
 
-      {/* Logo (mobile only) */}
-      <div className="flex items-center gap-2 lg:hidden">
-        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-[oklch(0.65_0.25_260)] to-[oklch(0.55_0.28_290)]">
-          <Zap className="h-4 w-4 text-foreground" />
-        </div>
-        <span className="text-base font-bold tracking-tight text-[oklch(0.60_0.22_260)]">
-          LeadPro
+      <div className="flex flex-col items-start lg:hidden">
+        <img src="/assets/logo.png" alt="Pinglly Logo" className="h-8 object-contain" />
+        <span className="text-[7px] font-bold tracking-[0.2em] uppercase text-[oklch(0.60_0.22_260)]/60">
+          by TechEcho
         </span>
       </div>
 

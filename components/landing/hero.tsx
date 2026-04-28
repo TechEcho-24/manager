@@ -1,6 +1,7 @@
 "use client";
 
 import React from 'react';
+import Link from 'next/link';
 import { MousePointer2, ChevronDown } from 'lucide-react';
 
 export function Hero() {
@@ -12,11 +13,9 @@ export function Hero() {
           {/* Subtle Glow inside capsule */}
           <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-orange-500/30 to-transparent" />
           
-          <div className="flex items-center gap-2">
-            <div className="h-8 w-8 flex items-center justify-center rounded-lg bg-gradient-to-br from-[#ff6b35] to-[#ff8c00] shadow-[0_0_15px_rgba(255,107,53,0.4)]">
-               <MousePointer2 className="h-4 w-4 text-white" />
-            </div>
-            <span className="text-xl font-bold tracking-tight text-white">LeadPro</span>
+          <div className="flex flex-col items-start">
+            <img src="/assets/logo.png" alt="Pinglly Logo" className="h-8 object-contain" />
+            <span className="text-[8px] font-medium text-white/30 tracking-widest uppercase ml-1">by TechEcho</span>
           </div>
 
           <nav className="hidden md:flex items-center gap-8 text-[13px] font-medium">
@@ -30,9 +29,9 @@ export function Hero() {
             <a href="#contact" className="text-gray-400 hover:text-white transition-colors">Contact</a>
           </nav>
 
-          <button className="px-5 py-2 bg-gradient-to-r from-orange-500 to-orange-600 rounded-full text-[13px] font-bold hover:shadow-lg hover:shadow-orange-500/50 transition-all text-white">
+          <Link href="/login" className="px-5 py-2 bg-gradient-to-r from-orange-500 to-orange-600 rounded-full text-[13px] font-bold hover:shadow-lg hover:shadow-orange-500/50 transition-all text-white">
             Get started
-          </button>
+          </Link>
         </div>
       </header>
 
@@ -97,14 +96,14 @@ export function Hero() {
           </div>
 
           {/* Main Heading */}
-          <h1 className="reveal text-5xl md:text-8xl lg:text-[120px] font-medium tracking-tighter leading-[0.95]" style={{ animationDelay: '400ms' }}>
+          <h1 className="reveal text-5xl md:text-8xl lg:text-[120px] font-medium tracking-tighter leading-[0.95]" style={{fontFamily: 'Manrope, sans-serif', animationDelay: '400ms'}}>
             <span className="bg-clip-text text-transparent bg-gradient-to-b from-white to-white/90">
               Accelerate Your <br /> Sales With AI
             </span>
           </h1>
 
           {/* Subheading */}
-          <p className="reveal max-w-2xl mx-auto text-lg md:text-2xl text-gray-400  font-medium" style={{ animationDelay: '600ms' }}>
+          <p className="reveal max-w-2xl mx-auto text-lg md:text-2xl text-gray-400  font-medium" style={{fontFamily: 'Inter, sans-serif', animationDelay: '600ms' }}>
             AI-driven sales automation & insights. Empower your team, close more deals, and maximize revenue effortlessly.
           </p>
 
@@ -119,9 +118,9 @@ export function Hero() {
               <span className="font-bold">Watch Demo</span>
             </button>
 
-            <button className="px-8 py-3.5 rounded-full bg-gradient-to-r from-orange-500 to-orange-600 font-bold hover:shadow-2xl hover:shadow-orange-500/40 hover:scale-105 transition-all shadow-[0_10px_40px_-5px_rgba(255,87,34,0.4)]">
-              Get started for free
-            </button>
+            <Link href="#" className="px-8 py-3.5 rounded-full bg-gradient-to-r from-orange-500 to-orange-600 font-bold hover:shadow-2xl hover:shadow-orange-500/40 hover:scale-105 transition-all shadow-[0_10px_40px_-5px_rgba(255,87,34,0.4)] flex items-center justify-center">
+              Schedule a call
+            </Link>
           </div>
         </div>
 

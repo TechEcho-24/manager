@@ -7,11 +7,9 @@ import { MousePointer2 } from "lucide-react";
 export function Navbar() {
   return (
     <nav className="fixed top-0 left-0 w-full z-50 px-10 py-6 flex items-center justify-between bg-black/20 backdrop-blur-md border-b border-white/[0.05]">
-        <Link href="/" className="flex items-center gap-2 group/logo cursor-pointer">
-          <div className="h-8 w-8 flex items-center justify-center rounded-lg bg-gradient-to-br from-[#ff6b35] to-[#ff8c00] shadow-[0_0_15px_rgba(255,107,53,0.4)]">
-            <MousePointer2 className="h-4 w-4 text-white" />
-          </div>
-          <span className="text-xl font-bold tracking-tight text-white">LeadPro</span>
+        <Link href="/" className="flex flex-col items-start group/logo cursor-pointer">
+          <img src="/assets/logo.png" alt="Pinglly Logo" className="h-8 object-contain" />
+          <span className="text-[8px] font-medium text-white/30 tracking-widest uppercase ml-1">by TechEcho</span>
         </Link>
 
         <div className="hidden lg:flex items-center gap-10 text-[13px] font-medium text-white/60">

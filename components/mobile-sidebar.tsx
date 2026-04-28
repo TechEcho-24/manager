@@ -54,11 +54,9 @@ export function MobileSidebar() {
         className="w-[280px] border-sidebar-border bg-sidebar p-0"
       >
         <SheetHeader className="border-b border-sidebar-border px-5 py-4">
-          <SheetTitle className="flex items-center gap-3 text-foreground">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-[oklch(0.65_0.25_260)] to-[oklch(0.55_0.28_290)] shadow-md shadow-[oklch(0.50_0.20_270)]/20">
-              <Zap className="h-4 w-4 text-foreground" />
-            </div>
-            <span className="text-lg font-bold tracking-tight text-[oklch(0.60_0.22_260)]">LeadPro</span>
+          <SheetTitle className="flex flex-col items-start">
+            <img src="/assets/logo.png" alt="Pinglly Logo" className="h-8 object-contain" />
+            <span className="text-[7px] font-bold tracking-[0.2em] uppercase text-[oklch(0.60_0.22_260)]/60">by TechEcho</span>
           </SheetTitle>
         </SheetHeader>
 

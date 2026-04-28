@@ -97,7 +97,7 @@ export function ChatWidget() {
         id: "wel",
         role: "assistant",
         content: role === "admin" 
-          ? "Master System Terminal Online. Greetings, Commander. Ready to oversee the LeadPro network?"
+          ? "Master System Terminal Online. Greetings, Commander. Ready to oversee the Pinglly network?"
           : "Neural Core Online. Shall we start capturing new leads, Commander?",
         suggestions: role === "admin" ? ["Platform Health", "Client List"] : ["Start Lead Form", "Check status"],
         timestamp: new Date(),

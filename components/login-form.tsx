@@ -58,7 +58,7 @@ export default function LoginForm() {
         {/* Actual Image Background Overlay */}
         <div className="absolute inset-0 z-0">
           <img 
-            src="/Users/anujsachan/.gemini/antigravity/brain/56d62cc0-ef67-49a3-9d61-361d1a42db1c/crm_dashboard_preview_1777041620913.png" 
+            src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=2070&auto=format&fit=crop" 
             alt="Dashboard Preview" 
             className="w-full h-full object-cover opacity-60 scale-105"
           />
@@ -68,12 +68,10 @@ export default function LoginForm() {
 
         <a href="/" className="relative z-10 block group">
           <div className="flex items-center gap-3 mb-12 hover:scale-105 transition-transform">
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-600 shadow-[0_0_20px_rgba(79,70,229,0.6)]">
-              <Zap className="h-6 w-6 text-white" />
-            </div>
+            <img src="/assets/logo.png" alt="Pinglly Logo" className="h-12 object-contain drop-shadow-[0_0_20px_rgba(79,70,229,0.6)]" />
             <div className="flex flex-col">
-              <span className="text-2xl font-black tracking-tighter text-white uppercase italic leading-none">LeadPro</span>
-              <span className="text-[8px] font-black tracking-[0.4em] text-indigo-400 mt-1">SaaS Terminal</span>
+              <span className="text-2xl font-black tracking-tighter text-white uppercase italic leading-none">Pinglly</span>
+              <span className="text-[8px] font-black tracking-[0.4em] text-indigo-400 mt-1 uppercase">by TechEcho</span>
             </div>
           </div>
         </a>
@@ -173,7 +171,7 @@ export default function LoginForm() {
               <Input
                 id="email"
                 type="email"
-                placeholder="admin@leadpro.io"
+                placeholder="admin@pinglly.io"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
@@ -241,7 +239,7 @@ export default function LoginForm() {
         </form>
 
         <p className="mt-16 text-center text-[10px] font-black uppercase tracking-[0.4em] text-white/10">
-          Secure Terminal v4.6 • LeadPro System
+          Secure Terminal v4.6 • Pinglly System
         </p>
       </div>
     </div>
