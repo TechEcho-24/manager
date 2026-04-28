@@ -67,12 +67,9 @@ export default function LoginForm() {
         </div>
 
         <a href="/" className="relative z-10 block group">
-          <div className="flex items-center gap-3 mb-12 hover:scale-105 transition-transform">
+          <div className="flex flex-col items-start mb-12 hover:scale-105 transition-transform">
             <img src="/assets/logo.png" alt="Pinglly Logo" className="h-12 object-contain drop-shadow-[0_0_20px_rgba(79,70,229,0.6)]" />
-            <div className="flex flex-col">
-              <span className="text-2xl font-black tracking-tighter text-white uppercase italic leading-none">Pinglly</span>
-              <span className="text-[8px] font-black tracking-[0.4em] text-indigo-400 mt-1 uppercase">by TechEcho</span>
-            </div>
+            <span className="text-[8px] font-black tracking-[0.4em] text-indigo-400 mt-1 uppercase ml-1">by TechEcho</span>
           </div>
         </a>
           
@@ -171,7 +168,7 @@ export default function LoginForm() {
               <Input
                 id="email"
                 type="email"
-                placeholder="admin@pinglly.io"
+                placeholder="admin@terminal.io"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
@@ -238,8 +235,13 @@ export default function LoginForm() {
           </Button>
         </form>
 
+        <p className="mt-8 text-center text-[10px] font-bold text-white/40 uppercase tracking-widest">
+          Don&apos;t have an account?{" "}
+          <Link href="/signup" className="text-indigo-400 hover:text-white underline ml-1">Create One</Link>
+        </p>
+
         <p className="mt-16 text-center text-[10px] font-black uppercase tracking-[0.4em] text-white/10">
-          Secure Terminal v4.6 • Pinglly System
+          Secure Terminal v4.6 • System Active
         </p>
       </div>
     </div>

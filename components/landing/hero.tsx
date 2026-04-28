@@ -29,7 +29,7 @@ export function Hero() {
             <a href="#contact" className="text-gray-400 hover:text-white transition-colors">Contact</a>
           </nav>
 
-          <Link href="/login" className="px-5 py-2 bg-gradient-to-r from-orange-500 to-orange-600 rounded-full text-[13px] font-bold hover:shadow-lg hover:shadow-orange-500/50 transition-all text-white">
+          <Link href="/signup" className="px-5 py-2 bg-gradient-to-r from-orange-500 to-orange-600 rounded-full text-[13px] font-bold hover:shadow-lg hover:shadow-orange-500/50 transition-all text-white">
             Get started
           </Link>
         </div>
