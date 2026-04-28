@@ -19,7 +19,7 @@ export function Navbar() {
           <Link href="#contact" className="hover:text-white transition-all">Contact</Link>
         </div>
 
-        <Link href="/login" className="px-6 py-2.5 rounded-full btn-cyber-filled text-[13px] font-bold text-white shadow-[0_5px_15px_rgba(255,107,53,0.3)]">
+        <Link href="/signup" className="px-6 py-2.5 rounded-full btn-cyber-filled text-[13px] font-bold text-white shadow-[0_5px_15px_rgba(255,107,53,0.3)]">
           Get started
         </Link>
     </nav>

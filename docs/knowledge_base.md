@@ -1,7 +1,7 @@
-# LeadPro CRM - Complete System Documentation for RAG Integration
+# Pinglly CRM — AI Chatbot Knowledge Base
 
 ## System Overview
-LeadPro CRM is a neural-themed lead management system built on Next.js 16 with MongoDB backend. It provides comprehensive lead tracking, deal management, follow-up scheduling, and AI-powered assistance for sales teams.
+Pinglly CRM is a neural-themed AI-powered sales management platform built on Next.js 16 with MongoDB backend. It provides comprehensive lead tracking, deal management, follow-up scheduling, and AI-powered assistance for sales teams.
 
 ## Core Application Features
 
@@ -41,15 +41,15 @@ LeadPro CRM is a neural-themed lead management system built on Next.js 16 with M
 **Context**: Last 5 messages history, Bilingual (Hindi/English).
 
 ## Common User Workflows
-- **Workflow 1**: Adding a New Lead (Leads -> Add -> Fill -> Submit).
-- **Workflow 2**: Scheduling & Completing Follow-ups.
-- **Workflow 3**: Creating a Deal (Won status -> Create Deal -> Select Milestones/Installments).
-- **Workflow 4**: Using Analytics (Period selection -> View Charts -> Strategy).
+- **Adding a New Lead**: Leads → Add → Fill → Submit.
+- **Scheduling Follow-ups**: Lead Detail → Set Date → Save.
+- **Creating a Deal**: Won status → Create Deal → Select Milestones/Installments.
+- **Using Analytics**: Period selection → View Charts → Strategy.
 
 ## Technical Details
-- **Tech Stack**: Next.js 16, Tailwind 4, MongoDB, NextAuth.
-- **Database Collections**: Leads, Deals, Tasks, Goals.
-- **API Endpoints**: `/api/leads`, `/api/deals`, `/api/followups`, `/api/analytics`, `/api/goals`, `/api/chat`.
+- **Tech Stack**: Next.js 16, Tailwind CSS 4, MongoDB, NextAuth v5.
+- **Database Collections**: Leads, Clients.
+- **API Endpoints**: `/api/leads`, `/api/clients`, `/api/dashboard/stats`, `/api/chat`.
 
 ## Frequently Asked Questions (FAQ)
 - **Q: New lead kaise add karun?** A: Leads section mein jakar "Add New Lead" button par click karein.
@@ -57,5 +57,9 @@ LeadPro CRM is a neural-themed lead management system built on Next.js 16 with M
 - **Q: Lead status kaise badlein?** A: Lead detail page par status dropdown use karein.
 
 ## Branding
-- **Tagline**: "Powered by TechEcho - Your Neural Sales Command Center"
+- **Product**: Pinglly
+- **Company**: TechEcho
+- **Tagline**: "Powered by TechEcho — Your Neural Sales Command Center"
 - **Identity**: Futuristic, minimalist, professional.
+- **Primary Font**: Manrope (headings), Poppins (body).
+- **Colors**: Deep black (#050510), Indigo (#818cf8), Orange (#ff6b35).

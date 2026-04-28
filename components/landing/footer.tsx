@@ -14,7 +14,7 @@ export function FinalCTA() {
              <h3 className="text-4xl md:text-8xl font-black uppercase tracking-tighter text-white italic leading-tight">Ready to <br/> Ascend?</h3>
              <p className="max-w-2xl mx-auto text-sm md:text-xl font-bold text-white/50 uppercase tracking-[0.4em] leading-loose">Join 2,000+ elite teams dominating the market with Pinglly neural technology.</p>
              <div className="flex justify-center pt-8">
-                <Link href="/login" className="px-12 py-5 rounded-full btn-cyber-filled text-[13px] font-black uppercase tracking-[0.4em] text-white shadow-[0_20px_50px_rgba(255,107,53,0.3)]">
+                <Link href="/signup" className="px-12 py-5 rounded-full btn-cyber-filled text-[13px] font-black uppercase tracking-[0.4em] text-white shadow-[0_20px_50px_rgba(255,107,53,0.3)]">
                    Connect Now
                 </Link>
              </div>

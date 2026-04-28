@@ -75,7 +75,7 @@ export function Pricing({ selectedPlan, setSelectedPlan }: { selectedPlan: strin
                    </div>
 
                    <Link 
-                      href="/login" 
+                      href="/signup" 
                       className={cn(
                          "block w-full py-6 rounded-full font-black text-xs uppercase tracking-[0.5em] text-center transition-all",
                          selectedPlan === p.name ? "btn-cyber-filled text-white" : "bg-white/10 text-white hover:bg-white/20"
