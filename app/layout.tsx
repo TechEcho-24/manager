@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Manrope } from "next/font/google";
+import { Manrope, Inter } from "next/font/google";
 import { Providers } from "@/components/providers";
 import { ChatWidget } from "@/components/chat-widget";
 import "./globals.css";
@@ -8,11 +8,21 @@ const manrope = Manrope({
   variable: "--font-manrope",
   subsets: ["latin"],
 });
+const inter = Inter({
+  variable: "--font-inter",
+  subsets: ["latin"],
+});
+
+// Duplicate manrope definition removed
 
 export const metadata: Metadata = {
-  title: "LeadPro — CRM for Sales Teams",
-  description:
-    "LeadPro is a mobile-first CRM application designed for sales employees to manage leads, deals, contacts, and follow-ups on the go.",
+  title: "Pinglly | Cyber Edition",
+  description: "Futuristic B2B Sales Infrastructure",
+  icons: {
+    icon: '/assets/favicon.png',
+    shortcut: '/assets/favicon.png',
+    apple: '/assets/favicon.png',
+  },
 };
 
 export default function RootLayout({
@@ -23,12 +33,14 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${manrope.variable} h-full antialiased`}
+      className={`${inter.variable} ${manrope.variable} h-full antialiased scroll-smooth`}
       suppressHydrationWarning
     >
       <body className="min-h-full font-sans">
-        <Providers>{children}</Providers>
-        <ChatWidget />
+        <Providers>
+          {children}
+          <ChatWidget />
+        </Providers>
       </body>
     </html>
   );

@@ -7,7 +7,7 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-manrope);
+  --font-sans: var(--font-inter);
   --font-mono: monospace;
   --font-heading: var(--font-manrope);
   --color-sidebar-ring: var(--sidebar-ring);
@@ -122,4 +122,55 @@
   100% {
     transform: translateX(100%);
   }
+}
+
+/* ==========================================================================
+   VETRA DESIGN SYSTEM (ORANGE EDITION)
+   ========================================================================== */
+
+@layer utilities {
+  .text-glow { 
+    text-shadow: 0 0 30px rgba(255, 107, 53, 0.6); 
+  }
+
+  .btn-cyber-filled { 
+    background: linear-gradient(135deg, #ff4500 0%, #ff6b35 100%) !important;
+    border: none !important;
+    box-shadow: 0 0 30px rgba(255, 69, 0, 0.5), inset 0 1px 2px rgba(255, 255, 255, 0.5) !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    color: white !important;
+    position: relative;
+    z-index: 10;
+  }
+
+  .btn-cyber-filled:hover {
+    box-shadow: 0 0 50px rgba(255, 69, 0, 0.8), inset 0 1px 4px rgba(255, 255, 255, 0.6) !important;
+    transform: scale(1.05) translateY(-2px);
+  }
+
+  /* The Vetra Horizon Glow Arc Fixed Visibility */
+  .glow-horizon {
+    position: absolute;
+    bottom: -100px; /* Pulled up to be visible */
+    left: 50%;
+    transform: translateX(-50%);
+    width: 150%;
+    height: 600px;
+    border-top: 4px solid #ff4500; /* Thicker and brighter */
+    background: radial-gradient(50% 50% at 50% 0%, rgba(255, 69, 0, 0.4) 0%, transparent 100%);
+    border-radius: 100% 100% 0 0;
+    box-shadow: 0 -40px 120px rgba(255, 69, 0, 0.5);
+    pointer-events: none;
+    z-index: 5;
+    opacity: 1 !important;
+  }
+
+  .reveal { 
+    animation: reveal 1.2s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; 
+  }
+}
+
+@keyframes reveal {
+  from { opacity: 0; transform: translateY(40px); }
+  to { opacity: 1; transform: translateY(0); }
 }

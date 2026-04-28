@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { signIn } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
 import {
   Card,
   CardContent,
@@ -10,13 +11,15 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Zap, Eye, EyeOff, Loader2, AlertCircle, ShieldCheck, ArrowRight, Star, Mail, Lock } from "lucide-react";
+import { Zap, Eye, EyeOff, Loader2, AlertCircle, ShieldCheck, ArrowRight, Star, Mail, Lock, Home as HomeIcon, Cpu } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 
 export default function LoginForm() {
   const router = useRouter();
-  const [email, setEmail] = useState("");
+  const searchParams = useSearchParams();
+  const plan = searchParams.get("plan");
+  const [email, setEmail] = useState(searchParams.get("email") || "");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -48,14 +51,14 @@ export default function LoginForm() {
   };
 
   return (
-    <div className="flex w-full max-w-[1100px] flex-col lg:flex-row overflow-hidden rounded-[3rem] border border-white/20 bg-[#0a0a1a]/40 shadow-[0_40px_80px_-15px_rgba(0,0,0,0.8)] backdrop-blur-[40px] animate-in fade-in zoom-in-95 duration-1000">
+    <div className="flex w-full max-w-[1100px] flex-col lg:flex-row overflow-hidden rounded-3xl border border-white/20 bg-[#0a0a1a]/40 shadow-[0_40px_80px_-15px_rgba(0,0,0,0.8)] backdrop-blur-[40px] animate-in fade-in zoom-in-95 duration-1000">
       
       {/* Left Branding Side */}
       <div className="relative hidden lg:flex flex-1 flex-col p-12 overflow-hidden border-r border-white/10">
         {/* Actual Image Background Overlay */}
         <div className="absolute inset-0 z-0">
           <img 
-            src="/Users/anujsachan/.gemini/antigravity/brain/56d62cc0-ef67-49a3-9d61-361d1a42db1c/crm_dashboard_preview_1777041620913.png" 
+            src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=2070&auto=format&fit=crop" 
             alt="Dashboard Preview" 
             className="w-full h-full object-cover opacity-60 scale-105"
           />
@@ -63,13 +66,15 @@ export default function LoginForm() {
           <div className="absolute inset-0 bg-indigo-500/10 mix-blend-overlay" />
         </div>
 
-        <div className="relative z-10">
-          <div className="flex items-center gap-3 mb-12">
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-600 shadow-[0_0_20px_rgba(79,70,229,0.6)]">
-              <Zap className="h-6 w-6 text-white" />
+        <a href="/" className="relative z-10 block group">
+          <div className="flex items-center gap-3 mb-12 hover:scale-105 transition-transform">
+            <img src="/assets/logo.png" alt="Pinglly Logo" className="h-12 object-contain drop-shadow-[0_0_20px_rgba(79,70,229,0.6)]" />
+            <div className="flex flex-col">
+              <span className="text-2xl font-black tracking-tighter text-white uppercase italic leading-none">Pinglly</span>
+              <span className="text-[8px] font-black tracking-[0.4em] text-indigo-400 mt-1 uppercase">by TechEcho</span>
             </div>
-            <span className="text-2xl font-black tracking-tighter text-white uppercase italic">LeadPro</span>
           </div>
+        </a>
           
           <div className="space-y-8">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-500/20 border border-indigo-500/30 text-indigo-300 text-[10px] font-black uppercase tracking-widest backdrop-blur-md">
@@ -84,9 +89,8 @@ export default function LoginForm() {
               Automate your workflow, track every interaction, and grow your revenue with AI-powered insights.
             </p>
           </div>
-        </div>
 
-        <div className="mt-auto relative z-10 flex flex-col gap-8">
+          <div className="mt-auto relative z-10 flex flex-col gap-8">
           <div className="flex items-center gap-3 text-white/80 drop-shadow-md">
             <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
             <span className="text-xs font-bold uppercase tracking-widest">Active System Security</span>
@@ -118,21 +122,41 @@ export default function LoginForm() {
       </div>
 
       {/* Right Login Side */}
-      <div className="flex-1 p-8 sm:p-12 lg:p-16 flex flex-col justify-center bg-white/[0.02]">
-        <div className="mb-10">
-          <div className="inline-flex items-center gap-2 mb-4 px-3 py-1 rounded-lg bg-indigo-500/10 border border-indigo-500/20">
-            <ShieldCheck className="h-4 w-4 text-indigo-400" />
-            <span className="text-[10px] font-black text-indigo-400 uppercase tracking-widest">Verified Endpoint</span>
-          </div>
+      <div className="flex-1 p-8 sm:p-12 lg:p-16 flex flex-col justify-center bg-white/[0.02] relative overflow-hidden">
+        
+        {/* Back to Home Shortcut */}
+        <a 
+          href="/" 
+          className="absolute top-8 right-8 flex items-center justify-center h-12 w-12 rounded-2xl bg-white/5 border border-white/5 text-white/30 hover:bg-indigo-600 hover:text-white hover:border-indigo-500 transition-all z-50 group shadow-2xl"
+          title="Return to Home"
+        >
+          <HomeIcon className="h-5 w-5" />
+        </a>
+
+        <div className="mb-10 relative z-10">
+          {plan ? (
+            <div className="inline-flex items-center gap-3 mb-6 px-4 py-2 rounded-xl bg-[#7c3aed]/20 border border-[#7c3aed]/30 animate-pulse">
+              <Cpu className="h-4 w-4 text-[#7c3aed]" />
+              <span className="text-[10px] font-black text-[#7c3aed] uppercase tracking-widest leading-none">Initializing {plan.replace(/-/g, ' ')} Node</span>
+            </div>
+          ) : (
+            <div className="inline-flex items-center gap-2 mb-4 px-3 py-1 rounded-lg bg-indigo-500/10 border border-indigo-500/20">
+              <ShieldCheck className="h-4 w-4 text-indigo-400" />
+              <span className="text-[10px] font-black text-indigo-400 uppercase tracking-widest">Verified Endpoint</span>
+            </div>
+          )}
           <h1 className="text-4xl font-black text-white mb-2 tracking-tight">System Login</h1>
           <p className="text-sm font-bold text-indigo-400/60 uppercase tracking-[0.25em] italic">Elite CRM Terminal</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-7">
+        <form onSubmit={handleSubmit} className="space-y-7 relative z-10">
           {error && (
-            <div className="flex items-center gap-3 rounded-2xl border border-red-500/30 bg-red-500/10 px-6 py-5 text-sm text-red-400 animate-in slide-in-from-top-2 duration-300">
-              <AlertCircle className="h-5 w-5 shrink-0" />
-              <span className="font-bold">{error}</span>
+            <div className="flex flex-col gap-4 rounded-2xl border border-red-500/30 bg-red-500/10 px-6 py-5 animate-in slide-in-from-top-2 duration-300">
+              <div className="flex items-center gap-3 text-sm text-red-400">
+                <AlertCircle className="h-5 w-5 shrink-0" />
+                <span className="font-bold">{error}</span>
+              </div>
+              <a href="/" className="text-[9px] font-black uppercase tracking-widest text-white/30 hover:text-white underline">Need to head back home?</a>
             </div>
           )}
 
@@ -147,7 +171,7 @@ export default function LoginForm() {
               <Input
                 id="email"
                 type="email"
-                placeholder="admin@leadpro.io"
+                placeholder="admin@pinglly.io"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
@@ -215,7 +239,7 @@ export default function LoginForm() {
         </form>
 
         <p className="mt-16 text-center text-[10px] font-black uppercase tracking-[0.4em] text-white/10">
-          Secure Terminal v4.6 • LeadPro System
+          Secure Terminal v4.6 • Pinglly System
         </p>
       </div>
     </div>
