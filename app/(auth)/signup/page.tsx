@@ -1,5 +1,6 @@
 import SignupForm from "@/components/signup-form";
 import type { Metadata } from "next";
+import { Suspense } from "react";
 
 export const metadata: Metadata = {
   title: "Join Pinglly — Create Account",
@@ -14,7 +15,9 @@ export default function SignupPage() {
         <div className="absolute bottom-[-10%] left-[-10%] h-[50%] w-[50%] rounded-full bg-blue-500/10 blur-[120px]" />
       </div>
       
-      <SignupForm />
+      <Suspense fallback={<div className="text-white">Loading...</div>}>
+        <SignupForm />
+      </Suspense>
     </div>
   );
 }

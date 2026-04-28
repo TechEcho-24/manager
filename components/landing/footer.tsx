@@ -5,8 +5,8 @@ import Link from "next/link";
 
 export function FinalCTA() {
   return (
-    <footer className="pt-20 pb-10 px-6">
-       <div className="max-w-7xl mx-auto rounded-[4rem] bg-gradient-to-br from-orange-900/40 to-[#000] border border-orange-500/30 p-12 md:p-32 text-center relative overflow-hidden group">
+    <footer className="pt-16 md:pt-20 pb-10 px-4 md:px-6">
+       <div className="max-w-7xl mx-auto rounded-[2.5rem] md:rounded-[4rem] bg-gradient-to-br from-orange-900/40 to-[#000] border border-orange-500/30 p-8 md:p-32 text-center relative overflow-hidden group">
           {/* Background Glow */}
           <div className="absolute -top-1/2 -left-1/2 w-full h-full bg-orange-600/10 blur-[200px] rounded-full animate-pulse" />
           
@@ -35,7 +35,7 @@ export function Footer() {
           </div>
              <p className="text-[10px] font-bold text-white/20 uppercase tracking-widest">© 2026 Neural Ops. All rights Reserved.</p>
           </div>
-          <div className="flex gap-12">
+          <div className="flex flex-wrap justify-center gap-6 md:gap-12 mt-8 md:mt-0">
              {["Architecture", "Research", "Security", "Legal"].map(l => (
                 <Link key={l} href="#" className="text-[10px] font-black uppercase tracking-widest text-white/40 hover:text-white transition-colors">{l}</Link>
              ))}

@@ -93,6 +93,24 @@ export function OnboardingForm() {
     welcomeMessage: "Hello! How can we assist your business today?",
   });
 
+  useEffect(() => {
+    try {
+      const prefillStr = localStorage.getItem("onboardingPrefill");
+      if (prefillStr) {
+        const prefill = JSON.parse(prefillStr);
+        setFormData((prev) => ({
+          ...prev,
+          fullName: prefill.name || prev.fullName,
+          email: prefill.email || prev.email,
+          phone: prefill.phone || prev.phone,
+          secondaryEmail: prefill.email || prev.secondaryEmail,
+        }));
+      }
+    } catch (e) {
+      console.error("Failed to load prefill data", e);
+    }
+  }, []);
+
   const isStepValid = () => {
     switch(currentStep) {
       case 1:
@@ -112,14 +130,29 @@ export function OnboardingForm() {
     }
   };
 
-  const nextStep = () => {
+  const nextStep = async () => {
     if (currentStep === STEPS.length) {
-      setIsFinished(true);
+      setIsSubmitting(true);
+      try {
+        const response = await fetch('/api/onboarding', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(formData),
+        });
+        if (!response.ok) throw new Error('Failed to initialize protocol');
+        localStorage.removeItem("onboardingPrefill");
+        setIsFinished(true);
+      } catch (error) {
+        console.error("Onboarding error:", error);
+        setIsFinished(true);
+      } finally {
+        setIsSubmitting(false);
+      }
     } else {
       setCurrentStep((prev) => prev + 1);
     }
   };
-  
+
   const prevStep = () => setCurrentStep((prev) => Math.max(prev - 1, 1));
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -128,40 +161,38 @@ export function OnboardingForm() {
   };
 
   return (
-    <div className="flex h-screen w-full bg-[#050510] overflow-hidden font-sans">
-      {/* Left Side - Progress Sidebar */}
-      <div className="relative w-[280px] border-r border-white/10 bg-white/[0.01] flex flex-col p-8">
-        <div className="mb-12">
-          <div className="flex flex-col items-start mb-2">
-            <img src="/assets/logo.png" alt="Pinglly Logo" className="h-7 object-contain" />
-            <span className="text-[7px] font-black tracking-[0.4em] uppercase text-indigo-400 ml-1">Terminal Node</span>
-          </div>
+    <div className="flex flex-col lg:flex-row min-h-screen w-full bg-[#050510] overflow-x-hidden">
+      {/* Sidebar — scrollable pills on mobile, full vertical sidebar on desktop */}
+      <div className="lg:w-[260px] xl:w-[280px] border-b lg:border-b-0 lg:border-r border-white/10 bg-white/[0.01] flex flex-row lg:flex-col p-4 lg:p-8 gap-2 lg:gap-0 overflow-x-auto lg:overflow-visible shrink-0">
+        <div className="hidden lg:flex flex-col items-start mb-10">
+          <img src="/assets/logo.png" alt="Pinglly Logo" className="h-7 object-contain" />
+          <span className="text-[7px] font-bold tracking-[0.4em] uppercase text-indigo-400 ml-1 mt-1"
+            style={{ fontFamily: "var(--font-orbitron)" }}>Terminal Node</span>
         </div>
 
-        <div className="space-y-6 flex-1">
+        <div className="flex flex-row lg:flex-col gap-2 lg:gap-5 flex-1 lg:flex-none">
           {STEPS.map((step) => {
             const Icon = step.icon;
             const isActive = currentStep === step.id && !isFinished;
             const isCompleted = currentStep > step.id || isFinished;
 
             return (
-              <div key={step.id} className="relative flex items-center gap-3 group">
+              <div key={step.id} className="relative flex items-center gap-2 lg:gap-3 group shrink-0">
                 <div className={cn(
-                  "relative z-10 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border transition-all duration-500",
-                  isActive 
-                    ? "border-indigo-500 bg-indigo-500/20 text-white shadow-[0_0_15px_rgba(99,102,241,0.3)]" 
-                    : isCompleted 
-                      ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-400" 
+                  "relative z-10 flex h-7 w-7 lg:h-8 lg:w-8 shrink-0 items-center justify-center rounded-lg border transition-all duration-500",
+                  isActive
+                    ? "border-indigo-500 bg-indigo-500/20 text-white shadow-[0_0_15px_rgba(99,102,241,0.3)]"
+                    : isCompleted
+                      ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-400"
                       : "border-white/5 bg-white/[0.02] text-white/20"
                 )}>
                   {isCompleted ? <Check className="h-3 w-3" /> : <Icon className="h-3 w-3" />}
                 </div>
-
-                <div className="flex flex-col">
+                <div className="hidden lg:flex flex-col">
                   <span className={cn(
-                    "text-[10px] font-black uppercase tracking-widest transition-all duration-500",
+                    "text-[10px] font-bold uppercase tracking-widest transition-all duration-500",
                     isActive ? "text-white" : isCompleted ? "text-emerald-400/80" : "text-white/20"
-                  )}>
+                  )} style={{ fontFamily: "var(--font-orbitron)" }}>
                     {step.title}
                   </span>
                 </div>
@@ -170,21 +201,23 @@ export function OnboardingForm() {
           })}
         </div>
 
-        <div className="mt-auto">
+        <div className="hidden lg:block mt-auto pt-6">
           <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4">
-             <div className="flex items-center justify-between mb-2">
-                <span className="text-[8px] font-black uppercase text-white/30 tracking-widest">Efficiency</span>
-                <span className="text-[8px] font-black text-indigo-400">
-                   {isFinished ? "100%" : `${Math.round(((currentStep - 1) / STEPS.length) * 100)}%`}
-                </span>
-             </div>
-             <div className="h-1 w-full rounded-full bg-white/5 overflow-hidden">
-                <motion.div 
-                  className="h-full bg-indigo-500 shadow-[0_0_10px_rgba(99,102,241,0.5)]" 
-                  initial={{ width: 0 }}
-                  animate={{ width: isFinished ? "100%" : `${((currentStep - 1) / STEPS.length) * 100}%` }}
-                />
-             </div>
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[8px] font-bold uppercase text-white/30 tracking-widest"
+                style={{ fontFamily: "var(--font-orbitron)" }}>Progress</span>
+              <span className="text-[9px] font-bold text-indigo-400"
+                style={{ fontFamily: "var(--font-montserrat)" }}>
+                {isFinished ? "100%" : `${Math.round(((currentStep - 1) / STEPS.length) * 100)}%`}
+              </span>
+            </div>
+            <div className="h-1 w-full rounded-full bg-white/5 overflow-hidden">
+              <motion.div
+                className="h-full bg-indigo-500 shadow-[0_0_10px_rgba(99,102,241,0.5)]"
+                initial={{ width: 0 }}
+                animate={{ width: isFinished ? "100%" : `${((currentStep - 1) / STEPS.length) * 100}%` }}
+              />
+            </div>
           </div>
         </div>
       </div>

@@ -1,20 +1,29 @@
 import type { Metadata } from "next";
-import { Manrope, Poppins } from "next/font/google";
+import { Poppins, Montserrat, Orbitron } from "next/font/google";
 import { Providers } from "@/components/providers";
 import { ChatWidget } from "@/components/chat-widget";
 import "./globals.css";
 
-const manrope = Manrope({
-  variable: "--font-manrope",
-  subsets: ["latin"],
-});
 const poppins = Poppins({
   variable: "--font-poppins",
   subsets: ["latin"],
   weight: ["300", "400", "500", "600", "700", "800", "900"],
+  display: "swap",
 });
 
-// Duplicate manrope definition removed
+const montserrat = Montserrat({
+  variable: "--font-montserrat",
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700", "800", "900"],
+  display: "swap",
+});
+
+const orbitron = Orbitron({
+  variable: "--font-orbitron",
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "800", "900"],
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: "Pinglly | Cyber Edition",
@@ -34,7 +43,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${poppins.variable} ${manrope.variable} h-full antialiased scroll-smooth`}
+      className={`${poppins.variable} ${montserrat.variable} ${orbitron.variable} h-full antialiased scroll-smooth`}
       suppressHydrationWarning
     >
       <body className="min-h-full font-sans">
@@ -46,3 +55,4 @@ export default function RootLayout({
     </html>
   );
 }
+

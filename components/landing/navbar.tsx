@@ -6,7 +6,7 @@ import { MousePointer2 } from "lucide-react";
 
 export function Navbar() {
   return (
-    <nav className="fixed top-0 left-0 w-full z-50 px-10 py-6 flex items-center justify-between bg-black/20 backdrop-blur-md border-b border-white/[0.05]">
+    <nav className="fixed top-0 left-0 w-full z-50 px-4 md:px-10 py-4 md:py-6 flex items-center justify-between bg-black/20 backdrop-blur-md border-b border-white/[0.05]">
         <Link href="/" className="flex flex-col items-start group/logo cursor-pointer">
           <img src="/assets/logo.png" alt="Pinglly Logo" className="h-8 object-contain" />
           <span className="text-[8px] font-medium text-white/30 tracking-widest uppercase ml-1">by TechEcho</span>
