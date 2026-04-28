@@ -8,8 +8,8 @@ export function Hero() {
   return (
     <div className="min-h-screen bg-black text-white overflow-hidden">
       {/* Header (Vetra Floating Capsule) */}
-      <header className="fixed top-6 left-0 right-0 z-50 px-6 flex justify-center">
-        <div className="flex items-center justify-between w-full max-w-5xl px-8 py-3 rounded-full bg-orange-500/[0.03] border border-orange-500/20 backdrop-blur-xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] relative group overflow-hidden">
+      <header className="fixed top-4 md:top-6 left-0 right-0 z-50 px-4 md:px-6 flex justify-center">
+        <div className="flex items-center justify-between w-full max-w-5xl px-5 md:px-8 py-2.5 md:py-3 rounded-full bg-orange-500/[0.03] border border-orange-500/20 backdrop-blur-xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] relative group overflow-hidden">
           {/* Subtle Glow inside capsule */}
           <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-orange-500/30 to-transparent" />
           
@@ -37,7 +37,7 @@ export function Hero() {
 
       {/* Hero Section */}
       <section
-        className="relative min-h-screen flex flex-col items-center justify-center px-6 pt-32 pb-24"
+        className="relative min-h-[100svh] flex flex-col items-center justify-center px-4 md:px-6 pt-28 md:pt-32 pb-20 md:pb-24"
       >
         {/* Animated Background with Noise */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -96,9 +96,9 @@ export function Hero() {
           </div>
 
           {/* Main Heading */}
-          <h1 className="reveal text-5xl md:text-8xl lg:text-[120px] font-medium tracking-tighter leading-[0.95]" style={{fontFamily: 'Manrope, sans-serif', animationDelay: '400ms'}}>
+          <h1 className="reveal text-5xl md:text-8xl lg:text-[120px] font-medium tracking-tighter leading-[1.05] md:leading-[0.95]" style={{fontFamily: 'Manrope, sans-serif', animationDelay: '400ms'}}>
             <span className="bg-clip-text text-transparent bg-gradient-to-b from-white to-white/90">
-              Accelerate Your <br /> Sales With AI
+              Accelerate Your <br className="hidden sm:block" /> Sales With AI
             </span>
           </h1>
 
@@ -129,7 +129,7 @@ export function Hero() {
           <p className="text-xs font-semibold uppercase tracking-wider text-gray-600 mb-6 text-center">
             Trusted by 200+ companies
           </p>
-          <div className="flex flex-wrap justify-center items-center gap-8 md:gap-12 opacity-40">
+          <div className="flex flex-wrap justify-center items-center gap-4 sm:gap-8 md:gap-12 opacity-40 px-4">
             <div className="flex items-center gap-2">
               <div className="w-5 h-5 bg-gray-500 rounded"></div>
               <span className="text-sm font-semibold text-gray-400">FeatherDev</span>

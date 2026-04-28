@@ -1,7 +1,12 @@
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
+import { authConfig } from "./auth.config";
+import bcrypt from "bcryptjs";
+import connectDB from "@/lib/db";
+import { User } from "@/models/user";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
+  ...authConfig,
   providers: [
     Credentials({
       name: "Credentials",
@@ -22,26 +27,38 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             name: "Super Admin",
             email: "techecho.kanpur@gmail.com",
             role: "admin",
+            onboardingCompleted: true,
           };
         }
 
-        // 2. CLIENTS (Testing / Dynamic User Logic)
-        if (email === "anujsachan98@gmail.com" && password === "Anuj@123") {
-          return {
-            id: "client-sagar",
-            name: "Sagar Client",
-            email: "anujsachan98@gmail.com",
-            role: "client",
-          };
+        // 2. Check Database for registered users
+        try {
+          await connectDB();
+          const user = await User.findOne({ email });
+          if (user && user.password) {
+            const isValid = await bcrypt.compare(password, user.password);
+            if (isValid) {
+              return {
+                id: user._id.toString(),
+                name: user.name,
+                email: user.email,
+                role: user.role,
+                onboardingCompleted: user.onboardingCompleted,
+              };
+            }
+          }
+        } catch (error) {
+          console.error("Auth DB Error:", error);
         }
 
         // Fallback for generic testing
         if (password === "Anuj@123") {
           return {
-            id: `client-${email.split('@')[0]}`,
-            name: email.split('@')[0],
+            id: `client-${email.split("@")[0]}`,
+            name: email.split("@")[0],
             email: email,
             role: "client",
+            onboardingCompleted: true,
           };
         }
 
@@ -49,24 +66,4 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       },
     }),
   ],
-  callbacks: {
-    async jwt({ token, user }) {
-      if (user) {
-        token.id = user.id;
-        token.role = (user as any).role;
-      }
-      return token;
-    },
-    async session({ session, token }) {
-      if (token && session.user) {
-        (session.user as any).id = token.id;
-        (session.user as any).role = token.role;
-      }
-      return session;
-    },
-  },
-  pages: {
-    signIn: "/login",
-  },
-  secret: process.env.AUTH_SECRET || "any-random-secret-for-now",
 });

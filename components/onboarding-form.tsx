@@ -54,6 +54,7 @@ const STEPS = [
 export function OnboardingForm() {
   const [currentStep, setCurrentStep] = useState(1);
   const [isFinished, setIsFinished] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     // Command
     fullName: "",
@@ -93,14 +94,66 @@ export function OnboardingForm() {
     welcomeMessage: "Hello! How can we assist your business today?",
   });
 
-  const nextStep = () => {
+  useEffect(() => {
+    try {
+      const prefillStr = localStorage.getItem("onboardingPrefill");
+      if (prefillStr) {
+        const prefill = JSON.parse(prefillStr);
+        setFormData((prev) => ({
+          ...prev,
+          fullName: prefill.name || prev.fullName,
+          email: prefill.email || prev.email,
+          phone: prefill.phone || prev.phone,
+          secondaryEmail: prefill.email || prev.secondaryEmail,
+        }));
+      }
+    } catch (e) {
+      console.error("Failed to load prefill data", e);
+    }
+  }, []);
+
+  const isStepValid = () => {
+    switch(currentStep) {
+      case 1:
+        return !!(formData.fullName && formData.email && formData.phone && formData.linkedin && formData.designation && formData.secondaryEmail);
+      case 2:
+        return !!(formData.entityType && formData.department && formData.teamSize && formData.location && formData.language);
+      case 3:
+        return !!(formData.companyName && formData.industry && formData.website && formData.foundingYear && formData.gstr && formData.revenue);
+      case 4:
+        return !!(formData.brandColor && formData.tagline && formData.brandVoice && formData.fontStyle);
+      case 5:
+        return !!(formData.goal && formData.primaryChannel && formData.targetAudience && formData.integration && formData.leadGoal && formData.supportLevel);
+      case 6:
+        return !!(formData.botName && formData.welcomeMessage);
+      default:
+        return true;
+    }
+  };
+
+  const nextStep = async () => {
     if (currentStep === STEPS.length) {
-      setIsFinished(true);
+      setIsSubmitting(true);
+      try {
+        const response = await fetch('/api/onboarding', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(formData),
+        });
+        if (!response.ok) throw new Error('Failed to initialize protocol');
+        localStorage.removeItem("onboardingPrefill");
+        setIsFinished(true);
+      } catch (error) {
+        console.error("Onboarding error:", error);
+        setIsFinished(true);
+      } finally {
+        setIsSubmitting(false);
+      }
     } else {
       setCurrentStep((prev) => prev + 1);
     }
   };
-  
+
   const prevStep = () => setCurrentStep((prev) => Math.max(prev - 1, 1));
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -109,40 +162,38 @@ export function OnboardingForm() {
   };
 
   return (
-    <div className="flex h-screen w-full bg-[#050510] overflow-hidden font-sans">
-      {/* Left Side - Progress Sidebar */}
-      <div className="relative w-[280px] border-r border-white/10 bg-white/[0.01] flex flex-col p-8">
-        <div className="mb-12">
-          <div className="flex flex-col items-start mb-2">
-            <img src="/assets/logo.png" alt="Pinglly Logo" className="h-7 object-contain" />
-            <span className="text-[7px] font-black tracking-[0.4em] uppercase text-indigo-400 ml-1">Terminal Node</span>
-          </div>
+    <div className="flex flex-col lg:flex-row min-h-screen w-full bg-[#050510] overflow-x-hidden">
+      {/* Sidebar — scrollable pills on mobile, full vertical sidebar on desktop */}
+      <div className="lg:w-[260px] xl:w-[280px] border-b lg:border-b-0 lg:border-r border-white/10 bg-white/[0.01] flex flex-row lg:flex-col p-4 lg:p-8 gap-2 lg:gap-0 overflow-x-auto lg:overflow-visible shrink-0">
+        <div className="hidden lg:flex flex-col items-start mb-10">
+          <img src="/assets/logo.png" alt="Pinglly Logo" className="h-7 object-contain" />
+          <span className="text-[7px] font-bold tracking-[0.4em] uppercase text-indigo-400 ml-1 mt-1"
+            style={{ fontFamily: "var(--font-orbitron)" }}>Terminal Node</span>
         </div>
 
-        <div className="space-y-6 flex-1">
+        <div className="flex flex-row lg:flex-col gap-2 lg:gap-5 flex-1 lg:flex-none">
           {STEPS.map((step) => {
             const Icon = step.icon;
             const isActive = currentStep === step.id && !isFinished;
             const isCompleted = currentStep > step.id || isFinished;
 
             return (
-              <div key={step.id} className="relative flex items-center gap-3 group">
+              <div key={step.id} className="relative flex items-center gap-2 lg:gap-3 group shrink-0">
                 <div className={cn(
-                  "relative z-10 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border transition-all duration-500",
-                  isActive 
-                    ? "border-indigo-500 bg-indigo-500/20 text-white shadow-[0_0_15px_rgba(99,102,241,0.3)]" 
-                    : isCompleted 
-                      ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-400" 
+                  "relative z-10 flex h-7 w-7 lg:h-8 lg:w-8 shrink-0 items-center justify-center rounded-lg border transition-all duration-500",
+                  isActive
+                    ? "border-indigo-500 bg-indigo-500/20 text-white shadow-[0_0_15px_rgba(99,102,241,0.3)]"
+                    : isCompleted
+                      ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-400"
                       : "border-white/5 bg-white/[0.02] text-white/20"
                 )}>
                   {isCompleted ? <Check className="h-3 w-3" /> : <Icon className="h-3 w-3" />}
                 </div>
-
-                <div className="flex flex-col">
+                <div className="hidden lg:flex flex-col">
                   <span className={cn(
-                    "text-[10px] font-black uppercase tracking-widest transition-all duration-500",
+                    "text-[10px] font-bold uppercase tracking-widest transition-all duration-500",
                     isActive ? "text-white" : isCompleted ? "text-emerald-400/80" : "text-white/20"
-                  )}>
+                  )} style={{ fontFamily: "var(--font-orbitron)" }}>
                     {step.title}
                   </span>
                 </div>
@@ -151,21 +202,23 @@ export function OnboardingForm() {
           })}
         </div>
 
-        <div className="mt-auto">
+        <div className="hidden lg:block mt-auto pt-6">
           <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4">
-             <div className="flex items-center justify-between mb-2">
-                <span className="text-[8px] font-black uppercase text-white/30 tracking-widest">Efficiency</span>
-                <span className="text-[8px] font-black text-indigo-400">
-                   {isFinished ? "100%" : `${Math.round(((currentStep - 1) / STEPS.length) * 100)}%`}
-                </span>
-             </div>
-             <div className="h-1 w-full rounded-full bg-white/5 overflow-hidden">
-                <motion.div 
-                  className="h-full bg-indigo-500 shadow-[0_0_10px_rgba(99,102,241,0.5)]" 
-                  initial={{ width: 0 }}
-                  animate={{ width: isFinished ? "100%" : `${((currentStep - 1) / STEPS.length) * 100}%` }}
-                />
-             </div>
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[8px] font-bold uppercase text-white/30 tracking-widest"
+                style={{ fontFamily: "var(--font-orbitron)" }}>Progress</span>
+              <span className="text-[9px] font-bold text-indigo-400"
+                style={{ fontFamily: "var(--font-montserrat)" }}>
+                {isFinished ? "100%" : `${Math.round(((currentStep - 1) / STEPS.length) * 100)}%`}
+              </span>
+            </div>
+            <div className="h-1 w-full rounded-full bg-white/5 overflow-hidden">
+              <motion.div
+                className="h-full bg-indigo-500 shadow-[0_0_10px_rgba(99,102,241,0.5)]"
+                initial={{ width: 0 }}
+                animate={{ width: isFinished ? "100%" : `${((currentStep - 1) / STEPS.length) * 100}%` }}
+              />
+            </div>
           </div>
         </div>
       </div>
@@ -191,27 +244,27 @@ export function OnboardingForm() {
                   
                   <div className="grid grid-cols-2 gap-x-8 gap-y-6">
                     <div className="space-y-2">
-                      <Label className="text-[9px] font-black uppercase tracking-widest text-white/40 ml-1">Full Name</Label>
+                      <Label className="text-[9px] font-black uppercase tracking-widest text-white/40 ml-1">Full Name <span className="text-red-500">*</span></Label>
                       <Input name="fullName" value={formData.fullName} onChange={handleInputChange} placeholder="John Doe" className="h-13 rounded-xl border-white/10 bg-white/[0.05] px-5 text-white" />
                     </div>
                     <div className="space-y-2">
-                      <Label className="text-[9px] font-black uppercase tracking-widest text-white/40 ml-1">Work Email</Label>
+                      <Label className="text-[9px] font-black uppercase tracking-widest text-white/40 ml-1">Work Email <span className="text-red-500">*</span></Label>
                       <Input name="email" value={formData.email} onChange={handleInputChange} placeholder="john@company.com" className="h-13 rounded-xl border-white/10 bg-white/[0.05] px-5 text-white" />
                     </div>
                     <div className="space-y-2">
-                      <Label className="text-[9px] font-black uppercase tracking-widest text-white/40 ml-1">Personal Link (Phone)</Label>
+                      <Label className="text-[9px] font-black uppercase tracking-widest text-white/40 ml-1">Personal Link (Phone) <span className="text-red-500">*</span></Label>
                       <Input name="phone" value={formData.phone} onChange={handleInputChange} placeholder="+91 00000 00000" className="h-13 rounded-xl border-white/10 bg-white/[0.05] px-5 text-white" />
                     </div>
                     <div className="space-y-2">
-                      <Label className="text-[9px] font-black uppercase tracking-widest text-white/40 ml-1">LinkedIn Profile</Label>
+                      <Label className="text-[9px] font-black uppercase tracking-widest text-white/40 ml-1">LinkedIn Profile <span className="text-red-500">*</span></Label>
                       <Input name="linkedin" value={formData.linkedin} onChange={handleInputChange} placeholder="linkedin.com/in/user" className="h-13 rounded-xl border-white/10 bg-white/[0.05] px-5 text-white" />
                     </div>
                     <div className="space-y-2">
-                      <Label className="text-[9px] font-black uppercase tracking-widest text-white/40 ml-1">Designation / Role</Label>
+                      <Label className="text-[9px] font-black uppercase tracking-widest text-white/40 ml-1">Designation / Role <span className="text-red-500">*</span></Label>
                       <Input name="designation" value={formData.designation} onChange={handleInputChange} placeholder="VP of Sales" className="h-13 rounded-xl border-white/10 bg-white/[0.05] px-5 text-white" />
                     </div>
                     <div className="space-y-2">
-                      <Label className="text-[9px] font-black uppercase tracking-widest text-white/40 ml-1">Recovery Email</Label>
+                      <Label className="text-[9px] font-black uppercase tracking-widest text-white/40 ml-1">Recovery Email <span className="text-red-500">*</span></Label>
                       <Input name="secondaryEmail" value={formData.secondaryEmail} onChange={handleInputChange} placeholder="alt@email.com" className="h-13 rounded-xl border-white/10 bg-white/[0.05] px-5 text-white" />
                     </div>
                   </div>
@@ -227,7 +280,7 @@ export function OnboardingForm() {
 
                   <div className="grid grid-cols-2 gap-x-8 gap-y-6">
                     <div className="col-span-2 space-y-2">
-                       <Label className="text-[9px] font-black uppercase tracking-widest text-white/40 ml-1">Entity Logic</Label>
+                       <Label className="text-[9px] font-black uppercase tracking-widest text-white/40 ml-1">Entity Logic <span className="text-red-500">*</span></Label>
                        <RadioGroup defaultValue={formData.entityType} onValueChange={(v) => setFormData(p => ({ ...p, entityType: v }))} className="grid grid-cols-2 gap-4">
                          <Label className={cn("flex h-12 items-center justify-center rounded-xl border cursor-pointer transition-all uppercase tracking-widest text-[10px] font-black", formData.entityType === "individual" ? "border-indigo-500 bg-indigo-500/10 text-white" : "border-white/10 text-white/20")}>
                            <RadioGroupItem value="individual" className="sr-only" /> Solo Pro
@@ -238,19 +291,19 @@ export function OnboardingForm() {
                        </RadioGroup>
                     </div>
                     <div className="space-y-2">
-                      <Label className="text-[9px] font-black uppercase tracking-widest text-white/40 ml-1">Main Department</Label>
+                      <Label className="text-[9px] font-black uppercase tracking-widest text-white/40 ml-1">Main Department <span className="text-red-500">*</span></Label>
                       <Input name="department" value={formData.department} onChange={handleInputChange} placeholder="Marketing" className="h-13 rounded-xl border-white/10 bg-white/[0.05] px-5 text-white" />
                     </div>
                     <div className="space-y-2">
-                      <Label className="text-[9px] font-black uppercase tracking-widest text-white/40 ml-1">Team Dimension</Label>
+                      <Label className="text-[9px] font-black uppercase tracking-widest text-white/40 ml-1">Team Dimension <span className="text-red-500">*</span></Label>
                       <Input name="teamSize" value={formData.teamSize} onChange={handleInputChange} placeholder="11-50 Members" className="h-13 rounded-xl border-white/10 bg-white/[0.05] px-5 text-white" />
                     </div>
                     <div className="space-y-2">
-                      <Label className="text-[9px] font-black uppercase tracking-widest text-white/40 ml-1">Operating Region</Label>
+                      <Label className="text-[9px] font-black uppercase tracking-widest text-white/40 ml-1">Operating Region <span className="text-red-500">*</span></Label>
                       <Input name="location" value={formData.location} onChange={handleInputChange} placeholder="North America / APAC" className="h-13 rounded-xl border-white/10 bg-white/[0.05] px-5 text-white" />
                     </div>
                     <div className="space-y-2">
-                      <Label className="text-[9px] font-black uppercase tracking-widest text-white/40 ml-1">System Language</Label>
+                      <Label className="text-[9px] font-black uppercase tracking-widest text-white/40 ml-1">System Language <span className="text-red-500">*</span></Label>
                       <Input name="language" value={formData.language} onChange={handleInputChange} placeholder="English / Hindi" className="h-13 rounded-xl border-white/10 bg-white/[0.05] px-5 text-white" />
                     </div>
                   </div>
@@ -266,27 +319,27 @@ export function OnboardingForm() {
 
                   <div className="grid grid-cols-2 gap-x-8 gap-y-6">
                     <div className="space-y-2">
-                      <Label className="text-[9px] font-black uppercase tracking-widest text-white/40 ml-1">Company Master Name</Label>
+                      <Label className="text-[9px] font-black uppercase tracking-widest text-white/40 ml-1">Company Master Name <span className="text-red-500">*</span></Label>
                       <Input name="companyName" value={formData.companyName} onChange={handleInputChange} placeholder="Pinglly Tech" className="h-13 rounded-xl border-white/10 bg-white/[0.05] px-5 text-white" />
                     </div>
                     <div className="space-y-2">
-                      <Label className="text-[9px] font-black uppercase tracking-widest text-white/40 ml-1">Industry Sector</Label>
+                      <Label className="text-[9px] font-black uppercase tracking-widest text-white/40 ml-1">Industry Sector <span className="text-red-500">*</span></Label>
                       <Input name="industry" value={formData.industry} onChange={handleInputChange} placeholder="Fintech / SaaS" className="h-13 rounded-xl border-white/10 bg-white/[0.05] px-5 text-white" />
                     </div>
                     <div className="space-y-2">
-                      <Label className="text-[9px] font-black uppercase tracking-widest text-white/40 ml-1">Digital Endpoint (Web)</Label>
+                      <Label className="text-[9px] font-black uppercase tracking-widest text-white/40 ml-1">Digital Endpoint (Web) <span className="text-red-500">*</span></Label>
                       <Input name="website" value={formData.website} onChange={handleInputChange} placeholder="pinglly.com" className="h-13 rounded-xl border-white/10 bg-white/[0.05] px-5 text-white" />
                     </div>
                     <div className="space-y-2">
-                      <Label className="text-[9px] font-black uppercase tracking-widest text-white/40 ml-1">Founding Year</Label>
+                      <Label className="text-[9px] font-black uppercase tracking-widest text-white/40 ml-1">Founding Year <span className="text-red-500">*</span></Label>
                       <Input name="foundingYear" value={formData.foundingYear} onChange={handleInputChange} placeholder="2024" className="h-13 rounded-xl border-white/10 bg-white/[0.05] px-5 text-white" />
                     </div>
                     <div className="space-y-2">
-                      <Label className="text-[9px] font-black uppercase tracking-widest text-white/40 ml-1">GSTR / Tax Registry</Label>
+                      <Label className="text-[9px] font-black uppercase tracking-widest text-white/40 ml-1">GSTR / Tax Registry <span className="text-red-500">*</span></Label>
                       <Input name="gstr" value={formData.gstr} onChange={handleInputChange} placeholder="GST Number" className="h-13 rounded-xl border-white/10 bg-white/[0.05] px-5 text-white" />
                     </div>
                     <div className="space-y-2">
-                      <Label className="text-[9px] font-black uppercase tracking-widest text-white/40 ml-1">Revenue Stream Range</Label>
+                      <Label className="text-[9px] font-black uppercase tracking-widest text-white/40 ml-1">Revenue Stream Range <span className="text-red-500">*</span></Label>
                       <Input name="revenue" value={formData.revenue} onChange={handleInputChange} placeholder="$1M - $10M" className="h-13 rounded-xl border-white/10 bg-white/[0.05] px-5 text-white" />
                     </div>
                   </div>
@@ -302,14 +355,14 @@ export function OnboardingForm() {
 
                   <div className="grid grid-cols-2 gap-x-12 gap-y-6">
                     <div className="space-y-4 row-span-2">
-                      <Label className="text-[9px] font-black uppercase tracking-widest text-white/40 ml-1">Master Logo</Label>
+                      <Label className="text-[9px] font-black uppercase tracking-widest text-white/40 ml-1">Master Logo <span className="text-red-500">*</span></Label>
                       <div className="group relative h-64 w-full cursor-pointer flex-col items-center justify-center rounded-2xl border border-dashed border-white/20 bg-white/[0.02] hover:border-indigo-500/50 hover:bg-indigo-500/5 transition-all flex">
                         <Upload className="h-10 w-10 text-white/20 group-hover:text-indigo-400 transition-all" />
                         <span className="mt-4 text-[9px] font-black uppercase tracking-widest text-white/30">SVG / PNG / WebP</span>
                       </div>
                     </div>
                     <div className="space-y-4">
-                      <Label className="text-[9px] font-black uppercase tracking-widest text-white/40 ml-1">Neural Primary Color</Label>
+                      <Label className="text-[9px] font-black uppercase tracking-widest text-white/40 ml-1">Neural Primary Color <span className="text-red-500">*</span></Label>
                       <div className="grid grid-cols-4 gap-3">
                         {["#7c3aed", "#ff6b35", "#3b82f6", "#10b981", "#f43f5e", "#fbbf24", "#ffffff", "#000000"].map((color) => (
                           <button
@@ -325,15 +378,15 @@ export function OnboardingForm() {
                       </div>
                     </div>
                     <div className="space-y-2">
-                      <Label className="text-[9px] font-black uppercase tracking-widest text-white/40 ml-1">Brand Tagline</Label>
+                      <Label className="text-[9px] font-black uppercase tracking-widest text-white/40 ml-1">Brand Tagline <span className="text-red-500">*</span></Label>
                       <Input name="tagline" value={formData.tagline} onChange={handleInputChange} placeholder="Sales Reimagined" className="h-13 rounded-xl border-white/10 bg-white/[0.05] px-5 text-white" />
                     </div>
                     <div className="space-y-2">
-                      <Label className="text-[9px] font-black uppercase tracking-widest text-white/40 ml-1">Brand Voice</Label>
+                      <Label className="text-[9px] font-black uppercase tracking-widest text-white/40 ml-1">Brand Voice <span className="text-red-500">*</span></Label>
                       <Input name="brandVoice" value={formData.brandVoice} onChange={handleInputChange} placeholder="Empathetic / Aggressive" className="h-13 rounded-xl border-white/10 bg-white/[0.05] px-5 text-white" />
                     </div>
                     <div className="space-y-2">
-                      <Label className="text-[9px] font-black uppercase tracking-widest text-white/40 ml-1">Digital Font Style</Label>
+                      <Label className="text-[9px] font-black uppercase tracking-widest text-white/40 ml-1">Digital Font Style <span className="text-red-500">*</span></Label>
                       <Input name="fontStyle" value={formData.fontStyle} onChange={handleInputChange} placeholder="Modern / Classic" className="h-13 rounded-xl border-white/10 bg-white/[0.05] px-5 text-white" />
                     </div>
                   </div>
@@ -349,27 +402,27 @@ export function OnboardingForm() {
 
                   <div className="grid grid-cols-2 gap-x-8 gap-y-6">
                     <div className="space-y-2">
-                      <Label className="text-[9px] font-black uppercase tracking-widest text-white/40 ml-1">Primary Growth Goal</Label>
+                      <Label className="text-[9px] font-black uppercase tracking-widest text-white/40 ml-1">Primary Growth Goal <span className="text-red-500">*</span></Label>
                       <Input name="goal" value={formData.goal} onChange={handleInputChange} placeholder="Automate Leads" className="h-13 rounded-xl border-white/10 bg-white/[0.05] px-5 text-white" />
                     </div>
                     <div className="space-y-2">
-                      <Label className="text-[9px] font-black uppercase tracking-widest text-white/40 ml-1">Main Sales Channel</Label>
+                      <Label className="text-[9px] font-black uppercase tracking-widest text-white/40 ml-1">Main Sales Channel <span className="text-red-500">*</span></Label>
                       <Input name="primaryChannel" value={formData.primaryChannel} onChange={handleInputChange} placeholder="WhatsApp" className="h-13 rounded-xl border-white/10 bg-white/[0.05] px-5 text-white" />
                     </div>
                     <div className="space-y-2">
-                      <Label className="text-[9px] font-black uppercase tracking-widest text-white/40 ml-1">Target Audience Segment</Label>
+                      <Label className="text-[9px] font-black uppercase tracking-widest text-white/40 ml-1">Target Audience Segment <span className="text-red-500">*</span></Label>
                       <Input name="targetAudience" value={formData.targetAudience} onChange={handleInputChange} placeholder="SaaS Startups" className="h-13 rounded-xl border-white/10 bg-white/[0.05] px-5 text-white" />
                     </div>
                     <div className="space-y-2">
-                      <Label className="text-[9px] font-black uppercase tracking-widest text-white/40 ml-1">CRM Logic Integration</Label>
+                      <Label className="text-[9px] font-black uppercase tracking-widest text-white/40 ml-1">CRM Logic Integration <span className="text-red-500">*</span></Label>
                       <Input name="integration" value={formData.integration} onChange={handleInputChange} placeholder="HubSpot / Salesforce" className="h-13 rounded-xl border-white/10 bg-white/[0.05] px-5 text-white" />
                     </div>
                     <div className="space-y-2">
-                      <Label className="text-[9px] font-black uppercase tracking-widest text-white/40 ml-1">Weekly Lead Target</Label>
+                      <Label className="text-[9px] font-black uppercase tracking-widest text-white/40 ml-1">Weekly Lead Target <span className="text-red-500">*</span></Label>
                       <Input name="leadGoal" value={formData.leadGoal} onChange={handleInputChange} placeholder="100 Leads" className="h-13 rounded-xl border-white/10 bg-white/[0.05] px-5 text-white" />
                     </div>
                     <div className="space-y-2">
-                      <Label className="text-[9px] font-black uppercase tracking-widest text-white/40 ml-1">Support Tier Priority</Label>
+                      <Label className="text-[9px] font-black uppercase tracking-widest text-white/40 ml-1">Support Tier Priority <span className="text-red-500">*</span></Label>
                       <Input name="supportLevel" value={formData.supportLevel} onChange={handleInputChange} placeholder="24/7 Premium" className="h-13 rounded-xl border-white/10 bg-white/[0.05] px-5 text-white" />
                     </div>
                   </div>
@@ -386,11 +439,11 @@ export function OnboardingForm() {
 
                     <div className="space-y-6">
                        <div className="space-y-2">
-                        <Label className="text-[9px] font-black uppercase tracking-widest text-white/40 ml-1">AI Assistant Name</Label>
+                        <Label className="text-[9px] font-black uppercase tracking-widest text-white/40 ml-1">AI Assistant Name <span className="text-red-500">*</span></Label>
                         <Input name="botName" value={formData.botName} onChange={handleInputChange} placeholder="Pinglly AI" className="h-13 rounded-xl border-white/10 bg-white/[0.05] px-5 text-white" />
                       </div>
                       <div className="space-y-2">
-                        <Label className="text-[9px] font-black uppercase tracking-widest text-white/40 ml-1">Bot Welcome Logic</Label>
+                        <Label className="text-[9px] font-black uppercase tracking-widest text-white/40 ml-1">Bot Welcome Logic <span className="text-red-500">*</span></Label>
                         <textarea 
                           name="welcomeMessage" 
                           value={formData.welcomeMessage} 
@@ -456,7 +509,8 @@ export function OnboardingForm() {
                 
                 <Button 
                   onClick={nextStep}
-                  className="h-16 px-12 rounded-2xl bg-white text-black font-black hover:scale-105 transition-all shadow-[0_20px_40px_rgba(255,255,255,0.1)]"
+                  disabled={!isStepValid()}
+                  className={cn("h-16 px-12 rounded-2xl bg-white text-black font-black transition-all shadow-[0_20px_40px_rgba(255,255,255,0.1)]", !isStepValid() ? "opacity-50 cursor-not-allowed" : "hover:scale-105")}
                 >
                   <div className="flex items-center gap-3">
                     <span className="uppercase tracking-[0.2em] text-sm">

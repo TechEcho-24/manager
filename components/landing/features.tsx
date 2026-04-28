@@ -13,16 +13,16 @@ const featureItems = [
 
 export function Features() {
   return (
-    <section id="features" className="py-32 px-6">
+    <section id="features" className="py-20 md:py-32 px-4 md:px-6">
        <div className="max-w-7xl mx-auto">
           <div className="mb-24 max-w-3xl">
              <h2 className="text-4xl md:text-5xl font-black uppercase tracking-tighter mb-6 text-white italic">Neural Architecture.</h2>
              <p className="text-xs font-bold text-white/40 uppercase tracking-[0.4em]">Engineered for high-density B2B synchronization and ultra-fast lead processing.</p>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
              {featureItems.map((f, i) => (
-                <div key={i} className="reveal group p-10 rounded-[3rem] bg-white/[0.02] border border-white/5 hover:border-orange-500/30 transition-all duration-500 relative overflow-hidden" style={{ animationDelay: `${i * 100}ms` }}>
+                <div key={i} className="reveal group p-6 sm:p-10 rounded-[2rem] sm:rounded-[3rem] bg-white/[0.02] border border-white/5 hover:border-orange-500/30 transition-all duration-500 relative overflow-hidden" style={{ animationDelay: `${i * 100}ms` }}>
                    <div className="relative z-10">
                       <div className="h-14 w-14 rounded-2xl bg-orange-500/10 flex items-center justify-center mb-8 group-hover:scale-110 transition-transform shadow-[0_0_15px_rgba(255,107,53,0.2)]">
                          <f.icon className="h-6 w-6 text-orange-400" />
