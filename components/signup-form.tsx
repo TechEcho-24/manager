@@ -249,7 +249,7 @@ export default function SignupForm() {
                 Dominate.
               </span>
             </h2>
-            <p className="text-base text-white/60 max-w-[360px] leading-relaxed"
+            <p className="text-base text-white/60 max-w-[360px] leading-relaxed">
                            Initialize your high-performance CRM node. Join 12,000+ sales experts.
             </p>
           </div>
@@ -295,7 +295,7 @@ export default function SignupForm() {
               style={{ fontFamily: "var(--font-manrope)" }}>
               Phase: Join
             </h1>
-            <p className="text-sm text-white/40 leading-relaxed"               Create your account to access the platform.
+            <p className="text-sm text-white/40 leading-relaxed">               Create your account to access the platform.
             </p>
             {planParam && (
               <div className="mt-3 inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-orange-500/10 border border-orange-500/20">
@@ -410,7 +410,7 @@ export default function SignupForm() {
             </Button>
           </form>
 
-          <p className="mt-6 text-center text-xs text-white/30"             Already have an account?{" "}
+          <p className="mt-6 text-center text-xs text-white/30">            Already have an account?{" "}
             <Link href="/login" className="text-indigo-400 hover:text-indigo-300 font-semibold transition-colors">
               Sign In
             </Link>
