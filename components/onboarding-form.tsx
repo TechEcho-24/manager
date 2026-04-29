@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useSession } from "next-auth/react";
 import {
   User,
   Building2,
@@ -41,6 +42,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { cn } from "@/lib/utils";
+import { useRouter } from "next/navigation";
 
 const STEPS = [
   { id: 1, title: "Command", icon: User, description: "Personal" },
@@ -55,6 +57,10 @@ export function OnboardingForm() {
   const [currentStep, setCurrentStep] = useState(1);
   const [isFinished, setIsFinished] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const router = useRouter();
+
+  const { update } = useSession();
+
   const [formData, setFormData] = useState({
     // Command
     fullName: "",
@@ -174,6 +180,9 @@ export function OnboardingForm() {
         });
         if (!response.ok) throw new Error("Failed to initialize protocol");
         localStorage.removeItem("onboardingPrefill");
+        await update({
+          onboardingCompleted: true,
+        });
         setIsFinished(true);
       } catch (error) {
         console.error("Onboarding error:", error);
@@ -945,7 +954,7 @@ export function OnboardingForm() {
               </div>
 
               <Button
-                onClick={() => (window.location.href = "/dashboard")}
+                onClick={() => router.push("/dashboard")}
                 className='h-20 px-16 rounded-[2rem] bg-white text-black text-xl font-black hover:scale-105 transition-all flex items-center gap-4'
               >
                 <span>Enter Terminal</span>
