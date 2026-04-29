@@ -18,9 +18,9 @@ export const metadata: Metadata = {
   title: "Pinglly | Cyber Edition",
   description: "Futuristic B2B Sales Infrastructure",
   icons: {
-    icon: "/assets/logo.png",
-    shortcut: "/assets/logo.png",
-    apple: "/assets/logo.png",
+    icon: "/assets/favicon.png",
+    shortcut: "/assets/favicon.png",
+    apple: "/assets/favicon.png",
   },
 };
 

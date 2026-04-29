@@ -205,7 +205,7 @@ export default function SignupForm() {
                     className="h-full bg-gradient-to-r from-indigo-600 to-purple-600"
                   />
                 </div>
-                <span className="text-[9px] font-bold uppercase tracking-[0.4em] text-white/20"
+                <span className="text-[9px] font-bold tracking-[0.4em] text-white/20"
                   style={{ fontFamily: "var(--font-manrope)" }}>
                   Establishing Neural Link
                 </span>
@@ -232,24 +232,24 @@ export default function SignupForm() {
           <Link href="/" className="relative z-10 block">
             <div className="flex flex-col items-start mb-12">
               <img src="/assets/logo.png" alt="Pinglly" className="h-10 object-contain drop-shadow-[0_0_20px_rgba(99,102,241,0.6)]" />
-              <span className="text-[8px] font-bold tracking-[0.4em] text-indigo-400 mt-1 uppercase ml-1"
+              <span className="text-[8px] font-bold tracking-[0.4em] text-indigo-400 mt-1 ml-1"
                 style={{ fontFamily: "var(--font-manrope)" }}>by TechEcho</span>
             </div>
           </Link>
 
           <div className="relative z-10 space-y-6">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-500/20 border border-indigo-500/30 text-indigo-300 text-[10px] font-bold uppercase tracking-widest"
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-500/20 border border-indigo-500/30 text-indigo-300 text-[10px] font-bold tracking-widest"
               style={{ fontFamily: "var(--font-montserrat)" }}>
               <UserPlus className="h-3 w-3" /> Join the Next Generation
             </div>
-            <h2 className="text-5xl xl:text-6xl font-black text-white leading-[1.05] tracking-tight italic"
+            <h2 className="text-5xl xl:text-6xl font-black text-white tracking-tight italic"
               style={{ fontFamily: "var(--font-manrope)" }}>
               Ready to<br />
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-purple-400 to-cyan-400">
                 Dominate.
               </span>
             </h2>
-            <p className="text-base text-white/60 max-w-[360px] leading-relaxed">
+            <p className="text-base text-white/60 max-w-[360px] ">
                            Initialize your high-performance CRM node. Join 12,000+ sales experts.
             </p>
           </div>
@@ -264,7 +264,7 @@ export default function SignupForm() {
                 <img key={i} src={url} alt="User" className="h-9 w-9 rounded-full border-2 border-indigo-500/30 object-cover" />
               ))}
             </div>
-            <span className="text-[10px] font-semibold text-white/40 uppercase tracking-widest"
+            <span className="text-[10px] font-semibold text-white/40 tracking-widest"
               style={{ fontFamily: "var(--font-montserrat)" }}>Joined by 12,000+ experts</span>
           </div>
         </div>
@@ -281,21 +281,21 @@ export default function SignupForm() {
           {/* Mobile Logo */}
           <div className="flex lg:hidden items-center gap-3 mb-8">
             <img src="/assets/logo.png" alt="Pinglly" className="h-8 object-contain" />
-            <span className="text-[9px] font-bold tracking-[0.3em] text-indigo-400 uppercase"
+            <span className="text-[9px] font-bold tracking-[0.3em] text-indigo-400"
               style={{ fontFamily: "var(--font-manrope)" }}>by TechEcho</span>
           </div>
 
           <div className="mb-8">
             <div className="inline-flex items-center gap-2 mb-3 px-3 py-1.5 rounded-lg bg-indigo-500/10 border border-indigo-500/20">
               <Sparkles className="h-3.5 w-3.5 text-indigo-400" />
-              <span className="text-[9px] font-bold text-indigo-400 uppercase tracking-widest"
+              <span className="text-[9px] font-bold text-indigo-400 tracking-widest"
                 style={{ fontFamily: "var(--font-manrope)" }}>Protocol Start</span>
             </div>
-            <h1 className="text-3xl sm:text-4xl font-black text-white mb-2 leading-tight"
+            <h1 className="text-3xl sm:text-4xl font-black text-white mb-2 "
               style={{ fontFamily: "var(--font-manrope)" }}>
               Phase: Join
             </h1>
-            <p className="text-sm text-white/40 leading-relaxed">               Create your account to access the platform.
+            <p className="text-sm text-white/40 ">               Create your account to access the platform.
             </p>
             {planParam && (
               <div className="mt-3 inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-orange-500/10 border border-orange-500/20">
@@ -310,7 +310,7 @@ export default function SignupForm() {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             {error && (
-              <div className="text-red-400 text-sm bg-red-500/10 px-4 py-3 rounded-xl border border-red-500/20 leading-relaxed">
+              <div className="text-red-400 text-sm bg-red-500/10 px-4 py-3 rounded-xl border border-red-500/20 ">
                 {error}
               </div>
             )}
@@ -318,7 +318,7 @@ export default function SignupForm() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {/* Full Name */}
               <div className="space-y-1.5">
-                <Label className="text-[10px] font-bold uppercase tracking-widest text-white/40 flex items-center gap-1.5"
+                <Label className="text-[10px] font-bold tracking-widest text-white/40 flex items-center gap-1.5"
                   style={{ fontFamily: "var(--font-montserrat)" }}>
                   <User className="h-3 w-3" /> Full Name
                 </Label>
@@ -333,7 +333,7 @@ export default function SignupForm() {
 
               {/* Phone */}
               <div className="space-y-1.5">
-                <Label className="text-[10px] font-bold uppercase tracking-widest text-white/40 flex items-center gap-1.5"
+                <Label className="text-[10px] font-bold tracking-widest text-white/40 flex items-center gap-1.5"
                   style={{ fontFamily: "var(--font-montserrat)" }}>
                   <Phone className="h-3 w-3" /> Phone
                 </Label>
@@ -349,7 +349,7 @@ export default function SignupForm() {
 
             {/* Email */}
             <div className="space-y-1.5">
-              <Label className="text-[10px] font-bold uppercase tracking-widest text-white/40 flex items-center gap-1.5"
+              <Label className="text-[10px] font-bold tracking-widest text-white/40 flex items-center gap-1.5"
                 style={{ fontFamily: "var(--font-montserrat)" }}>
                 <Mail className="h-3 w-3" /> Email Address
               </Label>
@@ -365,7 +365,7 @@ export default function SignupForm() {
 
             {/* Password */}
             <div className="space-y-1.5">
-              <Label className="text-[10px] font-bold uppercase tracking-widest text-white/40 flex items-center gap-1.5"
+              <Label className="text-[10px] font-bold tracking-widest text-white/40 flex items-center gap-1.5"
                 style={{ fontFamily: "var(--font-montserrat)" }}>
                 <Lock className="h-3 w-3" /> Password
               </Label>
@@ -392,7 +392,7 @@ export default function SignupForm() {
               type="submit"
               disabled={isLoading}
               className={cn(
-                "group relative h-14 w-full overflow-hidden rounded-2xl font-bold text-sm tracking-widest uppercase transition-all",
+                "group relative h-14 w-full overflow-hidden rounded-2xl font-bold text-sm tracking-widest transition-all",
                 "bg-gradient-to-r from-indigo-600 to-purple-600 text-white",
                 "shadow-[0_8px_32px_-8px_rgba(99,102,241,0.5)] hover:shadow-[0_12px_40px_-8px_rgba(99,102,241,0.7)]",
                 "hover:scale-[1.02] active:scale-[0.98] disabled:opacity-60"

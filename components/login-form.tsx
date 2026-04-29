@@ -69,20 +69,20 @@ export default function LoginForm() {
         <a href="/" className="relative z-10 block group">
           <div className="flex flex-col items-start mb-12 hover:scale-105 transition-transform">
             <img src="/assets/logo.png" alt="Pinglly Logo" className="h-12 object-contain drop-shadow-[0_0_20px_rgba(79,70,229,0.6)]" />
-            <span className="text-[8px] font-black tracking-[0.4em] text-indigo-400 mt-1 uppercase ml-1">by TechEcho</span>
+            <span className="text-[8px] font-black tracking-[0.4em] text-indigo-400 mt-1 ml-1">by TechEcho</span>
           </div>
         </a>
           
           <div className="space-y-8">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-500/20 border border-indigo-500/30 text-indigo-300 text-[10px] font-black uppercase tracking-widest backdrop-blur-md">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-500/20 border border-indigo-500/30 text-indigo-300 text-[10px] font-black tracking-widest backdrop-blur-md">
               <Star className="h-3 w-3 fill-current" />
               Trusted by 500+ Sales Teams
             </div>
-            <h2 className="text-6xl font-black text-white leading-[1.1] tracking-tight drop-shadow-2xl">
+            <h2 className="text-6xl font-black text-white tracking-tight drop-shadow-2xl">
               Focus on <br/>
               <span className="text-transparent bg-clip-text bg-[linear-gradient(135deg,#818cf8_0%,#c084fc_50%,#22d3ee_100%)]">Closing Deals.</span>
             </h2>
-            <p className="text-xl text-white/70 max-w-[380px] font-medium leading-relaxed drop-shadow-lg">
+            <p className="text-xl text-white/70 max-w-[380px] font-medium drop-shadow-lg">
               Automate your workflow, track every interaction, and grow your revenue with AI-powered insights.
             </p>
           </div>
@@ -90,7 +90,7 @@ export default function LoginForm() {
           <div className="mt-auto relative z-10 flex flex-col gap-8">
           <div className="flex items-center gap-3 text-white/80 drop-shadow-md">
             <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-            <span className="text-xs font-bold uppercase tracking-widest">Active System Security</span>
+            <span className="text-xs font-bold tracking-widest">Active System Security</span>
           </div>
           
           <div className="flex items-center gap-5">
@@ -111,8 +111,8 @@ export default function LoginForm() {
                </div>
             </div>
             <div className="flex flex-col">
-              <span className="text-xs font-black text-white uppercase tracking-widest">Powering Growth</span>
-              <span className="text-[10px] font-bold text-white/40 uppercase tracking-[0.2em]">Live Connections</span>
+              <span className="text-xs font-black text-white tracking-widest">Powering Growth</span>
+              <span className="text-[10px] font-bold text-white/40 tracking-[0.2em]">Live Connections</span>
             </div>
           </div>
         </div>
@@ -134,16 +134,16 @@ export default function LoginForm() {
           {plan ? (
             <div className="inline-flex items-center gap-3 mb-6 px-4 py-2 rounded-xl bg-[#7c3aed]/20 border border-[#7c3aed]/30 animate-pulse">
               <Cpu className="h-4 w-4 text-[#7c3aed]" />
-              <span className="text-[10px] font-black text-[#7c3aed] uppercase tracking-widest leading-none">Initializing {plan.replace(/-/g, ' ')} Node</span>
+              <span className="text-[10px] font-black text-[#7c3aed] tracking-widest ">Initializing {plan.replace(/-/g, ' ')} Node</span>
             </div>
           ) : (
             <div className="inline-flex items-center gap-2 mb-4 px-3 py-1 rounded-lg bg-indigo-500/10 border border-indigo-500/20">
               <ShieldCheck className="h-4 w-4 text-indigo-400" />
-              <span className="text-[10px] font-black text-indigo-400 uppercase tracking-widest">Verified Endpoint</span>
+              <span className="text-[10px] font-black text-indigo-400 tracking-widest">Verified Endpoint</span>
             </div>
           )}
           <h1 className="text-4xl font-black text-white mb-2 tracking-tight">System Login</h1>
-          <p className="text-sm font-bold text-indigo-400/60 uppercase tracking-[0.25em] italic">Elite CRM Terminal</p>
+          <p className="text-sm font-bold text-indigo-400/60 tracking-[0.25em] italic">Elite CRM Terminal</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-7 relative z-10">
@@ -153,12 +153,12 @@ export default function LoginForm() {
                 <AlertCircle className="h-5 w-5 shrink-0" />
                 <span className="font-bold">{error}</span>
               </div>
-              <a href="/" className="text-[9px] font-black uppercase tracking-widest text-white/30 hover:text-white underline">Need to head back home?</a>
+              <a href="/" className="text-[9px] font-black tracking-widest text-white/30 hover:text-white underline">Need to head back home?</a>
             </div>
           )}
 
           <div className="space-y-3">
-            <Label htmlFor="email" className="text-[10px] font-black uppercase tracking-[0.3em] text-white/30 ml-1">
+            <Label htmlFor="email" className="text-[10px] font-black tracking-[0.3em] text-white/30 ml-1">
               Terminal ID (Email)
             </Label>
             <div className="relative group">
@@ -180,10 +180,10 @@ export default function LoginForm() {
 
           <div className="space-y-3">
             <div className="flex items-center justify-between ml-1">
-              <Label htmlFor="password" className="text-[10px] font-black uppercase tracking-[0.3em] text-white/30">
+              <Label htmlFor="password" className="text-[10px] font-black tracking-[0.3em] text-white/30">
                 Security Key (Password)
               </Label>
-              <button type="button" className="text-[10px] font-black uppercase tracking-widest text-indigo-400 hover:text-indigo-200 transition-colors">
+              <button type="button" className="text-[10px] font-black tracking-widest text-indigo-400 hover:text-indigo-200 transition-colors">
                 Reset?
               </button>
             </div>
@@ -225,7 +225,7 @@ export default function LoginForm() {
               <Loader2 className="h-7 w-7 animate-spin" />
             ) : (
               <div className="flex items-center justify-center gap-4">
-                <span className="uppercase tracking-[0.25em] text-sm">Access Dashboard</span>
+                <span className="tracking-[0.25em] text-sm">Access Dashboard</span>
                 <ArrowRight className="h-6 w-6 transition-transform group-hover:translate-x-2" />
               </div>
             )}
@@ -235,12 +235,12 @@ export default function LoginForm() {
           </Button>
         </form>
 
-        <p className="mt-8 text-center text-[10px] font-bold text-white/40 uppercase tracking-widest">
+        <p className="mt-8 text-center text-[10px] font-bold text-white/40 tracking-widest">
           Don&apos;t have an account?{" "}
           <Link href="/signup" className="text-indigo-400 hover:text-white underline ml-1">Create One</Link>
         </p>
 
-        <p className="mt-16 text-center text-[10px] font-black uppercase tracking-[0.4em] text-white/10">
+        <p className="mt-16 text-center text-[10px] font-black tracking-[0.4em] text-white/10">
           Secure Terminal v4.6 • System Active
         </p>
       </div>

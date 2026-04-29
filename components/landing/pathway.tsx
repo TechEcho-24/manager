@@ -8,8 +8,8 @@ export function Pathway() {
        <div className="max-w-7xl mx-auto flex flex-col lg:flex-row gap-12 md:gap-20">
           <div className="flex-1 space-y-12">
              <div className="space-y-6 reveal">
-                <h2 className="text-4xl md:text-8xl font-black uppercase tracking-tighter text-white leading-tight italic drop-shadow-xl">Mission <br/> Protocol.</h2>
-                <p className="text-sm font-bold text-indigo-100/70 uppercase tracking-[0.4em]">Follow the neural pathway to peak conversion.</p>
+                <h2 className="text-xl md:text-5xl font-black  text-white italic drop-shadow-xl">Mission <br/> Protocol.</h2>
+                <p className="text-lg font-bold text-indigo-100/70 ">Follow the neural pathway to peak conversion.</p>
              </div>
              <div className="space-y-2">
                 {[
@@ -20,8 +20,8 @@ export function Pathway() {
                    <div key={i} className="reveal group flex flex-col sm:flex-row items-start gap-4 sm:gap-8 p-6 sm:p-8 rounded-[2rem] hover:bg-white/5 transition-all" style={{ animationDelay: `${i * 150}ms` }}>
                       <span className="text-4xl sm:text-5xl font-black text-orange-500/20 group-hover:text-orange-500 transition-colors italic">{s.step}</span>
                       <div className="space-y-2">
-                         <h3 className="text-lg font-black text-white uppercase">{s.title}</h3>
-                         <p className="text-sm font-bold text-indigo-100/70 uppercase leading-relaxed tracking-widest">{s.desc}</p>
+                         <h3 className="text-lg font-black text-white">{s.title}</h3>
+                         <p className="text-sm font-bold text-indigo-100/70 tracking-widest">{s.desc}</p>
                       </div>
                    </div>
                 ))}

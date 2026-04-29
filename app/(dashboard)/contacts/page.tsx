@@ -82,7 +82,7 @@ export default function ContactsPage() {
         <div className="p-6 rounded-[2rem] bg-white/[0.02] border border-white/5 backdrop-blur-xl relative overflow-hidden group">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
             <div className="space-y-1">
-              <h2 className="text-[10px] font-black uppercase tracking-[0.4em] text-purple-400">Resource Allocation: Starter Node</h2>
+              <h2 className="text-[10px] font-black tracking-[0.4em] text-purple-400">Resource Allocation: Starter Node</h2>
               <p className="text-sm font-bold text-white">Synchronization Quota: <span className="text-purple-500">{leadCount}</span> / {leadLimit} Leads</p>
             </div>
             <div className="flex-1 max-w-md h-3 bg-white/5 rounded-full overflow-hidden border border-white/5 p-0.5">
@@ -91,7 +91,7 @@ export default function ContactsPage() {
                  style={{ width: `${usagePercentage}%` }}
                />
             </div>
-            <Button className="rounded-xl px-8 bg-purple-600/10 border border-purple-500/20 text-purple-400 text-[10px] font-black uppercase tracking-widest hover:bg-purple-600 hover:text-white transition-all">
+            <Button className="rounded-xl px-8 bg-purple-600/10 border border-purple-500/20 text-purple-400 text-[10px] font-black tracking-widest hover:bg-purple-600 hover:text-white transition-all">
               Upgrade to Pro Core
             </Button>
           </div>
@@ -101,17 +101,17 @@ export default function ContactsPage() {
 
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-black tracking-tight text-foreground lg:text-3xl uppercase">
+          <h1 className="text-2xl font-black tracking-tight text-foreground lg:text-3xl">
             Contacts List
           </h1>
-          <p className="mt-1 text-xs font-bold text-muted-foreground uppercase tracking-widest opacity-50">
+          <p className="mt-1 text-xs font-bold text-muted-foreground tracking-widest opacity-50">
             Neural Directory Sync: Total Record Count ({allLeads.length})
           </p>
         </div>
         <div className="flex items-center gap-3">
           <Button 
             variant="outline"
-            className="gap-2 border-white/5 bg-white/[0.01] text-white/40 hover:text-purple-400 hover:border-purple-500/30 font-black rounded-xl h-12 uppercase tracking-widest text-[9px] relative group overflow-hidden"
+            className="gap-2 border-white/5 bg-white/[0.01] text-white/40 hover:text-purple-400 hover:border-purple-500/30 font-black rounded-xl h-12 tracking-widest text-[9px] relative group overflow-hidden"
           >
             <Shield className="h-4 w-4" />
             Neural Bulk Sync
@@ -119,7 +119,7 @@ export default function ContactsPage() {
             <div className="absolute inset-0 bg-purple-600/5 translate-y-full group-hover:translate-y-0 transition-transform" />
           </Button>
           <Button 
-            className="gap-2 bg-indigo-600 hover:bg-indigo-500 text-white shadow-xl shadow-indigo-600/20 font-black rounded-xl h-12 uppercase tracking-widest text-xs"
+            className="gap-2 bg-indigo-600 hover:bg-indigo-500 text-white shadow-xl shadow-indigo-600/20 font-black rounded-xl h-12 tracking-widest text-xs"
             onClick={() => {
               setSelectedContactId(undefined);
               setIsFormOpen(true);
@@ -148,10 +148,10 @@ export default function ContactsPage() {
               <Table>
                 <TableHeader className="bg-muted/30 border-b border-border/40">
                   <TableRow className="hover:bg-transparent border-none">
-                    <TableHead className="w-16 text-center font-black text-[10px] uppercase tracking-widest px-6 opacity-30">#</TableHead>
-                    <TableHead className="font-black text-[10px] uppercase tracking-widest px-4">Full Identity</TableHead>
-                    <TableHead className="font-black text-[10px] uppercase tracking-widest px-4">Communication Line</TableHead>
-                    <TableHead className="font-black text-[10px] uppercase tracking-widest px-4">Status Flag</TableHead>
+                    <TableHead className="w-16 text-center font-black text-[10px] tracking-widest px-6 opacity-30">#</TableHead>
+                    <TableHead className="font-black text-[10px] tracking-widest px-4">Full Identity</TableHead>
+                    <TableHead className="font-black text-[10px] tracking-widest px-4">Communication Line</TableHead>
+                    <TableHead className="font-black text-[10px] tracking-widest px-4">Status Flag</TableHead>
                     <TableHead className="w-20 text-right px-8"></TableHead>
                   </TableRow>
                 </TableHeader>
@@ -174,7 +174,7 @@ export default function ContactsPage() {
                             <span className="font-black text-[14px] text-foreground group-hover:text-primary transition-colors">
                               {contact.fullName}
                             </span>
-                            <span className="text-[10px] font-bold text-muted-foreground/50 uppercase flex items-center gap-1.5 mt-1">
+                            <span className="text-[10px] font-bold text-muted-foreground/50 flex items-center gap-1.5 mt-1">
                               <Building2 className="h-3 w-3" />
                               {contact.company || "Independent Unit"}
                             </span>
@@ -193,7 +193,7 @@ export default function ContactsPage() {
                           </div>
                         </TableCell>
                         <TableCell className="px-4">
-                           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/5 border border-primary/10 text-[9px] font-black uppercase tracking-widest text-primary">
+                           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/5 border border-primary/10 text-[9px] font-black tracking-widest text-primary">
                              {contact.status}
                            </div>
                         </TableCell>
@@ -222,7 +222,7 @@ export default function ContactsPage() {
               <div ref={loaderRef} className="flex items-center justify-center p-12 border-t border-border/20">
                 <div className="flex flex-col items-center gap-3">
                   <Loader2 className="h-6 w-6 text-primary animate-spin" />
-                  <span className="text-[9px] font-black uppercase tracking-[0.4em] text-primary/40 animate-pulse">Synchronizing Records...</span>
+                  <span className="text-[9px] font-black tracking-[0.4em] text-primary/40 animate-pulse">Synchronizing Records...</span>
                 </div>
               </div>
             )}

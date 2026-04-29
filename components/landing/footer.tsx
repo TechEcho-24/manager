@@ -11,10 +11,10 @@ export function FinalCTA() {
           <div className="absolute -top-1/2 -left-1/2 w-full h-full bg-orange-600/10 blur-[200px] rounded-full animate-pulse" />
           
           <div className="relative z-10 space-y-12 reveal">
-             <h3 className="text-4xl md:text-8xl font-black uppercase tracking-tighter text-white italic leading-tight">Ready to <br/> Ascend?</h3>
-             <p className="max-w-2xl mx-auto text-sm md:text-xl font-bold text-white/50 uppercase tracking-[0.4em] leading-loose">Join 2,000+ elite teams dominating the market with Pinglly neural technology.</p>
+             <h3 className="text-4xl md:text-8xl font-black tracking-tighter text-white italic ">Ready to <br/> Ascend?</h3>
+             <p className="max-w-2xl mx-auto text-sm md:text-xl font-bold text-white/50 tracking-[0.4em] ">Join 2,000+ elite teams dominating the market with Pinglly neural technology.</p>
              <div className="flex justify-center pt-8">
-                <Link href="/signup" className="px-12 py-5 rounded-full btn-cyber-filled text-[13px] font-black uppercase tracking-[0.4em] text-white shadow-[0_20px_50px_rgba(255,107,53,0.3)]">
+                <Link href="/signup" className="px-12 py-5 rounded-full btn-cyber-filled text-[13px] font-black tracking-[0.4em] text-white shadow-[0_20px_50px_rgba(255,107,53,0.3)]">
                    Connect Now
                 </Link>
              </div>
@@ -31,13 +31,13 @@ export function Footer() {
           <div className="space-y-4">
           <div className="flex flex-col items-center md:items-start">
              <img src="/assets/footer.png" alt="Pinglly Footer" className="h-10 object-contain" />
-             <span className="text-[8px] font-bold tracking-[0.3em] uppercase text-white/30 mt-1 ml-1">by TechEcho</span>
+             <span className="text-[8px] font-bold tracking-[0.3em] text-white/30 mt-1 ml-1">by TechEcho</span>
           </div>
-             <p className="text-[10px] font-bold text-white/20 uppercase tracking-widest">© 2026 Neural Ops. All rights Reserved.</p>
+             <p className="text-[10px] font-bold text-white/20 tracking-widest">© 2026 Neural Ops. All rights Reserved.</p>
           </div>
           <div className="flex flex-wrap justify-center gap-6 md:gap-12 mt-8 md:mt-0">
              {["Architecture", "Research", "Security", "Legal"].map(l => (
-                <Link key={l} href="#" className="text-[10px] font-black uppercase tracking-widest text-white/40 hover:text-white transition-colors">{l}</Link>
+                <Link key={l} href="#" className="text-[10px] font-black tracking-widest text-white/40 hover:text-white transition-colors">{l}</Link>
              ))}
           </div>
        </div>

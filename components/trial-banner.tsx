@@ -26,7 +26,7 @@ export function TrialBanner() {
         <Zap className="inline-block h-4 w-4 mr-2 mb-1" />
         You have {data.daysLeft} days left in your Pro Trial.
       </span>
-      <Link href="/#pricing" className="bg-white/20 hover:bg-white/30 px-3 py-1 rounded-full transition-all text-[10px] uppercase tracking-wider">
+      <Link href="/#pricing" className="bg-white/20 hover:bg-white/30 px-3 py-1 rounded-full transition-all text-[10px] tracking-wider">
         Upgrade Now
       </Link>
     </div>

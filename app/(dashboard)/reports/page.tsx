@@ -185,7 +185,7 @@ export default function ReportsPage() {
           <CardContent className="p-5">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Total Leads</p>
+                <p className="text-[10px] font-bold text-muted-foreground tracking-widest">Total Leads</p>
                 <h3 className="text-3xl font-black text-foreground mt-1">{stats.total}</h3>
                 <div className={cn("flex items-center gap-1 mt-2 text-xs font-bold", Number(stats.monthGrowth) >= 0 ? "text-emerald-600" : "text-red-500")}>
                   {Number(stats.monthGrowth) >= 0 ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
@@ -203,7 +203,7 @@ export default function ReportsPage() {
           <CardContent className="p-5">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Conversion Rate</p>
+                <p className="text-[10px] font-bold text-muted-foreground tracking-widest">Conversion Rate</p>
                 <h3 className="text-3xl font-black text-foreground mt-1">{stats.conversionRate}%</h3>
                 <p className="text-xs font-bold text-muted-foreground mt-2">{stats.convertedLeads} converted</p>
               </div>
@@ -218,7 +218,7 @@ export default function ReportsPage() {
           <CardContent className="p-5">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Total Revenue</p>
+                <p className="text-[10px] font-bold text-muted-foreground tracking-widest">Total Revenue</p>
                 <h3 className="text-3xl font-black text-emerald-600 mt-1">₹{stats.totalRevenue.toLocaleString()}</h3>
                 <p className="text-xs font-bold text-muted-foreground mt-2">₹{stats.totalReceived.toLocaleString()} received</p>
               </div>
@@ -233,7 +233,7 @@ export default function ReportsPage() {
           <CardContent className="p-5">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">This Month</p>
+                <p className="text-[10px] font-bold text-muted-foreground tracking-widest">This Month</p>
                 <h3 className="text-3xl font-black text-foreground mt-1">{stats.thisMonth}</h3>
                 <p className="text-xs font-bold text-muted-foreground mt-2">vs {stats.lastMonth} last month</p>
               </div>
@@ -253,7 +253,7 @@ export default function ReportsPage() {
           <CardContent className="p-6">
             <div className="flex items-center gap-2 mb-6">
               <PieChart className="h-4 w-4 text-primary" />
-              <h3 className="text-sm font-bold uppercase tracking-wider text-foreground">Lead Status Distribution</h3>
+              <h3 className="text-sm font-bold tracking-wider text-foreground">Lead Status Distribution</h3>
             </div>
             <div className="flex items-center gap-8">
               <DonutChart
@@ -283,7 +283,7 @@ export default function ReportsPage() {
           <CardContent className="p-6">
             <div className="flex items-center gap-2 mb-6">
               <BarChart3 className="h-4 w-4 text-primary" />
-              <h3 className="text-sm font-bold uppercase tracking-wider text-foreground">Leads by Source</h3>
+              <h3 className="text-sm font-bold tracking-wider text-foreground">Leads by Source</h3>
             </div>
             <div className="space-y-4">
               {Object.entries(stats.sourceMap).sort((a, b) => b[1] - a[1]).map(([source, count], i) => {
@@ -308,7 +308,7 @@ export default function ReportsPage() {
           <CardContent className="p-6">
             <div className="flex items-center gap-2 mb-6">
               <Zap className="h-4 w-4 text-primary" />
-              <h3 className="text-sm font-bold uppercase tracking-wider text-foreground">Interest by Product/Service</h3>
+              <h3 className="text-sm font-bold tracking-wider text-foreground">Interest by Product/Service</h3>
             </div>
             <div className="space-y-4">
               {Object.entries(stats.productMap).sort((a, b) => b[1] - a[1]).map(([product, count], i) => {
@@ -333,7 +333,7 @@ export default function ReportsPage() {
           <CardContent className="p-6">
             <div className="flex items-center gap-2 mb-6">
               <TrendingUp className="h-4 w-4 text-primary" />
-              <h3 className="text-sm font-bold uppercase tracking-wider text-foreground">Priority Distribution</h3>
+              <h3 className="text-sm font-bold tracking-wider text-foreground">Priority Distribution</h3>
             </div>
             <div className="grid grid-cols-3 gap-4">
               {[
@@ -346,7 +346,7 @@ export default function ReportsPage() {
                 return (
                   <div key={label} className={cn("rounded-2xl p-5 text-center border border-border/50", bgColor)}>
                     <div className={cn("text-3xl font-black", textColor)}>{count}</div>
-                    <div className="text-xs font-bold text-muted-foreground mt-1 uppercase tracking-wider">{label}</div>
+                    <div className="text-xs font-bold text-muted-foreground mt-1 tracking-wider">{label}</div>
                     <div className={cn("text-lg font-black mt-2", textColor)}>{pct}%</div>
                   </div>
                 );
@@ -355,7 +355,7 @@ export default function ReportsPage() {
 
             {/* Quick Insights */}
             <div className="mt-6 pt-5 border-t border-border space-y-3">
-              <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Quick Insights</h4>
+              <h4 className="text-xs font-bold text-muted-foreground tracking-wider">Quick Insights</h4>
               <div className="flex items-start gap-3 bg-emerald-500/5 p-3 rounded-xl border border-emerald-500/10">
                 <CheckCircle2 className="h-4 w-4 text-emerald-600 mt-0.5 shrink-0" />
                 <p className="text-xs text-foreground/80">

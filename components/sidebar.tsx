@@ -137,10 +137,10 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
           </div>
           {!collapsed && (
             <div className="flex flex-col">
-              <span className="text-xl font-extrabold tracking-tight text-primary leading-none">
+              <span className="text-xl font-extrabold tracking-tight text-primary ">
                 Pinglly
               </span>
-              <span className="text-[7px] font-black uppercase tracking-[0.2em] text-muted-foreground/40 mt-1">
+              <span className="text-[7px] font-black tracking-[0.2em] text-muted-foreground/40 mt-1">
                 by TechEcho • {role === "admin" ? "SaaS Master" : "Enterprise Hub"}
               </span>
             </div>

@@ -178,7 +178,7 @@ export default function TasksPage() {
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <Sparkles className="h-4 w-4 text-primary" />
-              <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Daily Progress</span>
+              <span className="text-xs font-bold tracking-widest text-muted-foreground">Daily Progress</span>
             </div>
             <span className="text-sm font-black text-foreground">{completedTasks}/{totalTasks}</span>
           </div>
@@ -221,7 +221,7 @@ export default function TasksPage() {
                     key={p}
                     onClick={() => setPriority(p)}
                     className={cn(
-                      "h-12 px-3 rounded-xl border text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-1.5",
+                      "h-12 px-3 rounded-xl border text-xs font-bold tracking-wider transition-all flex items-center gap-1.5",
                       priority === p
                         ? `${cfg.bg} ${cfg.color} ${cfg.border} shadow-sm`
                         : "border-border text-muted-foreground hover:bg-muted/30"
@@ -257,7 +257,7 @@ export default function TasksPage() {
             key={tab.key}
             onClick={() => setFilter(tab.key)}
             className={cn(
-              "px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-widest transition-all",
+              "px-4 py-2 rounded-xl text-xs font-bold tracking-widest transition-all",
               filter === tab.key
                 ? "bg-primary text-white shadow-lg shadow-primary/20"
                 : "bg-card border border-border text-muted-foreground hover:bg-muted/30"
@@ -274,7 +274,7 @@ export default function TasksPage() {
           <Card className="border-2 border-dashed border-border bg-card/50">
             <CardContent className="py-16 flex flex-col items-center justify-center text-muted-foreground">
               <CheckSquare className="h-10 w-10 opacity-20 mb-3" />
-              <p className="text-sm font-bold uppercase tracking-widest">
+              <p className="text-sm font-bold tracking-widest">
                 {filter === "done" ? "No completed tasks yet" : filter === "active" ? "All done! Nothing pending" : "No tasks for today"}
               </p>
               <p className="text-xs mt-1">
@@ -322,7 +322,7 @@ export default function TasksPage() {
                   </div>
 
                   {/* Priority Badge */}
-                  <div className={cn("px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-widest border", cfg.bg, cfg.color, cfg.border)}>
+                  <div className={cn("px-2.5 py-1 rounded-lg text-[10px] font-bold tracking-widest border", cfg.bg, cfg.color, cfg.border)}>
                     {cfg.label}
                   </div>
 
@@ -341,7 +341,7 @@ export default function TasksPage() {
       </div>
 
       {/* Footer Tip */}
-      <p className="text-[10px] text-center text-muted-foreground/50 font-bold uppercase tracking-widest">
+      <p className="text-[10px] text-center text-muted-foreground/50 font-bold tracking-widest">
         Tasks are stored locally • Incomplete tasks carry over to the next day automatically
       </p>
     </div>
@@ -401,8 +401,8 @@ function CRMGoals() {
       <CardContent className="p-5">
         <div className="flex items-center gap-2 mb-5">
           <Target className="h-4 w-4 text-primary" />
-          <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">CRM Daily Goals</h3>
-          <span className="text-[10px] font-bold text-muted-foreground/40 ml-auto uppercase">Auto-tracked from leads</span>
+          <h3 className="text-xs font-bold tracking-widest text-muted-foreground">CRM Daily Goals</h3>
+          <span className="text-[10px] font-bold text-muted-foreground/40 ml-auto">Auto-tracked from leads</span>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {goals.map((goal) => {
@@ -446,7 +446,7 @@ function CRMGoals() {
                   <p className="text-2xl font-black text-foreground">
                     {goal.current}<span className="text-sm font-bold text-muted-foreground">/{goal.target}</span>
                   </p>
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mt-0.5">{goal.label}</p>
+                  <p className="text-[10px] font-bold tracking-widest text-muted-foreground mt-0.5">{goal.label}</p>
                 </div>
               </div>
             );

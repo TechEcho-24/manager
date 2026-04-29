@@ -299,7 +299,7 @@ export function LeadFormPanel({
               <div className='flex-2 p-6 border-r border-border space-y-8'>
                 {/* Basic Information */}
                 <div className='space-y-4'>
-                  <h3 className='text-sm font-semibold text-[oklch(0.60_0.22_260)] uppercase tracking-wider'>
+                  <h3 className='text-sm font-semibold text-[oklch(0.60_0.22_260)] tracking-wider'>
                     Basic Information
                   </h3>
                   <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
@@ -308,7 +308,7 @@ export function LeadFormPanel({
                       name='fullName'
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Full Name *</FormLabel>
+                          <FormLabel className="text-xs font-semibold tracking-wider text-muted-foreground">Full Name *</FormLabel>
                           <FormControl>
                             <Input className="h-10 rounded-xl bg-muted/10 border-border focus:bg-background focus:ring-4 focus:ring-primary/10 transition-all" placeholder='John Doe' {...field} />
                           </FormControl>
@@ -321,7 +321,7 @@ export function LeadFormPanel({
                       name='company'
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Company Name</FormLabel>
+                          <FormLabel className="text-xs font-semibold tracking-wider text-muted-foreground">Company Name</FormLabel>
                           <FormControl>
                             <Input className="h-10 rounded-xl bg-muted/10 border-border focus:bg-background focus:ring-4 focus:ring-primary/10 transition-all" placeholder='Acme Inc' {...field} />
                           </FormControl>
@@ -334,7 +334,7 @@ export function LeadFormPanel({
                       name='phone'
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Phone Number *</FormLabel>
+                          <FormLabel className="text-xs font-semibold tracking-wider text-muted-foreground">Phone Number *</FormLabel>
                           <FormControl>
                             <Input className="h-10 rounded-xl bg-muted/10 border-border focus:bg-background focus:ring-4 focus:ring-primary/10 transition-all" placeholder='9876543210' {...field} />
                           </FormControl>
@@ -386,7 +386,7 @@ export function LeadFormPanel({
 
                 {/* Lead Source */}
                 <div className='space-y-4'>
-                  <h3 className='text-sm font-semibold text-[oklch(0.60_0.22_260)] uppercase tracking-wider'>
+                  <h3 className='text-sm font-semibold text-[oklch(0.60_0.22_260)] tracking-wider'>
                     Lead Source
                   </h3>
                   <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
@@ -448,7 +448,7 @@ export function LeadFormPanel({
 
                 {/* Requirement Details */}
                 <div className='space-y-4'>
-                  <h3 className='text-sm font-semibold text-[oklch(0.60_0.22_260)] uppercase tracking-wider'>
+                  <h3 className='text-sm font-semibold text-[oklch(0.60_0.22_260)] tracking-wider'>
                     Requirement Details
                   </h3>
                   <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
@@ -524,7 +524,7 @@ export function LeadFormPanel({
 
                 {/* Location Details */}
                 <div className='space-y-4'>
-                  <h3 className='text-sm font-semibold text-[oklch(0.60_0.22_260)] uppercase tracking-wider'>
+                  <h3 className='text-sm font-semibold text-[oklch(0.60_0.22_260)] tracking-wider'>
                     Location Details
                   </h3>
                   <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
@@ -572,7 +572,7 @@ export function LeadFormPanel({
 
                 {/* Additional Information */}
                 <div className='space-y-4'>
-                  <h3 className='text-sm font-semibold text-[oklch(0.60_0.22_260)] uppercase tracking-wider'>
+                  <h3 className='text-sm font-semibold text-[oklch(0.60_0.22_260)] tracking-wider'>
                     Additional Information
                   </h3>
                   <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
@@ -676,7 +676,7 @@ export function LeadFormPanel({
                   <div className='space-y-6 pt-4 border-t border-border mt-4'>
                     <div className="flex items-center gap-2">
                        <Zap className="h-4 w-4 text-primary" />
-                       <h3 className='text-sm font-bold text-foreground uppercase tracking-wider'>
+                       <h3 className='text-sm font-bold text-foreground tracking-wider'>
                         Deal & Payment Tracking
                       </h3>
                     </div>
@@ -687,7 +687,7 @@ export function LeadFormPanel({
                         name='dealDetails.totalValue'
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Deal Value (₹)</FormLabel>
+                            <FormLabel className="text-xs font-semibold tracking-wider text-muted-foreground">Deal Value (₹)</FormLabel>
                             <FormControl>
                               <Input type="number" className="h-10 rounded-xl bg-primary/5 font-bold text-primary" {...field} />
                             </FormControl>
@@ -699,7 +699,7 @@ export function LeadFormPanel({
                         name='dealDetails.receivedAmount'
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Received (₹)</FormLabel>
+                            <FormLabel className="text-xs font-semibold tracking-wider text-muted-foreground">Received (₹)</FormLabel>
                             <FormControl>
                               <Input type="number" className="h-10 rounded-xl bg-emerald-500/5 font-bold text-emerald-600" {...field} />
                             </FormControl>
@@ -711,7 +711,7 @@ export function LeadFormPanel({
                         name='dealDetails.paymentPlan'
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Payment Plan</FormLabel>
+                            <FormLabel className="text-xs font-semibold tracking-wider text-muted-foreground">Payment Plan</FormLabel>
                             <FormControl>
                               <Select {...field} className="rounded-xl">
                                 <option value='one-time'>One-time</option>
@@ -727,7 +727,7 @@ export function LeadFormPanel({
                     <div className="space-y-3">
                       <div className="flex items-center justify-between">
                         <div className="space-y-1">
-                          <FormLabel className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Payment Milestones / Installments</FormLabel>
+                          <FormLabel className="text-xs font-bold tracking-wider text-muted-foreground">Payment Milestones / Installments</FormLabel>
                           {form.watch("dealDetails.installments") && form.watch("dealDetails.installments").length > 0 && (
                             <div className={cn(
                               "text-[10px] font-bold px-2 py-0.5 rounded-full border",
@@ -745,7 +745,7 @@ export function LeadFormPanel({
                           type="button" 
                           variant="outline" 
                           size="sm" 
-                          className="h-7 text-[10px] uppercase font-bold border-primary/20 text-primary hover:bg-primary/5"
+                          className="h-7 text-[10px] font-bold border-primary/20 text-primary hover:bg-primary/5"
                           onClick={() => {
                             const current = form.getValues("dealDetails.installments") || [];
                             form.setValue("dealDetails.installments", [
@@ -766,7 +766,7 @@ export function LeadFormPanel({
                               name={`dealDetails.installments.${index}.dueDate`}
                               render={({ field }) => (
                                 <FormItem className="flex-1">
-                                  <FormLabel className="text-[10px] uppercase text-muted-foreground">Due Date</FormLabel>
+                                  <FormLabel className="text-[10px] text-muted-foreground">Due Date</FormLabel>
                                   <FormControl>
                                     <Input type="date" className="h-8 text-xs rounded-lg" {...field} />
                                   </FormControl>
@@ -778,7 +778,7 @@ export function LeadFormPanel({
                               name={`dealDetails.installments.${index}.amount`}
                               render={({ field }) => (
                                 <FormItem className="flex-1">
-                                  <FormLabel className="text-[10px] uppercase text-muted-foreground">Amount (₹)</FormLabel>
+                                  <FormLabel className="text-[10px] text-muted-foreground">Amount (₹)</FormLabel>
                                   <FormControl>
                                     <Input type="number" className="h-8 text-xs rounded-lg font-bold" {...field} />
                                   </FormControl>
@@ -790,7 +790,7 @@ export function LeadFormPanel({
                               name={`dealDetails.installments.${index}.status`}
                               render={({ field }) => (
                                 <FormItem className="w-[100px]">
-                                  <FormLabel className="text-[10px] uppercase text-muted-foreground">Status</FormLabel>
+                                  <FormLabel className="text-[10px] text-muted-foreground">Status</FormLabel>
                                   <FormControl>
                                     <Select {...field} className="h-8 text-xs rounded-lg">
                                       <option value="pending">Pending</option>

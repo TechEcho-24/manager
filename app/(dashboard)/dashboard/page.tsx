@@ -216,7 +216,7 @@ export default function DashboardPage() {
                   <stat.icon className="h-5 w-5" />
                 </div>
                 <span className={cn(
-                  "text-[10px] font-bold uppercase tracking-wider text-muted-foreground",
+                  "text-[10px] font-bold tracking-wider text-muted-foreground",
                   stat.trend.startsWith('+') && "text-emerald-500",
                   stat.trend.startsWith('-') && "text-rose-500",
                 )}>
@@ -298,7 +298,7 @@ export default function DashboardPage() {
                     <Clock className="h-4 w-4 text-muted-foreground" />
                   </div>
                   <div className="flex-1 space-y-1">
-                    <p className="text-sm font-medium leading-none text-foreground/90">
+                    <p className="text-sm font-medium text-foreground/90">
                       {activity.name}
                     </p>
                     <p className="text-xs text-muted-foreground">
@@ -330,7 +330,7 @@ export default function DashboardPage() {
                     <PhoneCall className="h-4 w-4 text-foreground" />
                   </div>
                   <div className="flex-1 space-y-1">
-                    <p className="text-sm font-medium leading-none text-foreground/90">
+                    <p className="text-sm font-medium text-foreground/90">
                       {followup.name}
                     </p>
                     <p className="text-xs text-muted-foreground">

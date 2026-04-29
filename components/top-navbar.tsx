@@ -59,7 +59,7 @@ export function TopNavbar() {
 
       <div className="flex flex-col items-start lg:hidden">
         <img src="/assets/logo.png" alt="Pinglly Logo" className="h-8 object-contain" />
-        <span className="text-[7px] font-bold tracking-[0.2em] uppercase text-[oklch(0.60_0.22_260)]/60">
+        <span className="text-[7px] font-bold tracking-[0.2em] text-[oklch(0.60_0.22_260)]/60">
           by TechEcho
         </span>
       </div>
@@ -98,7 +98,7 @@ export function TopNavbar() {
 
               {!isLoading && data?.leads?.length > 0 && (
                 <div className="py-2">
-                  <div className="px-3 pb-2 text-xs font-semibold text-muted-foreground/80 uppercase tracking-wider">
+                  <div className="px-3 pb-2 text-xs font-semibold text-muted-foreground/80 tracking-wider">
                     Leads
                   </div>
                   {data.leads.map((lead: any) => (
@@ -184,7 +184,7 @@ export function TopNavbar() {
             </div>
           </div>
           <div className="hidden flex-col items-start md:flex">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground transition-colors group-hover:text-destructive">
+            <span className="text-[11px] font-bold tracking-wider text-muted-foreground transition-colors group-hover:text-destructive">
               {userName}
             </span>
             <span className="text-[9px] font-medium text-muted-foreground/50">

@@ -56,7 +56,7 @@ export function MobileSidebar() {
         <SheetHeader className="border-b border-sidebar-border px-5 py-4">
           <SheetTitle className="flex flex-col items-start">
             <img src="/assets/logo.png" alt="Pinglly Logo" className="h-8 object-contain" />
-            <span className="text-[7px] font-bold tracking-[0.2em] uppercase text-[oklch(0.60_0.22_260)]/60">by TechEcho</span>
+            <span className="text-[7px] font-bold tracking-[0.2em] text-[oklch(0.60_0.22_260)]/60">by TechEcho</span>
           </SheetTitle>
         </SheetHeader>
 

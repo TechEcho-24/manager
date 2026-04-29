@@ -15,7 +15,7 @@ export function Stats() {
              ].map((s, i) => (
                 <div key={i} className="space-y-2">
                    <div className="text-3xl md:text-5xl font-black text-white italic">{s.value}</div>
-                   <div className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.2em] md:tracking-[0.4em] text-white/20">{s.label}</div>
+                   <div className="text-[9px] md:text-[10px] font-black tracking-[0.2em] md:tracking-[0.4em] text-white/20">{s.label}</div>
                 </div>
              ))}
           </div>

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useSession } from "next-auth/react";
+import { usePathname } from "next/navigation";
 import { 
   X, 
   Send, 
@@ -37,6 +38,22 @@ export function ChatWidget() {
   const [messages, setMessages] = useState<Message[]>([]);
   const { data: session } = useSession();
   const role = (session?.user as any)?.role || "client";
+  const pathname = usePathname();
+  
+  const isOrange = pathname === "/" || pathname === "/login" || pathname === "/signup";
+  const theme = {
+    primary: isOrange ? "bg-[#ff6b35]" : "bg-indigo-600",
+    primaryHover: isOrange ? "hover:bg-[#ff6b35]/30" : "hover:bg-indigo-600/30",
+    primaryShadow: isOrange ? "shadow-[#ff6b35]/30" : "shadow-indigo-600/30",
+    primaryShadowLg: isOrange ? "shadow-[#ff6b35]/40" : "shadow-indigo-600/40",
+    text: isOrange ? "text-[#ff6b35]" : "text-indigo-400",
+    textMuted: isOrange ? "text-[#ff6b35]/50" : "text-indigo-500/50",
+    bgSubtle: isOrange ? "bg-[#ff6b35]/10" : "bg-indigo-600/10",
+    bgVerySubtle: isOrange ? "bg-[#ff6b35]/5" : "bg-indigo-500/5",
+    borderSubtle: isOrange ? "border-[#ff6b35]/20" : "border-indigo-600/20",
+    fill: isOrange ? "fill-[#ff6b35]" : "fill-indigo-500",
+    bgPulse: isOrange ? "bg-[#ff6b35]" : "bg-indigo-500",
+  };
 
   const [inputValue, setInputValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -235,12 +252,12 @@ export function ChatWidget() {
           {/* Header */}
           <div className="flex items-center justify-between p-6 border-b border-white/5 bg-white/[0.02]">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-600 shadow-lg shadow-indigo-600/30">
+              <div className={cn("flex h-10 w-10 items-center justify-center rounded-xl shadow-lg", theme.primary, theme.primaryShadow)}>
                 <Command className="h-5 w-5 text-white" />
               </div>
               <div>
-                <h3 className="font-bold uppercase tracking-tight text-sm text-white/90 italic">Neural Core</h3>
-                <div className="flex items-center gap-1.5"><div className="h-1 w-1 rounded-full bg-emerald-500 animate-pulse" /><span className="text-[8px] font-bold uppercase text-emerald-500/60 tracking-widest">Active Link</span></div>
+                <h3 className="font-bold tracking-tight text-sm text-white/90 italic">Neural Core</h3>
+                <div className="flex items-center gap-1.5"><div className="h-1 w-1 rounded-full bg-emerald-500 animate-pulse" /><span className="text-[8px] font-bold text-emerald-500/60 tracking-widest">Active Link</span></div>
               </div>
             </div>
             <button onClick={() => setIsOpen(false)} className="rounded-xl bg-white/5 p-2 hover:bg-white/10 border border-white/10 transition-all"><X className="h-4 w-4 text-white/40" /></button>
@@ -251,14 +268,14 @@ export function ChatWidget() {
               {messages.map((msg, idx) => (
                 <div key={msg.id} className={cn("flex flex-col gap-1.5 max-w-[90%] animate-in fade-in slide-in-from-bottom-2", msg.role === "user" ? "ml-auto items-end" : "items-start")}>
                   <div className={cn(
-                    "px-4 py-3 rounded-2xl text-[13px] leading-relaxed border shadow-lg transition-all",
-                    msg.role === "assistant" ? "bg-white/[0.04] text-white/90 border-white/10 rounded-tl-none font-medium" : "bg-indigo-600 text-white border-white/10 rounded-tr-none font-bold"
+                    "px-4 py-3 rounded-2xl text-[13px] border shadow-lg transition-all",
+                    msg.role === "assistant" ? "bg-white/[0.04] text-white/90 border-white/10 rounded-tl-none font-medium" : cn(theme.primary, "text-white border-white/10 rounded-tr-none font-bold")
                   )}>
                     {msg.content}
                     {msg.role === "assistant" && msg.suggestions && msg.suggestions.length > 0 && idx === messages.length - 1 && !isLoading && (
                       <div className="flex flex-wrap gap-2 mt-5 pt-5 border-t border-white/5">
                         {msg.suggestions.map((s, i) => (
-                          <button key={i} onClick={() => handleSend(s)} className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-4 py-2 text-[9px] font-black text-white/40 uppercase tracking-widest hover:bg-indigo-600/30 hover:text-white transition-all">
+                          <button key={i} onClick={() => handleSend(s)} className={cn("flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-4 py-2 text-[9px] font-black text-white/40 tracking-widest hover:text-white transition-all", theme.primaryHover)}>
                             {s} <ArrowRight className="h-3 w-3" />
                           </button>
                         ))}
@@ -267,7 +284,7 @@ export function ChatWidget() {
                   </div>
                 </div>
               ))}
-              {isLoading && <div className="px-6 text-[8px] font-bold text-indigo-500/50 uppercase tracking-[0.4em] animate-pulse">Syncing...</div>}
+              {isLoading && <div className={cn("px-6 text-[8px] font-bold tracking-[0.4em] animate-pulse", theme.textMuted)}>Syncing...</div>}
             </div>
 
             <div className={cn(
@@ -276,14 +293,14 @@ export function ChatWidget() {
               "sm:bg-transparent sm:border-none sm:from-transparent"
             )}>
               {stepIndexRef.current >= 0 && (
-                <div className="flex items-center justify-between mb-4 bg-indigo-600/10 border border-indigo-600/20 p-3 rounded-xl animate-in slide-in-from-bottom-2">
+                <div className={cn("flex items-center justify-between mb-4 p-3 rounded-xl animate-in slide-in-from-bottom-2", theme.bgSubtle, theme.borderSubtle, "border")}>
                   <div className="flex items-center gap-3">
-                    <div className="relative h-2 w-2 rounded-full bg-indigo-500">
-                      <div className="absolute inset-0 rounded-full bg-indigo-500 animate-ping opacity-75" />
+                    <div className={cn("relative h-2 w-2 rounded-full", theme.bgPulse)}>
+                      <div className={cn("absolute inset-0 rounded-full animate-ping opacity-75", theme.bgPulse)} />
                     </div>
-                    <span className="text-[9px] font-black text-indigo-400 uppercase tracking-widest">Awaiting: {STEPS[stepIndexRef.current].key}</span>
+                    <span className={cn("text-[9px] font-black tracking-widest", theme.text)}>Awaiting: {STEPS[stepIndexRef.current].key}</span>
                   </div>
-                  <button onClick={() => handleSend("Cancel Form")} className="text-[9px] font-black text-red-500/40 uppercase hover:text-red-500">Abort</button>
+                  <button onClick={() => handleSend("Cancel Form")} className="text-[9px] font-black text-red-500/40 hover:text-red-500">Abort</button>
                 </div>
               )}
               <div className="relative group">
@@ -304,11 +321,11 @@ export function ChatWidget() {
                 </div>
               </div>
               <div className="flex items-center justify-center mt-6">
-                 <a href="https://techecho.in" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 border border-indigo-500/10 bg-indigo-500/5 px-4 py-2 rounded-xl group transition-all hover:bg-indigo-500/10 shadow-lg shadow-black/20">
-                    <span className="text-[7px] font-bold text-white/20 uppercase tracking-[0.4em]">Partner</span>
+                 <a href="https://techecho.in" target="_blank" rel="noopener noreferrer" className={cn("flex items-center gap-2 border px-4 py-2 rounded-xl group transition-all shadow-lg shadow-black/20", theme.borderSubtle, theme.bgVerySubtle, "hover:" + theme.bgSubtle.split(' ')[0])}>
+                    <span className="text-[7px] font-bold text-white/20 tracking-[0.4em]">Partner</span>
                     <div className="flex items-center gap-2 border-l border-white/5 pl-3">
-                      <Zap className="h-3 w-3 text-indigo-500 fill-indigo-500 group-hover:scale-125 transition-transform" />
-                      <span className="text-[10px] font-black italic text-indigo-400 tracking-tighter">TechEcho</span>
+                      <Zap className={cn("h-3 w-3 group-hover:scale-125 transition-transform", theme.text, theme.fill)} />
+                      <span className={cn("text-[10px] font-black italic tracking-tighter", theme.text)}>TechEcho</span>
                     </div>
                  </a>
               </div>
@@ -317,7 +334,7 @@ export function ChatWidget() {
         </div>
       )}
       {!isOpen && (
-        <button onClick={() => setIsOpen(true)} className="flex h-16 w-16 items-center justify-center rounded-full bg-indigo-600 text-white shadow-2xl shadow-indigo-600/40 hover:scale-110 active:scale-95 transition-all animate-in fade-in duration-500">
+        <button onClick={() => setIsOpen(true)} className={cn("flex h-16 w-16 items-center justify-center rounded-full text-white shadow-2xl hover:scale-110 active:scale-95 transition-all animate-in fade-in duration-500", theme.primary, theme.primaryShadowLg)}>
           <MessageSquareMore className="h-8 w-8" />
         </button>
       )}

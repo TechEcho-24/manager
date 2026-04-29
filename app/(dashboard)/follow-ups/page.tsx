@@ -184,7 +184,7 @@ export default function FollowUpsPage() {
                             <User className="h-5 w-5" />
                           </div>
                           <div>
-                            <h3 className="text-lg font-bold text-foreground leading-tight">{lead.fullName}</h3>
+                            <h3 className="text-lg font-bold text-foreground ">{lead.fullName}</h3>
                             <div className="flex items-center gap-2 mt-1">
                               <Building2 className="h-3.5 w-3.5 text-muted-foreground" />
                               <span className="text-sm font-medium text-muted-foreground">{lead.company || "Individual"}</span>
@@ -223,7 +223,7 @@ export default function FollowUpsPage() {
                                 ? "bg-amber-500/5 border-amber-500/20 text-amber-600"
                                 : "bg-muted/50 border-border text-foreground"
                           )}>
-                            <div className="text-[10px] uppercase tracking-wider font-bold opacity-60">Follow-up Date</div>
+                            <div className="text-[10px] tracking-wider font-bold opacity-60">Follow-up Date</div>
                             <div className="text-sm font-bold">
                               {format(new Date(lead.nextFollowupDate), "PPP")}
                             </div>
@@ -233,8 +233,8 @@ export default function FollowUpsPage() {
                           </div>
                         ) : (
                           <div className="bg-primary/5 border border-primary/20 text-primary px-4 py-2 rounded-xl text-center">
-                            <div className="text-[10px] uppercase tracking-wider font-bold">Schedule Needed</div>
-                            <div className="text-xs font-bold leading-tight mt-1">No date assigned</div>
+                            <div className="text-[10px] tracking-wider font-bold">Schedule Needed</div>
+                            <div className="text-xs font-bold mt-1">No date assigned</div>
                           </div>
                         )}
 
@@ -242,7 +242,7 @@ export default function FollowUpsPage() {
                           <Button 
                             variant="outline" 
                             size="sm" 
-                            className="flex-1 h-9 border-border hover:bg-muted text-xs font-bold sm:flex-none uppercase tracking-wide px-4 rounded-xl"
+                            className="flex-1 h-9 border-border hover:bg-muted text-xs font-bold sm:flex-none tracking-wide px-4 rounded-xl"
                             onClick={() => {
                               setEditingLeadId(lead.id);
                               setIsFormOpen(true);
@@ -252,7 +252,7 @@ export default function FollowUpsPage() {
                           </Button>
                           <Button 
                             size="sm" 
-                            className="flex-1 h-9 bg-primary text-white hover:bg-primary/90 text-xs font-bold sm:flex-none uppercase tracking-wide px-4 rounded-xl shadow-lg shadow-primary/20"
+                            className="flex-1 h-9 bg-primary text-white hover:bg-primary/90 text-xs font-bold sm:flex-none tracking-wide px-4 rounded-xl shadow-lg shadow-primary/20"
                             onClick={() => {
                               // Fast mark as done or update logic
                               setEditingLeadId(lead.id);

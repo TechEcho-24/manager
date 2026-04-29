@@ -206,7 +206,7 @@ export function OnboardingForm() {
             className='h-7 object-contain'
           />
           <span
-            className='text-[7px] font-bold tracking-[0.4em] uppercase text-indigo-400 ml-1 mt-1'
+            className='text-[7px] font-bold tracking-[0.4em] text-indigo-400 ml-1 mt-1'
             style={{ fontFamily: "var(--font-manrope)" }}
           >
             Terminal Node
@@ -243,7 +243,7 @@ export function OnboardingForm() {
                 <div className='hidden lg:flex flex-col'>
                   <span
                     className={cn(
-                      "text-[10px] font-bold uppercase tracking-widest transition-all duration-500",
+                      "text-[10px] font-bold tracking-widest transition-all duration-500",
                       isActive
                         ? "text-white"
                         : isCompleted
@@ -264,7 +264,7 @@ export function OnboardingForm() {
           <div className='rounded-xl border border-white/10 bg-white/[0.03] p-4'>
             <div className='flex items-center justify-between mb-2'>
               <span
-                className='text-[8px] font-bold uppercase text-white/30 tracking-widest'
+                className='text-[8px] font-bold text-white/30 tracking-widest'
                 style={{ fontFamily: "var(--font-manrope)" }}
               >
                 Progress
@@ -308,7 +308,7 @@ export function OnboardingForm() {
               {currentStep === 1 && (
                 <div className='space-y-10'>
                   <div className='space-y-4'>
-                    <h1 className='text-4xl font-black text-white tracking-tight leading-none italic uppercase'>
+                    <h1 className='text-4xl font-black text-white tracking-tight italic'>
                       Command Center.
                     </h1>
                     <p className='text-base text-white/60 font-medium'>
@@ -318,7 +318,7 @@ export function OnboardingForm() {
 
                   <div className='grid grid-cols-2 gap-x-8 gap-y-6'>
                     <div className='space-y-2'>
-                      <Label className='text-[9px] font-black uppercase tracking-widest text-white/40 ml-1'>
+                      <Label className='text-[9px] font-black tracking-widest text-white/40 ml-1'>
                         Full Name <span className='text-red-500'>*</span>
                       </Label>
                       <Input
@@ -330,7 +330,7 @@ export function OnboardingForm() {
                       />
                     </div>
                     <div className='space-y-2'>
-                      <Label className='text-[9px] font-black uppercase tracking-widest text-white/40 ml-1'>
+                      <Label className='text-[9px] font-black tracking-widest text-white/40 ml-1'>
                         Work Email <span className='text-red-500'>*</span>
                       </Label>
                       <Input
@@ -342,7 +342,7 @@ export function OnboardingForm() {
                       />
                     </div>
                     <div className='space-y-2'>
-                      <Label className='text-[9px] font-black uppercase tracking-widest text-white/40 ml-1'>
+                      <Label className='text-[9px] font-black tracking-widest text-white/40 ml-1'>
                         Personal Link (Phone){" "}
                         <span className='text-red-500'>*</span>
                       </Label>
@@ -355,7 +355,7 @@ export function OnboardingForm() {
                       />
                     </div>
                     <div className='space-y-2'>
-                      <Label className='text-[9px] font-black uppercase tracking-widest text-white/40 ml-1'>
+                      <Label className='text-[9px] font-black tracking-widest text-white/40 ml-1'>
                         LinkedIn Profile <span className='text-red-500'>*</span>
                       </Label>
                       <Input
@@ -367,7 +367,7 @@ export function OnboardingForm() {
                       />
                     </div>
                     <div className='space-y-2'>
-                      <Label className='text-[9px] font-black uppercase tracking-widest text-white/40 ml-1'>
+                      <Label className='text-[9px] font-black tracking-widest text-white/40 ml-1'>
                         Designation / Role{" "}
                         <span className='text-red-500'>*</span>
                       </Label>
@@ -380,7 +380,7 @@ export function OnboardingForm() {
                       />
                     </div>
                     <div className='space-y-2'>
-                      <Label className='text-[9px] font-black uppercase tracking-widest text-white/40 ml-1'>
+                      <Label className='text-[9px] font-black tracking-widest text-white/40 ml-1'>
                         Recovery Email <span className='text-red-500'>*</span>
                       </Label>
                       <Input
@@ -398,7 +398,7 @@ export function OnboardingForm() {
               {currentStep === 2 && (
                 <div className='space-y-10'>
                   <div className='space-y-4'>
-                    <h1 className='text-4xl font-black text-white tracking-tight leading-none italic uppercase'>
+                    <h1 className='text-4xl font-black text-white tracking-tight italic'>
                       Logic Node.
                     </h1>
                     <p className='text-base text-white/60 font-medium'>
@@ -408,7 +408,7 @@ export function OnboardingForm() {
 
                   <div className='grid grid-cols-2 gap-x-8 gap-y-6'>
                     <div className='col-span-2 space-y-2'>
-                      <Label className='text-[9px] font-black uppercase tracking-widest text-white/40 ml-1'>
+                      <Label className='text-[9px] font-black tracking-widest text-white/40 ml-1'>
                         Entity Logic <span className='text-red-500'>*</span>
                       </Label>
                       <RadioGroup
@@ -420,7 +420,7 @@ export function OnboardingForm() {
                       >
                         <Label
                           className={cn(
-                            "flex h-12 items-center justify-center rounded-xl border cursor-pointer transition-all uppercase tracking-widest text-[10px] font-black",
+                            "flex h-12 items-center justify-center rounded-xl border cursor-pointer transition-all tracking-widest text-[10px] font-black",
                             formData.entityType === "individual"
                               ? "border-indigo-500 bg-indigo-500/10 text-white"
                               : "border-white/10 text-white/20",
@@ -434,7 +434,7 @@ export function OnboardingForm() {
                         </Label>
                         <Label
                           className={cn(
-                            "flex h-12 items-center justify-center rounded-xl border cursor-pointer transition-all uppercase tracking-widest text-[10px] font-black",
+                            "flex h-12 items-center justify-center rounded-xl border cursor-pointer transition-all tracking-widest text-[10px] font-black",
                             formData.entityType === "company"
                               ? "border-indigo-500 bg-indigo-500/10 text-white"
                               : "border-white/10 text-white/20",
@@ -446,7 +446,7 @@ export function OnboardingForm() {
                       </RadioGroup>
                     </div>
                     <div className='space-y-2'>
-                      <Label className='text-[9px] font-black uppercase tracking-widest text-white/40 ml-1'>
+                      <Label className='text-[9px] font-black tracking-widest text-white/40 ml-1'>
                         Main Department <span className='text-red-500'>*</span>
                       </Label>
                       <Input
@@ -458,7 +458,7 @@ export function OnboardingForm() {
                       />
                     </div>
                     <div className='space-y-2'>
-                      <Label className='text-[9px] font-black uppercase tracking-widest text-white/40 ml-1'>
+                      <Label className='text-[9px] font-black tracking-widest text-white/40 ml-1'>
                         Team Dimension <span className='text-red-500'>*</span>
                       </Label>
                       <Input
@@ -470,7 +470,7 @@ export function OnboardingForm() {
                       />
                     </div>
                     <div className='space-y-2'>
-                      <Label className='text-[9px] font-black uppercase tracking-widest text-white/40 ml-1'>
+                      <Label className='text-[9px] font-black tracking-widest text-white/40 ml-1'>
                         Operating Region <span className='text-red-500'>*</span>
                       </Label>
                       <Input
@@ -482,7 +482,7 @@ export function OnboardingForm() {
                       />
                     </div>
                     <div className='space-y-2'>
-                      <Label className='text-[9px] font-black uppercase tracking-widest text-white/40 ml-1'>
+                      <Label className='text-[9px] font-black tracking-widest text-white/40 ml-1'>
                         System Language <span className='text-red-500'>*</span>
                       </Label>
                       <Input
@@ -500,7 +500,7 @@ export function OnboardingForm() {
               {currentStep === 3 && (
                 <div className='space-y-10'>
                   <div className='space-y-4'>
-                    <h1 className='text-4xl font-black text-white tracking-tight leading-none italic uppercase'>
+                    <h1 className='text-4xl font-black text-white tracking-tight italic'>
                       Organization DNA.
                     </h1>
                     <p className='text-base text-white/60 font-medium'>
@@ -510,7 +510,7 @@ export function OnboardingForm() {
 
                   <div className='grid grid-cols-2 gap-x-8 gap-y-6'>
                     <div className='space-y-2'>
-                      <Label className='text-[9px] font-black uppercase tracking-widest text-white/40 ml-1'>
+                      <Label className='text-[9px] font-black tracking-widest text-white/40 ml-1'>
                         Company Master Name{" "}
                         <span className='text-red-500'>*</span>
                       </Label>
@@ -523,7 +523,7 @@ export function OnboardingForm() {
                       />
                     </div>
                     <div className='space-y-2'>
-                      <Label className='text-[9px] font-black uppercase tracking-widest text-white/40 ml-1'>
+                      <Label className='text-[9px] font-black tracking-widest text-white/40 ml-1'>
                         Industry Sector <span className='text-red-500'>*</span>
                       </Label>
                       <Input
@@ -535,7 +535,7 @@ export function OnboardingForm() {
                       />
                     </div>
                     <div className='space-y-2'>
-                      <Label className='text-[9px] font-black uppercase tracking-widest text-white/40 ml-1'>
+                      <Label className='text-[9px] font-black tracking-widest text-white/40 ml-1'>
                         Digital Endpoint (Web){" "}
                         <span className='text-red-500'>*</span>
                       </Label>
@@ -548,7 +548,7 @@ export function OnboardingForm() {
                       />
                     </div>
                     <div className='space-y-2'>
-                      <Label className='text-[9px] font-black uppercase tracking-widest text-white/40 ml-1'>
+                      <Label className='text-[9px] font-black tracking-widest text-white/40 ml-1'>
                         Founding Year <span className='text-red-500'>*</span>
                       </Label>
                       <Input
@@ -560,7 +560,7 @@ export function OnboardingForm() {
                       />
                     </div>
                     <div className='space-y-2'>
-                      <Label className='text-[9px] font-black uppercase tracking-widest text-white/40 ml-1'>
+                      <Label className='text-[9px] font-black tracking-widest text-white/40 ml-1'>
                         GSTR / Tax Registry{" "}
                         <span className='text-red-500'>*</span>
                       </Label>
@@ -573,7 +573,7 @@ export function OnboardingForm() {
                       />
                     </div>
                     <div className='space-y-2'>
-                      <Label className='text-[9px] font-black uppercase tracking-widest text-white/40 ml-1'>
+                      <Label className='text-[9px] font-black tracking-widest text-white/40 ml-1'>
                         Revenue Stream Range{" "}
                         <span className='text-red-500'>*</span>
                       </Label>
@@ -592,7 +592,7 @@ export function OnboardingForm() {
               {currentStep === 4 && (
                 <div className='space-y-10'>
                   <div className='space-y-4'>
-                    <h1 className='text-4xl font-black text-white tracking-tight leading-none italic uppercase'>
+                    <h1 className='text-4xl font-black text-white tracking-tight italic'>
                       Visual Core.
                     </h1>
                     <p className='text-base text-white/60 font-medium'>
@@ -602,18 +602,18 @@ export function OnboardingForm() {
 
                   <div className='grid grid-cols-2 gap-x-12 gap-y-6'>
                     <div className='space-y-4 row-span-2'>
-                      <Label className='text-[9px] font-black uppercase tracking-widest text-white/40 ml-1'>
+                      <Label className='text-[9px] font-black tracking-widest text-white/40 ml-1'>
                         Master Logo <span className='text-red-500'>*</span>
                       </Label>
                       <div className='group relative h-64 w-full cursor-pointer flex-col items-center justify-center rounded-2xl border border-dashed border-white/20 bg-white/[0.02] hover:border-indigo-500/50 hover:bg-indigo-500/5 transition-all flex'>
                         <Upload className='h-10 w-10 text-white/20 group-hover:text-indigo-400 transition-all' />
-                        <span className='mt-4 text-[9px] font-black uppercase tracking-widest text-white/30'>
+                        <span className='mt-4 text-[9px] font-black tracking-widest text-white/30'>
                           SVG / PNG / WebP
                         </span>
                       </div>
                     </div>
                     <div className='space-y-4'>
-                      <Label className='text-[9px] font-black uppercase tracking-widest text-white/40 ml-1'>
+                      <Label className='text-[9px] font-black tracking-widest text-white/40 ml-1'>
                         Neural Primary Color{" "}
                         <span className='text-red-500'>*</span>
                       </Label>
@@ -648,7 +648,7 @@ export function OnboardingForm() {
                       </div>
                     </div>
                     <div className='space-y-2'>
-                      <Label className='text-[9px] font-black uppercase tracking-widest text-white/40 ml-1'>
+                      <Label className='text-[9px] font-black tracking-widest text-white/40 ml-1'>
                         Brand Tagline <span className='text-red-500'>*</span>
                       </Label>
                       <Input
@@ -660,7 +660,7 @@ export function OnboardingForm() {
                       />
                     </div>
                     <div className='space-y-2'>
-                      <Label className='text-[9px] font-black uppercase tracking-widest text-white/40 ml-1'>
+                      <Label className='text-[9px] font-black tracking-widest text-white/40 ml-1'>
                         Brand Voice <span className='text-red-500'>*</span>
                       </Label>
                       <Input
@@ -672,7 +672,7 @@ export function OnboardingForm() {
                       />
                     </div>
                     <div className='space-y-2'>
-                      <Label className='text-[9px] font-black uppercase tracking-widest text-white/40 ml-1'>
+                      <Label className='text-[9px] font-black tracking-widest text-white/40 ml-1'>
                         Digital Font Style{" "}
                         <span className='text-red-500'>*</span>
                       </Label>
@@ -691,7 +691,7 @@ export function OnboardingForm() {
               {currentStep === 5 && (
                 <div className='space-y-10'>
                   <div className='space-y-4'>
-                    <h1 className='text-4xl font-black text-white tracking-tight leading-none italic uppercase'>
+                    <h1 className='text-4xl font-black text-white tracking-tight italic'>
                       Neural Targets.
                     </h1>
                     <p className='text-base text-white/60 font-medium'>
@@ -701,7 +701,7 @@ export function OnboardingForm() {
 
                   <div className='grid grid-cols-2 gap-x-8 gap-y-6'>
                     <div className='space-y-2'>
-                      <Label className='text-[9px] font-black uppercase tracking-widest text-white/40 ml-1'>
+                      <Label className='text-[9px] font-black tracking-widest text-white/40 ml-1'>
                         Primary Growth Goal{" "}
                         <span className='text-red-500'>*</span>
                       </Label>
@@ -714,7 +714,7 @@ export function OnboardingForm() {
                       />
                     </div>
                     <div className='space-y-2'>
-                      <Label className='text-[9px] font-black uppercase tracking-widest text-white/40 ml-1'>
+                      <Label className='text-[9px] font-black tracking-widest text-white/40 ml-1'>
                         Main Sales Channel{" "}
                         <span className='text-red-500'>*</span>
                       </Label>
@@ -727,7 +727,7 @@ export function OnboardingForm() {
                       />
                     </div>
                     <div className='space-y-2'>
-                      <Label className='text-[9px] font-black uppercase tracking-widest text-white/40 ml-1'>
+                      <Label className='text-[9px] font-black tracking-widest text-white/40 ml-1'>
                         Target Audience Segment{" "}
                         <span className='text-red-500'>*</span>
                       </Label>
@@ -740,7 +740,7 @@ export function OnboardingForm() {
                       />
                     </div>
                     <div className='space-y-2'>
-                      <Label className='text-[9px] font-black uppercase tracking-widest text-white/40 ml-1'>
+                      <Label className='text-[9px] font-black tracking-widest text-white/40 ml-1'>
                         CRM Logic Integration{" "}
                         <span className='text-red-500'>*</span>
                       </Label>
@@ -753,7 +753,7 @@ export function OnboardingForm() {
                       />
                     </div>
                     <div className='space-y-2'>
-                      <Label className='text-[9px] font-black uppercase tracking-widest text-white/40 ml-1'>
+                      <Label className='text-[9px] font-black tracking-widest text-white/40 ml-1'>
                         Weekly Lead Target{" "}
                         <span className='text-red-500'>*</span>
                       </Label>
@@ -766,7 +766,7 @@ export function OnboardingForm() {
                       />
                     </div>
                     <div className='space-y-2'>
-                      <Label className='text-[9px] font-black uppercase tracking-widest text-white/40 ml-1'>
+                      <Label className='text-[9px] font-black tracking-widest text-white/40 ml-1'>
                         Support Tier Priority{" "}
                         <span className='text-red-500'>*</span>
                       </Label>
@@ -786,7 +786,7 @@ export function OnboardingForm() {
                 <div className='grid grid-cols-5 gap-12 items-start'>
                   <div className='col-span-2 space-y-8'>
                     <div className='space-y-4'>
-                      <h1 className='text-4xl font-black text-white tracking-tight leading-none italic uppercase'>
+                      <h1 className='text-4xl font-black text-white tracking-tight italic'>
                         Bot Interface.
                       </h1>
                       <p className='text-base text-white/60 font-medium'>
@@ -796,7 +796,7 @@ export function OnboardingForm() {
 
                     <div className='space-y-6'>
                       <div className='space-y-2'>
-                        <Label className='text-[9px] font-black uppercase tracking-widest text-white/40 ml-1'>
+                        <Label className='text-[9px] font-black tracking-widest text-white/40 ml-1'>
                           AI Assistant Name{" "}
                           <span className='text-red-500'>*</span>
                         </Label>
@@ -809,7 +809,7 @@ export function OnboardingForm() {
                         />
                       </div>
                       <div className='space-y-2'>
-                        <Label className='text-[9px] font-black uppercase tracking-widest text-white/40 ml-1'>
+                        <Label className='text-[9px] font-black tracking-widest text-white/40 ml-1'>
                           Bot Welcome Logic{" "}
                           <span className='text-red-500'>*</span>
                         </Label>
@@ -830,7 +830,7 @@ export function OnboardingForm() {
                   </div>
 
                   <div className='col-span-3'>
-                    <Label className='text-[10px] font-black uppercase tracking-widest text-white/60 mb-6 block text-center'>
+                    <Label className='text-[10px] font-black tracking-widest text-white/60 mb-6 block text-center'>
                       Live Preview: {formData.companyName || "Your Brand"}
                     </Label>
 
@@ -861,12 +861,12 @@ export function OnboardingForm() {
                           <div className='h-8 w-8 rounded-full bg-white/5 flex items-center justify-center text-[10px] text-white/40'>
                             AI
                           </div>
-                          <div className='max-w-[80%] rounded-2xl bg-white/10 p-3 text-[11px] text-white leading-relaxed'>
+                          <div className='max-w-[80%] rounded-2xl bg-white/10 p-3 text-[11px] text-white '>
                             {formData.welcomeMessage}
                           </div>
                         </div>
                         <div className='flex gap-2 justify-end'>
-                          <div className='max-w-[80%] rounded-2xl bg-white/5 border border-white/10 p-3 text-[11px] text-white/60 leading-relaxed italic'>
+                          <div className='max-w-[80%] rounded-2xl bg-white/5 border border-white/10 p-3 text-[11px] text-white/60 italic'>
                             Hey, tell me about your growth plans!
                           </div>
                         </div>
@@ -893,7 +893,7 @@ export function OnboardingForm() {
                   variant='ghost'
                   onClick={prevStep}
                   disabled={currentStep === 1}
-                  className='h-14 px-10 text-[10px] font-black uppercase tracking-widest text-white/40 hover:text-white disabled:opacity-0'
+                  className='h-14 px-10 text-[10px] font-black tracking-widest text-white/40 hover:text-white disabled:opacity-0'
                 >
                   Back
                 </Button>
@@ -909,7 +909,7 @@ export function OnboardingForm() {
                   )}
                 >
                   <div className='flex items-center gap-3'>
-                    <span className='uppercase tracking-[0.2em] text-sm'>
+                    <span className='tracking-[0.2em] text-sm'>
                       {currentStep === STEPS.length
                         ? "Initialize Protocol"
                         : "Next Phase"}
@@ -935,7 +935,7 @@ export function OnboardingForm() {
               </motion.div>
 
               <div className='space-y-4'>
-                <h1 className='text-7xl font-black text-white tracking-tighter italic leading-none uppercase'>
+                <h1 className='text-7xl font-black text-white tracking-tighter italic '>
                   Initialized.
                 </h1>
                 <p className='text-2xl text-white/70 max-w-lg font-medium'>
