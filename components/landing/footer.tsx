@@ -28,17 +28,25 @@ export function Footer() {
   return (
     <footer className="py-20 px-6 border-t border-white/5">
        <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-12 text-center md:text-left">
-          <div className="space-y-4">
-          <div className="flex flex-col items-center md:items-start">
-             <img src="/assets/footer.png" alt="Pinglly Footer" className="h-10 object-contain" />
-             <span className="text-[8px] font-bold tracking-[0.3em] text-white/30 mt-1 ml-1">by TechEcho</span>
+          <div className="space-y-4 max-w-sm">
+            <div className="flex flex-col items-center md:items-start">
+               <img src="/assets/footer.png" alt="Pinglly Footer" className="h-10 object-contain" />
+               <span className="text-[8px] font-bold tracking-[0.3em] text-white/30 mt-1 ml-1 uppercase">by TechEcho</span>
+            </div>
+            <p className="text-[11px] font-medium text-white/40 leading-relaxed mt-4 hidden md:block">
+              Pinglly is a next-generation neural CRM designed to empower elite sales teams with AI-driven insights, seamless pipeline management, and intelligent automation.
+            </p>
+            <p className="text-[10px] font-bold text-white/20 tracking-widest mt-6 uppercase">© 2026 Neural Ops. All rights Reserved.</p>
           </div>
-             <p className="text-[10px] font-bold text-white/20 tracking-widest">© 2026 Neural Ops. All rights Reserved.</p>
-          </div>
-          <div className="flex flex-wrap justify-center gap-6 md:gap-12 mt-8 md:mt-0">
-             {["Architecture", "Research", "Security", "Legal"].map(l => (
-                <Link key={l} href="#" className="text-[10px] font-black tracking-widest text-white/40 hover:text-white transition-colors">{l}</Link>
-             ))}
+          
+          <div className="flex flex-wrap justify-center items-center gap-3 md:gap-5 mt-8 md:mt-0 uppercase">
+             <Link href="/privacy" className="text-[10px] font-black tracking-widest text-white/40 hover:text-[#ff6b35] transition-colors">Privacy Policy</Link>
+             <span className="text-white/10 text-[10px]">•</span>
+             <Link href="/terms" className="text-[10px] font-black tracking-widest text-white/40 hover:text-[#ff6b35] transition-colors">Terms of Service</Link>
+             <span className="text-white/10 text-[10px]">•</span>
+             <Link href="/security" className="text-[10px] font-black tracking-widest text-white/40 hover:text-[#ff6b35] transition-colors">Security</Link>
+             <span className="text-white/10 text-[10px]">•</span>
+             <Link href="/contact" className="text-[10px] font-black tracking-widest text-white/40 hover:text-[#ff6b35] transition-colors">Contact</Link>
           </div>
        </div>
     </footer>

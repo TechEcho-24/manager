@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 
 const KNOWLEDGE_BASE = {
   system: {
-    overview: "LeadPro CRM is a neural-themed sales command center designed to optimize your lead lifecycle. It combines lead tracking, financial deal management with milestones, daily productivity goals, and real-time analytics. Powered by TechEcho.",
+    overview: "LeadPro CRM is a neural-themed sales command center designed to optimize your lead lifecycle. It combines lead tracking, financial deal management with milestones, daily productivity goals, and real-time analytics. Powered by Pinglly.",
     purpose: "The system helps sales teams transition from messy spreadsheets to a highly organized digital command center, ensuring no lead is lost and every payment is tracked.",
     branding: "Powered by TechEcho - Your Neural Sales Command Center.",
     triggers: ["what it does", "purpose", "about", "help", "kya hai", "kya karta"]
@@ -29,7 +29,7 @@ export async function POST(req: Request) {
 
     if (email) {
       return NextResponse.json({ 
-        response: "Neural Signal Optimized. Your request is registered with TechEcho Special Operations. Expect a briefing within 24 hours.", 
+        response: "Neural Signal Optimized. Your request is registered with Pinglly Special Operations. Expect a briefing within 24 hours.", 
         suggestions: ["Features overview", "See Dashbaord"] 
       });
     }
@@ -78,8 +78,8 @@ export async function POST(req: Request) {
       else response = `Workflows: 1. Adding leads, 2. Completing follow-ups, 3. Creating deals. Which one should I explain?`;
       suggestions = ["Workflow 1", "Workflow 2", "Workflow 3"];
     }
-    else if (msg.includes("founder") || msg.includes("anuj") || msg.includes("techecho")) {
-      response = "LeadPro is the brainchild of Anuj Sachan, developed for high-performance sales by TechEcho. It's a next-gen Neural Sales Tool.";
+    else if (msg.includes("founder") || msg.includes("anuj") || msg.includes("pinglly")) {
+      response = "LeadPro is  developed for high-performance sales by Pinglly. It's a next-gen Neural Sales Tool.";
       suggestions = ["App purpose", "Back to dashboard"];
     } else if (msg.includes("kaise") || msg.includes("how")) {
       response = "I can guide you through any process. For example: Workflow 1 for adding leads or Workflow 3 for creating deals. What do you need help with?";

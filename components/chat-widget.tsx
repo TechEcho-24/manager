@@ -321,7 +321,7 @@ export function ChatWidget() {
                 </div>
               </div>
               <div className="flex items-center justify-center mt-6">
-                 <a href="https://techecho.in" target="_blank" rel="noopener noreferrer" className={cn("flex items-center gap-2 border px-4 py-2 rounded-xl group transition-all shadow-lg shadow-black/20", theme.borderSubtle, theme.bgVerySubtle, "hover:" + theme.bgSubtle.split(' ')[0])}>
+                 <a href="https://pinglly.in" target="_blank" rel="noopener noreferrer" className={cn("flex items-center gap-2 border px-4 py-2 rounded-xl group transition-all shadow-lg shadow-black/20", theme.borderSubtle, theme.bgVerySubtle, "hover:" + theme.bgSubtle.split(' ')[0])}>
                     <span className="text-[7px] font-bold text-white/20 tracking-[0.4em]">Partner</span>
                     <div className="flex items-center gap-2 border-l border-white/5 pl-3">
                       <Zap className={cn("h-3 w-3 group-hover:scale-125 transition-transform", theme.text, theme.fill)} />

@@ -230,7 +230,7 @@ export function AdminDashboard() {
                      <div>
                         <label className="text-[10px] font-black text-muted-foreground ml-1">Company Name</label>
                         <input required className="w-full h-12 bg-muted/30 border border-border/40 rounded-xl px-4 text-sm font-bold mt-1.5 focus:border-indigo-500 outline-none" 
-                           value={newClient.companyName} onChange={e => setNewClient({...newClient, companyName: e.target.value})} placeholder="TechEcho Solutions" />
+                           value={newClient.companyName} onChange={e => setNewClient({...newClient, companyName: e.target.value})} placeholder="Pinglly Solutions" />
                      </div>
                      <div className="grid grid-cols-2 gap-4">
                         <div>
