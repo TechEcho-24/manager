@@ -192,8 +192,7 @@ export default function SignupForm() {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -10 }}
                   className="text-base sm:text-xl font-semibold text-white italic h-14 flex items-center justify-center"
-                  style={{ fontFamily: "var(--font-poppins)" }}
-                >
+                                 >
                   {loadingMessages[loadingTextIndex]}
                 </motion.p>
               </AnimatePresence>
@@ -207,7 +206,7 @@ export default function SignupForm() {
                   />
                 </div>
                 <span className="text-[9px] font-bold uppercase tracking-[0.4em] text-white/20"
-                  style={{ fontFamily: "var(--font-orbitron)" }}>
+                  style={{ fontFamily: "var(--font-manrope)" }}>
                   Establishing Neural Link
                 </span>
               </div>
@@ -234,7 +233,7 @@ export default function SignupForm() {
             <div className="flex flex-col items-start mb-12">
               <img src="/assets/logo.png" alt="Pinglly" className="h-10 object-contain drop-shadow-[0_0_20px_rgba(99,102,241,0.6)]" />
               <span className="text-[8px] font-bold tracking-[0.4em] text-indigo-400 mt-1 uppercase ml-1"
-                style={{ fontFamily: "var(--font-orbitron)" }}>by TechEcho</span>
+                style={{ fontFamily: "var(--font-manrope)" }}>by TechEcho</span>
             </div>
           </Link>
 
@@ -244,15 +243,14 @@ export default function SignupForm() {
               <UserPlus className="h-3 w-3" /> Join the Next Generation
             </div>
             <h2 className="text-5xl xl:text-6xl font-black text-white leading-[1.05] tracking-tight italic"
-              style={{ fontFamily: "var(--font-orbitron)" }}>
+              style={{ fontFamily: "var(--font-manrope)" }}>
               Ready to<br />
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-purple-400 to-cyan-400">
                 Dominate.
               </span>
             </h2>
             <p className="text-base text-white/60 max-w-[360px] leading-relaxed"
-              style={{ fontFamily: "var(--font-poppins)" }}>
-              Initialize your high-performance CRM node. Join 12,000+ sales experts.
+                           Initialize your high-performance CRM node. Join 12,000+ sales experts.
             </p>
           </div>
 
@@ -284,21 +282,20 @@ export default function SignupForm() {
           <div className="flex lg:hidden items-center gap-3 mb-8">
             <img src="/assets/logo.png" alt="Pinglly" className="h-8 object-contain" />
             <span className="text-[9px] font-bold tracking-[0.3em] text-indigo-400 uppercase"
-              style={{ fontFamily: "var(--font-orbitron)" }}>by TechEcho</span>
+              style={{ fontFamily: "var(--font-manrope)" }}>by TechEcho</span>
           </div>
 
           <div className="mb-8">
             <div className="inline-flex items-center gap-2 mb-3 px-3 py-1.5 rounded-lg bg-indigo-500/10 border border-indigo-500/20">
               <Sparkles className="h-3.5 w-3.5 text-indigo-400" />
               <span className="text-[9px] font-bold text-indigo-400 uppercase tracking-widest"
-                style={{ fontFamily: "var(--font-orbitron)" }}>Protocol Start</span>
+                style={{ fontFamily: "var(--font-manrope)" }}>Protocol Start</span>
             </div>
             <h1 className="text-3xl sm:text-4xl font-black text-white mb-2 leading-tight"
-              style={{ fontFamily: "var(--font-orbitron)" }}>
+              style={{ fontFamily: "var(--font-manrope)" }}>
               Phase: Join
             </h1>
-            <p className="text-sm text-white/40 leading-relaxed" style={{ fontFamily: "var(--font-poppins)" }}>
-              Create your account to access the platform.
+            <p className="text-sm text-white/40 leading-relaxed"               Create your account to access the platform.
             </p>
             {planParam && (
               <div className="mt-3 inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-orange-500/10 border border-orange-500/20">
@@ -331,8 +328,7 @@ export default function SignupForm() {
                   onChange={e => setFullName(e.target.value)}
                   placeholder="John Doe"
                   className="h-11 rounded-xl border-white/10 bg-white/[0.05] px-4 text-white text-sm placeholder:text-white/20 focus:border-indigo-500/50 transition-colors"
-                  style={{ fontFamily: "var(--font-poppins)" }}
-                />
+                                 />
               </div>
 
               {/* Phone */}
@@ -347,8 +343,7 @@ export default function SignupForm() {
                   onChange={e => setPhone(e.target.value)}
                   placeholder="+91 00000 00000"
                   className="h-11 rounded-xl border-white/10 bg-white/[0.05] px-4 text-white text-sm placeholder:text-white/20 focus:border-indigo-500/50 transition-colors"
-                  style={{ fontFamily: "var(--font-poppins)" }}
-                />
+                                 />
               </div>
             </div>
 
@@ -365,8 +360,7 @@ export default function SignupForm() {
                 onChange={e => setEmail(e.target.value)}
                 placeholder="john@company.com"
                 className="h-11 rounded-xl border-white/10 bg-white/[0.05] px-4 text-white text-sm placeholder:text-white/20 focus:border-indigo-500/50 transition-colors"
-                style={{ fontFamily: "var(--font-poppins)" }}
-              />
+                             />
             </div>
 
             {/* Password */}
@@ -383,8 +377,7 @@ export default function SignupForm() {
                   onChange={e => setPassword(e.target.value)}
                   placeholder="Min. 8 characters"
                   className="h-11 rounded-xl border-white/10 bg-white/[0.05] px-4 pr-12 text-white text-sm placeholder:text-white/20 focus:border-indigo-500/50 transition-colors"
-                  style={{ fontFamily: "var(--font-poppins)" }}
-                />
+                                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
@@ -417,8 +410,7 @@ export default function SignupForm() {
             </Button>
           </form>
 
-          <p className="mt-6 text-center text-xs text-white/30" style={{ fontFamily: "var(--font-poppins)" }}>
-            Already have an account?{" "}
+          <p className="mt-6 text-center text-xs text-white/30"             Already have an account?{" "}
             <Link href="/login" className="text-indigo-400 hover:text-indigo-300 font-semibold transition-colors">
               Sign In
             </Link>

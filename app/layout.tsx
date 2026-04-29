@@ -1,37 +1,26 @@
 import type { Metadata } from "next";
-import { Poppins, Montserrat, Orbitron } from "next/font/google";
+import { Manrope, Inter } from "next/font/google";
 import { Providers } from "@/components/providers";
 import { ChatWidget } from "@/components/chat-widget";
 import "./globals.css";
 
-const poppins = Poppins({
-  variable: "--font-poppins",
+const manrope = Manrope({
   subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700", "800", "900"],
-  display: "swap",
+  variable: "--font-manrope",
 });
 
-const montserrat = Montserrat({
-  variable: "--font-montserrat",
+const inter = Inter({
   subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700", "800", "900"],
-  display: "swap",
-});
-
-const orbitron = Orbitron({
-  variable: "--font-orbitron",
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800", "900"],
-  display: "swap",
+  variable: "--font-inter",
 });
 
 export const metadata: Metadata = {
   title: "Pinglly | Cyber Edition",
   description: "Futuristic B2B Sales Infrastructure",
   icons: {
-    icon: '/assets/favicon.png',
-    shortcut: '/assets/favicon.png',
-    apple: '/assets/favicon.png',
+    icon: "/assets/logo.png",
+    shortcut: "/assets/logo.png",
+    apple: "/assets/logo.png",
   },
 };
 
@@ -42,11 +31,13 @@ export default function RootLayout({
 }>) {
   return (
     <html
-      lang="en"
-      className={`${poppins.variable} ${montserrat.variable} ${orbitron.variable} h-full antialiased scroll-smooth`}
+      lang='en'
+      className={`${manrope.variable}  h-full antialiased scroll-smooth`}
       suppressHydrationWarning
     >
-      <body className="min-h-full font-sans">
+      <body
+        className={`${manrope.variable} ${inter.variable} min-h-full font-sans`}
+      >
         <Providers>
           {children}
           <ChatWidget />
@@ -55,4 +46,3 @@ export default function RootLayout({
     </html>
   );
 }
-

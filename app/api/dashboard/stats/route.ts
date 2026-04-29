@@ -2,11 +2,21 @@ import { NextResponse } from "next/server";
 import dbConnect from "@/lib/db";
 import { Lead } from "@/models/lead";
 import { subDays, startOfDay, endOfDay, addDays } from "date-fns";
+import { auth } from "@/auth";
 
 export const dynamic = "force-dynamic";
 
 export async function GET() {
   try {
+    const session = await auth();
+    if (!session?.user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    
+    const userId = (session.user as any).id;
+    const isAdmin = (session.user as any).role === "admin";
+    const baseQuery = isAdmin ? {} : { userId };
+
     await dbConnect();
 
     const now = new Date();
@@ -15,30 +25,28 @@ export async function GET() {
     const nextSevenDays = addDays(now, 7);
 
     // 1. Basic Counts
-    const totalLeads = await Lead.countDocuments();
+    const totalLeads = await Lead.countDocuments(baseQuery);
     
     const newLeadsThisWeek = await Lead.countDocuments({
+      ...baseQuery,
       createdAt: { $gte: sevenDaysAgo },
       status: "New",
     });
 
-    const contacted = await Lead.countDocuments({ status: "Contacted" });
-    const interested = await Lead.countDocuments({ status: "Interested" });
-    const followUpRequired = await Lead.countDocuments({ status: "Follow-up Required" });
-    const converted = await Lead.countDocuments({ status: "Converted (Won)" });
-    const lost = await Lead.countDocuments({ status: "Lost" });
+    const contacted = await Lead.countDocuments({ ...baseQuery, status: "Contacted" });
+    const interested = await Lead.countDocuments({ ...baseQuery, status: "Interested" });
+    const followUpRequired = await Lead.countDocuments({ ...baseQuery, status: "Follow-up Required" });
+    const converted = await Lead.countDocuments({ ...baseQuery, status: "Converted (Won)" });
+    const lost = await Lead.countDocuments({ ...baseQuery, status: "Lost" });
 
     // 2. Response Rate Calculation
-    // Total leads minus "New"
     const respondedLeads = await Lead.countDocuments({
+      ...baseQuery,
       status: { $nin: ["New"] },
     });
     
-    // Of the responded, how many are NOT "Not Interested" or "Lost"
-    // Wait, the prompt says: "percentage of leads that are not 'New' or 'Not Interested'"
-    // This could mean: (Total - New - Not Interested) / (Total - New)
-    // Let's compute (Responded & not Not Interested) / Responded
     const positiveResponseLeads = await Lead.countDocuments({
+      ...baseQuery,
       status: { $nin: ["New", "Not Interested"] }
     });
 
@@ -48,6 +56,7 @@ export async function GET() {
 
     // 3. Leads by Status (Bar chart data)
     const leadsByStatusAggregation = await Lead.aggregate([
+      { $match: baseQuery },
       {
         $group: {
           _id: "$status",
@@ -65,6 +74,7 @@ export async function GET() {
     const leadsPerDayAggregation = await Lead.aggregate([
       {
         $match: {
+          ...baseQuery,
           createdAt: { $gte: thirtyDaysAgo }
         }
       },
@@ -92,7 +102,7 @@ export async function GET() {
     }
 
     // 5. Recent Activity (last 5 leads added or updated)
-    const recentActivityRaw = await Lead.find()
+    const recentActivityRaw = await Lead.find(baseQuery)
       .sort({ updatedAt: -1 })
       .limit(5)
       .select('fullName status updatedAt createdAt leadId activityTimeline')
@@ -112,6 +122,7 @@ export async function GET() {
 
     // 6. Upcoming Follow-ups (leads where nextFollowupDate is within next 7 days)
     const upcomingFollowUpsRaw = await Lead.find({
+      ...baseQuery,
       nextFollowupDate: {
         $gte: startOfDay(now),
         $lte: endOfDay(nextSevenDays)

@@ -1,150 +1,239 @@
 "use client";
 
-import React from 'react';
-import Link from 'next/link';
-import { MousePointer2, ChevronDown } from 'lucide-react';
+import React from "react";
+import Link from "next/link";
+import { MousePointer2, ChevronDown } from "lucide-react";
 
 export function Hero() {
   return (
-    <div className="min-h-screen bg-black text-white overflow-hidden">
+    <div className='min-h-screen bg-black text-white overflow-hidden'>
       {/* Header (Vetra Floating Capsule) */}
-      <header className="fixed top-4 md:top-6 left-0 right-0 z-50 px-4 md:px-6 flex justify-center">
-        <div className="flex items-center justify-between w-full max-w-5xl px-5 md:px-8 py-2.5 md:py-3 rounded-full bg-orange-500/[0.03] border border-orange-500/20 backdrop-blur-xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] relative group overflow-hidden">
+      <header className='fixed top-4 md:top-6 left-0 right-0 z-50 px-4 md:px-6 flex justify-center'>
+        <div className='flex items-center justify-between w-full max-w-5xl px-5 md:px-8 py-2.5 md:py-3 rounded-full bg-orange-500/[0.03] border border-orange-500/20 backdrop-blur-xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] relative group overflow-hidden'>
           {/* Subtle Glow inside capsule */}
-          <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-orange-500/30 to-transparent" />
-          
-          <div className="flex flex-col items-start">
-            <img src="/assets/logo.png" alt="Pinglly Logo" className="h-8 object-contain" />
-            <span className="text-[8px] font-medium text-white/30 tracking-widest uppercase ml-1">by TechEcho</span>
+          <div className='absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-orange-500/30 to-transparent' />
+
+          <div className='flex flex-col items-start'>
+            <img
+              src='/assets/logo.png'
+              alt='Pinglly Logo'
+              className='h-8 object-contain'
+            />
+            <span className='text-[8px] font-medium text-white/30 tracking-widest uppercase ml-1'>
+              by TechEcho
+            </span>
           </div>
 
-          <nav className="hidden md:flex items-center gap-8 text-[13px] font-medium">
-            <button className="text-gray-400 hover:text-white flex items-center gap-1 transition-colors">
-              Use cases <ChevronDown className="h-3 w-3 opacity-40" />
+          <nav className='hidden md:flex items-center gap-8 text-[13px] font-medium'>
+            <button className='text-gray-400 hover:text-white flex items-center gap-1 transition-colors'>
+              Use cases <ChevronDown className='h-3 w-3 opacity-40' />
             </button>
-            <button className="text-gray-400 hover:text-white flex items-center gap-1 transition-colors">
-              Features <ChevronDown className="h-3 w-3 opacity-40" />
+            <button className='text-gray-400 hover:text-white flex items-center gap-1 transition-colors'>
+              Features <ChevronDown className='h-3 w-3 opacity-40' />
             </button>
-            <a href="#pricing" className="text-gray-400 hover:text-white transition-colors">Pricing</a>
-            <a href="#contact" className="text-gray-400 hover:text-white transition-colors">Contact</a>
+            <a
+              href='#pricing'
+              className='text-gray-400 hover:text-white transition-colors'
+            >
+              Pricing
+            </a>
+            <a
+              href='#contact'
+              className='text-gray-400 hover:text-white transition-colors'
+            >
+              Contact
+            </a>
           </nav>
 
-          <Link href="/signup" className="px-5 py-2 bg-gradient-to-r from-orange-500 to-orange-600 rounded-full text-[13px] font-bold hover:shadow-lg hover:shadow-orange-500/50 transition-all text-white">
+          <Link
+            href='/signup'
+            className='px-5 py-2 bg-gradient-to-r from-orange-500 to-orange-600 rounded-full text-[13px] font-bold hover:shadow-lg hover:shadow-orange-500/50 transition-all text-white'
+          >
             Get started
           </Link>
         </div>
       </header>
 
       {/* Hero Section */}
-      <section
-        className="relative min-h-[100svh] flex flex-col items-center justify-center px-4 md:px-6 pt-28 md:pt-32 pb-20 md:pb-24"
-      >
-        {/* Animated Background with Noise */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          {/* Stars/Particles */}
-          <div className="absolute inset-0" style={{
-            backgroundImage: `radial-gradient(2px 2px at 20% 30%, white, transparent),
-                             radial-gradient(2px 2px at 60% 70%, white, transparent),
-                             radial-gradient(1px 1px at 50% 50%, white, transparent),
-                             radial-gradient(1px 1px at 80% 10%, white, transparent),
-                             radial-gradient(2px 2px at 90% 60%, white, transparent),
-                             radial-gradient(1px 1px at 33% 80%, white, transparent)`,
-            backgroundSize: '200px 200px, 300px 300px, 250px 250px, 400px 400px, 350px 350px, 300px 300px',
-            backgroundRepeat: 'repeat',
-            opacity: 0.3
-          }}></div>
-
-          {/* The Glowing Orange Horizon - Key Feature */}
-          <div className="absolute bottom-0 left-0 right-0 h-[60%]" style={{
-            background: `
-              radial-gradient(ellipse 120% 80% at 50% 120%, 
-                rgba(255, 87, 34, 0.45) 0%,
-                rgba(255, 107, 53, 0.3) 20%,
-                rgba(230, 74, 25, 0.2) 35%,
-                rgba(139, 44, 15, 0.1) 50%,
-                transparent 70%
-              )
-            `,
-            filter: 'blur(60px)',
-          }}></div>
-
-          {/* Additional Glow Layer */}
-          <div className="absolute bottom-0 left-0 right-0 h-[50%]" style={{
-            background: `
-              radial-gradient(ellipse 100% 60% at 50% 130%, 
-                rgba(255, 107, 53, 0.3) 0%,
-                rgba(230, 74, 25, 0.15) 30%,
-                transparent 60%
-              )
-            `,
-            filter: 'blur(40px)',
-          }}></div>
-
-          {/* Noise Texture Overlay */}
-          <div className="absolute inset-0 opacity-[0.15] mix-blend-overlay" style={{
-            backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='2.5' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
-            backgroundRepeat: 'repeat',
-          }}></div>
+      <section className='relative min-h-[100svh] flex flex-col items-center justify-center px-4 md:px-6 pt-28 md:pt-32 pb-20 md:pb-24'>
+        {/* Background Layer */}
+        <div className='absolute inset-0 overflow-hidden pointer-events-none'>
+          {/* 
+            Ensure you have the image saved in public directory and update the path here if needed.
+            bg-bottom ensures the planet remains at the bottom of the section on mobile.
+          */}
+          <div
+            className='absolute inset-0 w-full h-full sm:h-[110%] md:h-[114%] lg:h-[115%] xl:h-[120%] 2xl:h-[125%] bg-cover bg-bottom bg-no-repeat'
+            style={{
+              backgroundImage: "url('/assets/hero-bg.png')",
+            }}
+          />
+          {/* Gradient overlay to ensure text readability and blend with the background color */}
+          <div className='absolute inset-0 bg-gradient-to-b from-black/80 via-black/20 to-black/80' />
         </div>
 
         {/* Content */}
-        <div className="relative z-10 max-w-6xl mx-auto text-center space-y-6">
+        <div
+          className='relative z-10 max-w-5xl mx-auto text-center space-y-7'
+          style={{ fontFamily: "Manrope, sans-serif" }}
+        >
           {/* Badge */}
-          <div className="reveal inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 backdrop-blur-sm border border-white/10 hover:bg-white/10 transition-all cursor-pointer group" style={{ animationDelay: '200ms' }}>
-            <span className="text-xs font-medium text-white/90">New version is out! Read more</span>
-            <span className="text-orange-500 group-hover:translate-x-1 transition-transform">→</span>
+          <div
+            className='reveal inline-flex items-center gap-3 px-1 pl-4 py-1 rounded-full bg-[#1a1a1a]/60 backdrop-blur-md border border-white/10 hover:bg-[#1a1a1a]/80 transition-all cursor-pointer group'
+            style={{ animationDelay: "200ms" }}
+          >
+            <span className='text-[13px] font-medium text-white/80'>
+              New version is out! Read more
+            </span>
+            <div className='w-7 h-7 rounded-full bg-orange-500 flex items-center justify-center flex-shrink-0 group-hover:bg-orange-400 transition-colors'>
+              <svg
+                width='12'
+                height='12'
+                viewBox='0 0 24 24'
+                fill='none'
+                stroke='white'
+                strokeWidth='2'
+                strokeLinecap='round'
+                strokeLinejoin='round'
+              >
+                <path d='M5 12h14' />
+                <path d='m12 5 7 7-7 7' />
+              </svg>
+            </div>
           </div>
 
           {/* Main Heading */}
-          <h1 className="reveal text-5xl md:text-8xl lg:text-[120px] font-medium tracking-tighter leading-[1.05] md:leading-[0.95]" style={{fontFamily: 'Manrope, sans-serif', animationDelay: '400ms'}}>
-            <span className="bg-clip-text text-transparent bg-gradient-to-b from-white to-white/90">
-              Accelerate Your <br className="hidden sm:block" /> Sales With AI
-            </span>
+          <h1
+            className='reveal text-4xl md:text-6xl lg:text-[76px] font-semibold tracking-tight leading-tight text-white'
+            style={{ animationDelay: "400ms" }}
+          >
+            Accelerate Your Sales With AI
           </h1>
 
           {/* Subheading */}
-          <p className="reveal max-w-2xl mx-auto text-lg md:text-2xl text-gray-400  font-medium" style={{fontFamily: 'Inter, sans-serif', animationDelay: '600ms' }}>
-            AI-driven sales automation & insights. Empower your team, close more deals, and maximize revenue effortlessly.
+          <p
+            className='reveal max-w-2xl mx-auto text-base md:text-[19px] text-gray-400 font-medium leading-relaxed'
+            style={{ animationDelay: "600ms" }}
+          >
+            AI-driven sales automation & insights. Empower your team, close more
+            deals, and maximize revenue effortlessly.
           </p>
 
           {/* CTA Buttons */}
-          <div className="reveal flex flex-wrap justify-center gap-4 pt-6" style={{ animationDelay: '800ms' }}>
-            <button className="flex items-center gap-3 px-7 py-3 rounded-full border border-white/20 bg-white/5 hover:bg-white/10 backdrop-blur-sm transition-all group">
-              <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center">
-                <svg width="12" height="14" viewBox="0 0 12 14" fill="none">
-                  <path d="M1 1.5L11 7L1 12.5V1.5Z" fill="black" stroke="black" strokeWidth="1.5" strokeLinejoin="round" />
+          <div
+            className='reveal flex flex-wrap justify-center gap-4 pt-4'
+            style={{ animationDelay: "800ms" }}
+          >
+            <button className='flex items-center gap-3 px-7 py-3.5 rounded-full border border-white/20 bg-transparent hover:bg-white/5 backdrop-blur-sm transition-all group'>
+              <div className='w-8 h-8 rounded-full bg-white flex items-center justify-center flex-shrink-0'>
+                <svg width='10' height='12' viewBox='0 0 10 12' fill='none'>
+                  <path
+                    d='M1 1L9 6L1 11V1Z'
+                    fill='black'
+                    stroke='black'
+                    strokeWidth='1.2'
+                    strokeLinejoin='round'
+                  />
                 </svg>
               </div>
-              <span className="font-bold">Watch Demo</span>
+              <span className='font-semibold text-[15px] text-white'>
+                Watch Demo
+              </span>
             </button>
 
-            <Link href="#" className="px-8 py-3.5 rounded-full bg-gradient-to-r from-orange-500 to-orange-600 font-bold hover:shadow-2xl hover:shadow-orange-500/40 hover:scale-105 transition-all shadow-[0_10px_40px_-5px_rgba(255,87,34,0.4)] flex items-center justify-center">
-              Schedule a call
+            <Link
+              href='/signup'
+              className='px-8 py-3.5 rounded-full bg-[#f96e38] font-semibold text-[15px] text-white hover:bg-[#ff7b47] hover:shadow-lg hover:shadow-orange-500/30 transition-all flex items-center justify-center'
+            >
+              Get started for free
             </Link>
           </div>
         </div>
 
         {/* Trusted By Section */}
-        <div className="absolute bottom-12 left-0 right-0 z-10">
-          <p className="text-xs font-semibold uppercase tracking-wider text-gray-600 mb-6 text-center">
+        <div
+          className='absolute bottom-8 left-0 right-0 z-10'
+          style={{ fontFamily: "Manrope, sans-serif" }}
+        >
+          <p className='text-[13px] font-medium text-gray-500 mb-5 text-center'>
             Trusted by 200+ companies
           </p>
-          <div className="flex flex-wrap justify-center items-center gap-4 sm:gap-8 md:gap-12 opacity-40 px-4">
-            <div className="flex items-center gap-2">
-              <div className="w-5 h-5 bg-gray-500 rounded"></div>
-              <span className="text-sm font-semibold text-gray-400">FeatherDev</span>
+          <div className='flex flex-wrap justify-center items-center gap-6 sm:gap-10 md:gap-14 opacity-50 px-4'>
+            <div className='flex items-center gap-2'>
+              <svg
+                width='20'
+                height='20'
+                viewBox='0 0 24 24'
+                fill='none'
+                stroke='currentColor'
+                strokeWidth='2'
+                strokeLinecap='round'
+                strokeLinejoin='round'
+                className='text-gray-400'
+              >
+                <path d='M20.24 12.24a6 6 0 0 0-8.49-8.49L5 10.5V19h8.5z' />
+              </svg>
+              <span className='text-[15px] font-semibold text-gray-400'>
+                FeatherDev
+              </span>
             </div>
-            <div className="flex items-center gap-2">
-              <div className="w-5 h-5 bg-gray-500 rounded-full"></div>
-              <span className="text-sm font-semibold text-gray-400">Boltshift</span>
+            <div className='flex items-center gap-2'>
+              <svg
+                width='20'
+                height='20'
+                viewBox='0 0 24 24'
+                fill='none'
+                stroke='currentColor'
+                strokeWidth='2'
+                strokeLinecap='round'
+                strokeLinejoin='round'
+                className='text-gray-400'
+              >
+                <path d='M13 2L3 14h9l-1 8 10-12h-9l1-8z' />
+              </svg>
+              <span className='text-[15px] font-semibold text-gray-400'>
+                Boltshift
+              </span>
             </div>
-            <div className="flex items-center gap-2">
-              <div className="w-5 h-5 bg-gray-500 rounded"></div>
-              <span className="text-sm font-semibold text-gray-400">GlobalBank</span>
+            <div className='flex items-center gap-2'>
+              <svg
+                width='20'
+                height='20'
+                viewBox='0 0 24 24'
+                fill='none'
+                stroke='currentColor'
+                strokeWidth='2'
+                strokeLinecap='round'
+                strokeLinejoin='round'
+                className='text-gray-400'
+              >
+                <circle cx='12' cy='12' r='10' />
+                <path d='M2 12h20' />
+                <path d='M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z' />
+              </svg>
+              <span className='text-[15px] font-semibold text-gray-400'>
+                GlobalBank
+              </span>
             </div>
-            <div className="flex items-center gap-2">
-              <div className="w-5 h-5 bg-gray-500 rounded"></div>
-              <span className="text-sm font-semibold text-gray-400">Lightbox</span>
+            <div className='flex items-center gap-2'>
+              <svg
+                width='20'
+                height='20'
+                viewBox='0 0 24 24'
+                fill='none'
+                stroke='currentColor'
+                strokeWidth='2'
+                strokeLinecap='round'
+                strokeLinejoin='round'
+                className='text-gray-400'
+              >
+                <path d='M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z' />
+                <polyline points='3.27 6.96 12 12.01 20.73 6.96' />
+                <line x1='12' y1='22.08' x2='12' y2='12' />
+              </svg>
+              <span className='text-[15px] font-semibold text-gray-400'>
+                Lightbox
+              </span>
             </div>
           </div>
         </div>
