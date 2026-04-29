@@ -8,14 +8,20 @@ import { MobileSidebar } from "@/components/mobile-sidebar";
 import { Bell, Search, Zap, Loader2, LogOut } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { signOut } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 export function TopNavbar() {
   const router = useRouter();
-  const userName = "Anuj Sachan";
-  const userInitials = "AS";
+  const { data: session } = useSession();
+  const userName = session?.user?.name || "User";
+  const userInitials = userName
+    .split(" ")
+    .map((n) => n[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
 
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearchOpen, setIsSearchOpen] = useState(false);
