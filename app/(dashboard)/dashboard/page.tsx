@@ -181,7 +181,7 @@ export default function DashboardPage() {
             Dashboard
           </h1>
           <p className="text-sm text-muted-foreground">
-            Welcome back! Here&apos;s your sales overview for today.
+            Welcome back, {session?.user?.name?.split(" ")[0] || "there"}! Here&apos;s your sales overview for today.
           </p>
         </div>
         <button 
