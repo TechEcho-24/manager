@@ -59,7 +59,7 @@ export function OnboardingForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter();
 
-  const { update } = useSession();
+  const { data: session, update } = useSession();
 
   const [formData, setFormData] = useState({
     // Command
@@ -118,6 +118,16 @@ export function OnboardingForm() {
     }
   }, []);
 
+  useEffect(() => {
+    if (session?.user) {
+      setFormData((prev) => ({
+        ...prev,
+        fullName: session.user.name || prev.fullName,
+        email: session.user.email || prev.email,
+      }));
+    }
+  }, [session]);
+
   const isStepValid = () => {
     switch (currentStep) {
       case 1:
@@ -126,8 +136,7 @@ export function OnboardingForm() {
           formData.email &&
           formData.phone &&
           formData.linkedin &&
-          formData.designation &&
-          formData.secondaryEmail
+          formData.designation
         );
       case 2:
         return !!(
@@ -327,7 +336,7 @@ export function OnboardingForm() {
 
                   <div className='grid grid-cols-2 gap-x-8 gap-y-6'>
                     <div className='space-y-2'>
-                      <Label className='text-[9px] font-black tracking-widest text-white/40 ml-1'>
+                      <Label className='text-xs font-semibold tracking-wide text-white/60 ml-1'>
                         Full Name <span className='text-red-500'>*</span>
                       </Label>
                       <Input
@@ -339,19 +348,25 @@ export function OnboardingForm() {
                       />
                     </div>
                     <div className='space-y-2'>
-                      <Label className='text-[9px] font-black tracking-widest text-white/40 ml-1'>
-                        Work Email <span className='text-red-500'>*</span>
+                      <Label className='text-xs font-semibold tracking-wide text-white/60 ml-1 flex items-center'>
+                        Work Email <span className='text-red-500 ml-1'>*</span>
+                        {!!session?.user?.email && (
+                          <span className='ml-3 text-[10px] text-emerald-400 font-semibold tracking-wide bg-emerald-400/10 px-2 py-0.5 rounded-full border border-emerald-400/20'>
+                            Auto-filled
+                          </span>
+                        )}
                       </Label>
                       <Input
                         name='email'
                         value={formData.email}
                         onChange={handleInputChange}
                         placeholder='john@company.com'
-                        className='h-13 rounded-xl border-white/10 bg-white/[0.05] px-5 text-white'
+                        disabled={!!session?.user?.email}
+                        className='h-13 rounded-xl border-white/10 bg-white/[0.05] px-5 text-white disabled:opacity-50 disabled:cursor-not-allowed disabled:border-emerald-500/30'
                       />
                     </div>
                     <div className='space-y-2'>
-                      <Label className='text-[9px] font-black tracking-widest text-white/40 ml-1'>
+                      <Label className='text-xs font-semibold tracking-wide text-white/60 ml-1'>
                         Personal Link (Phone){" "}
                         <span className='text-red-500'>*</span>
                       </Label>
@@ -364,7 +379,7 @@ export function OnboardingForm() {
                       />
                     </div>
                     <div className='space-y-2'>
-                      <Label className='text-[9px] font-black tracking-widest text-white/40 ml-1'>
+                      <Label className='text-xs font-semibold tracking-wide text-white/60 ml-1'>
                         LinkedIn Profile <span className='text-red-500'>*</span>
                       </Label>
                       <Input
@@ -376,7 +391,7 @@ export function OnboardingForm() {
                       />
                     </div>
                     <div className='space-y-2'>
-                      <Label className='text-[9px] font-black tracking-widest text-white/40 ml-1'>
+                      <Label className='text-xs font-semibold tracking-wide text-white/60 ml-1'>
                         Designation / Role{" "}
                         <span className='text-red-500'>*</span>
                       </Label>
@@ -389,8 +404,8 @@ export function OnboardingForm() {
                       />
                     </div>
                     <div className='space-y-2'>
-                      <Label className='text-[9px] font-black tracking-widest text-white/40 ml-1'>
-                        Recovery Email <span className='text-red-500'>*</span>
+                      <Label className='text-xs font-semibold tracking-wide text-white/60 ml-1'>
+                        Recovery Email
                       </Label>
                       <Input
                         name='secondaryEmail'
@@ -417,7 +432,7 @@ export function OnboardingForm() {
 
                   <div className='grid grid-cols-2 gap-x-8 gap-y-6'>
                     <div className='col-span-2 space-y-2'>
-                      <Label className='text-[9px] font-black tracking-widest text-white/40 ml-1'>
+                      <Label className='text-xs font-semibold tracking-wide text-white/60 ml-1'>
                         Entity Logic <span className='text-red-500'>*</span>
                       </Label>
                       <RadioGroup
@@ -455,7 +470,7 @@ export function OnboardingForm() {
                       </RadioGroup>
                     </div>
                     <div className='space-y-2'>
-                      <Label className='text-[9px] font-black tracking-widest text-white/40 ml-1'>
+                      <Label className='text-xs font-semibold tracking-wide text-white/60 ml-1'>
                         Main Department <span className='text-red-500'>*</span>
                       </Label>
                       <Input
@@ -467,7 +482,7 @@ export function OnboardingForm() {
                       />
                     </div>
                     <div className='space-y-2'>
-                      <Label className='text-[9px] font-black tracking-widest text-white/40 ml-1'>
+                      <Label className='text-xs font-semibold tracking-wide text-white/60 ml-1'>
                         Team Dimension <span className='text-red-500'>*</span>
                       </Label>
                       <Input
@@ -479,7 +494,7 @@ export function OnboardingForm() {
                       />
                     </div>
                     <div className='space-y-2'>
-                      <Label className='text-[9px] font-black tracking-widest text-white/40 ml-1'>
+                      <Label className='text-xs font-semibold tracking-wide text-white/60 ml-1'>
                         Operating Region <span className='text-red-500'>*</span>
                       </Label>
                       <Input
@@ -491,7 +506,7 @@ export function OnboardingForm() {
                       />
                     </div>
                     <div className='space-y-2'>
-                      <Label className='text-[9px] font-black tracking-widest text-white/40 ml-1'>
+                      <Label className='text-xs font-semibold tracking-wide text-white/60 ml-1'>
                         System Language <span className='text-red-500'>*</span>
                       </Label>
                       <Input
@@ -519,7 +534,7 @@ export function OnboardingForm() {
 
                   <div className='grid grid-cols-2 gap-x-8 gap-y-6'>
                     <div className='space-y-2'>
-                      <Label className='text-[9px] font-black tracking-widest text-white/40 ml-1'>
+                      <Label className='text-xs font-semibold tracking-wide text-white/60 ml-1'>
                         Company Master Name{" "}
                         <span className='text-red-500'>*</span>
                       </Label>
@@ -532,7 +547,7 @@ export function OnboardingForm() {
                       />
                     </div>
                     <div className='space-y-2'>
-                      <Label className='text-[9px] font-black tracking-widest text-white/40 ml-1'>
+                      <Label className='text-xs font-semibold tracking-wide text-white/60 ml-1'>
                         Industry Sector <span className='text-red-500'>*</span>
                       </Label>
                       <Input
@@ -544,7 +559,7 @@ export function OnboardingForm() {
                       />
                     </div>
                     <div className='space-y-2'>
-                      <Label className='text-[9px] font-black tracking-widest text-white/40 ml-1'>
+                      <Label className='text-xs font-semibold tracking-wide text-white/60 ml-1'>
                         Digital Endpoint (Web){" "}
                         <span className='text-red-500'>*</span>
                       </Label>
@@ -557,7 +572,7 @@ export function OnboardingForm() {
                       />
                     </div>
                     <div className='space-y-2'>
-                      <Label className='text-[9px] font-black tracking-widest text-white/40 ml-1'>
+                      <Label className='text-xs font-semibold tracking-wide text-white/60 ml-1'>
                         Founding Year <span className='text-red-500'>*</span>
                       </Label>
                       <Input
@@ -569,7 +584,7 @@ export function OnboardingForm() {
                       />
                     </div>
                     <div className='space-y-2'>
-                      <Label className='text-[9px] font-black tracking-widest text-white/40 ml-1'>
+                      <Label className='text-xs font-semibold tracking-wide text-white/60 ml-1'>
                         GSTR / Tax Registry{" "}
                         <span className='text-red-500'>*</span>
                       </Label>
@@ -582,7 +597,7 @@ export function OnboardingForm() {
                       />
                     </div>
                     <div className='space-y-2'>
-                      <Label className='text-[9px] font-black tracking-widest text-white/40 ml-1'>
+                      <Label className='text-xs font-semibold tracking-wide text-white/60 ml-1'>
                         Revenue Stream Range{" "}
                         <span className='text-red-500'>*</span>
                       </Label>
@@ -611,7 +626,7 @@ export function OnboardingForm() {
 
                   <div className='grid grid-cols-2 gap-x-12 gap-y-6'>
                     <div className='space-y-4 row-span-2'>
-                      <Label className='text-[9px] font-black tracking-widest text-white/40 ml-1'>
+                      <Label className='text-xs font-semibold tracking-wide text-white/60 ml-1'>
                         Master Logo <span className='text-red-500'>*</span>
                       </Label>
                       <div className='group relative h-64 w-full cursor-pointer flex-col items-center justify-center rounded-2xl border border-dashed border-white/20 bg-white/[0.02] hover:border-indigo-500/50 hover:bg-indigo-500/5 transition-all flex'>
@@ -622,7 +637,7 @@ export function OnboardingForm() {
                       </div>
                     </div>
                     <div className='space-y-4'>
-                      <Label className='text-[9px] font-black tracking-widest text-white/40 ml-1'>
+                      <Label className='text-xs font-semibold tracking-wide text-white/60 ml-1'>
                         Neural Primary Color{" "}
                         <span className='text-red-500'>*</span>
                       </Label>
@@ -657,7 +672,7 @@ export function OnboardingForm() {
                       </div>
                     </div>
                     <div className='space-y-2'>
-                      <Label className='text-[9px] font-black tracking-widest text-white/40 ml-1'>
+                      <Label className='text-xs font-semibold tracking-wide text-white/60 ml-1'>
                         Brand Tagline <span className='text-red-500'>*</span>
                       </Label>
                       <Input
@@ -669,7 +684,7 @@ export function OnboardingForm() {
                       />
                     </div>
                     <div className='space-y-2'>
-                      <Label className='text-[9px] font-black tracking-widest text-white/40 ml-1'>
+                      <Label className='text-xs font-semibold tracking-wide text-white/60 ml-1'>
                         Brand Voice <span className='text-red-500'>*</span>
                       </Label>
                       <Input
@@ -681,7 +696,7 @@ export function OnboardingForm() {
                       />
                     </div>
                     <div className='space-y-2'>
-                      <Label className='text-[9px] font-black tracking-widest text-white/40 ml-1'>
+                      <Label className='text-xs font-semibold tracking-wide text-white/60 ml-1'>
                         Digital Font Style{" "}
                         <span className='text-red-500'>*</span>
                       </Label>
@@ -710,7 +725,7 @@ export function OnboardingForm() {
 
                   <div className='grid grid-cols-2 gap-x-8 gap-y-6'>
                     <div className='space-y-2'>
-                      <Label className='text-[9px] font-black tracking-widest text-white/40 ml-1'>
+                      <Label className='text-xs font-semibold tracking-wide text-white/60 ml-1'>
                         Primary Growth Goal{" "}
                         <span className='text-red-500'>*</span>
                       </Label>
@@ -723,7 +738,7 @@ export function OnboardingForm() {
                       />
                     </div>
                     <div className='space-y-2'>
-                      <Label className='text-[9px] font-black tracking-widest text-white/40 ml-1'>
+                      <Label className='text-xs font-semibold tracking-wide text-white/60 ml-1'>
                         Main Sales Channel{" "}
                         <span className='text-red-500'>*</span>
                       </Label>
@@ -736,7 +751,7 @@ export function OnboardingForm() {
                       />
                     </div>
                     <div className='space-y-2'>
-                      <Label className='text-[9px] font-black tracking-widest text-white/40 ml-1'>
+                      <Label className='text-xs font-semibold tracking-wide text-white/60 ml-1'>
                         Target Audience Segment{" "}
                         <span className='text-red-500'>*</span>
                       </Label>
@@ -749,7 +764,7 @@ export function OnboardingForm() {
                       />
                     </div>
                     <div className='space-y-2'>
-                      <Label className='text-[9px] font-black tracking-widest text-white/40 ml-1'>
+                      <Label className='text-xs font-semibold tracking-wide text-white/60 ml-1'>
                         CRM Logic Integration{" "}
                         <span className='text-red-500'>*</span>
                       </Label>
@@ -762,7 +777,7 @@ export function OnboardingForm() {
                       />
                     </div>
                     <div className='space-y-2'>
-                      <Label className='text-[9px] font-black tracking-widest text-white/40 ml-1'>
+                      <Label className='text-xs font-semibold tracking-wide text-white/60 ml-1'>
                         Weekly Lead Target{" "}
                         <span className='text-red-500'>*</span>
                       </Label>
@@ -775,7 +790,7 @@ export function OnboardingForm() {
                       />
                     </div>
                     <div className='space-y-2'>
-                      <Label className='text-[9px] font-black tracking-widest text-white/40 ml-1'>
+                      <Label className='text-xs font-semibold tracking-wide text-white/60 ml-1'>
                         Support Tier Priority{" "}
                         <span className='text-red-500'>*</span>
                       </Label>
@@ -805,7 +820,7 @@ export function OnboardingForm() {
 
                     <div className='space-y-6'>
                       <div className='space-y-2'>
-                        <Label className='text-[9px] font-black tracking-widest text-white/40 ml-1'>
+                        <Label className='text-xs font-semibold tracking-wide text-white/60 ml-1'>
                           AI Assistant Name{" "}
                           <span className='text-red-500'>*</span>
                         </Label>
@@ -818,7 +833,7 @@ export function OnboardingForm() {
                         />
                       </div>
                       <div className='space-y-2'>
-                        <Label className='text-[9px] font-black tracking-widest text-white/40 ml-1'>
+                        <Label className='text-xs font-semibold tracking-wide text-white/60 ml-1'>
                           Bot Welcome Logic{" "}
                           <span className='text-red-500'>*</span>
                         </Label>
