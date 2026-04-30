@@ -27,5 +27,5 @@ export const authConfig = {
     },
   },
   providers: [], // Providers with Node.js deps are added only in auth.ts
-  secret: process.env.AUTH_SECRET || "any-random-secret-for-now",
+  secret: process.env.AUTH_SECRET,
 } satisfies NextAuthConfig;

@@ -8,7 +8,7 @@ export async function middleware(req: NextRequest) {
   // Read JWT directly — edge-safe, no NextAuth() instantiation needed
   const token = await getToken({
     req,
-    secret: process.env.AUTH_SECRET || "any-random-secret-for-now",
+    secret: process.env.AUTH_SECRET,
   });
 
   const isLoggedIn = !!token;
