@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useSession } from "next-auth/react";
+import { useSession, signOut } from "next-auth/react";
 import {
   User,
   Building2,
@@ -36,6 +36,7 @@ import {
   Settings,
   Smile,
   Send,
+  LogOut,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -913,14 +914,25 @@ export function OnboardingForm() {
 
               {/* Navigation */}
               <div className='flex items-center justify-between pt-10 border-t border-white/10'>
-                <Button
-                  variant='ghost'
-                  onClick={prevStep}
-                  disabled={currentStep === 1}
-                  className='h-14 px-10 text-[10px] font-black tracking-widest text-white/40 hover:text-white disabled:opacity-0'
-                >
-                  Back
-                </Button>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant='ghost'
+                    onClick={prevStep}
+                    disabled={currentStep === 1}
+                    className='h-14 px-10 text-[10px] font-black tracking-widest text-white/40 hover:text-white disabled:opacity-0'
+                  >
+                    Back
+                  </Button>
+
+                  <Button
+                    variant='ghost'
+                    onClick={() => signOut({ callbackUrl: "/" })}
+                    className='h-14 px-6 flex items-center gap-2 text-[10px] font-black tracking-widest text-white/30 hover:text-red-400 transition-colors'
+                  >
+                    <LogOut className="h-3 w-3" />
+                    <span>Fill Later</span>
+                  </Button>
+                </div>
 
                 <Button
                   onClick={nextStep}
