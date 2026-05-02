@@ -304,8 +304,9 @@ export default function TasksPage() {
               </Button>
             </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </CardContent>
+    </Card>
 
       {/* Filter Tabs */}
       <div className="flex items-center gap-2">

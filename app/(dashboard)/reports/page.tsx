@@ -2,6 +2,7 @@
 
 import { useMemo } from "react";
 import useSWR from "swr";
+import { useSession } from "next-auth/react";
 import {
   BarChart3,
   TrendingUp,
@@ -16,6 +17,7 @@ import {
   DollarSign,
   PieChart,
   Activity,
+  ShieldCheck,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
@@ -69,6 +71,8 @@ function ProgressBar({ value, max, color, label, count }: { value: number; max: 
 }
 
 export default function ReportsPage() {
+  const { data: session } = useSession() as any;
+  const isAdmin = session?.user?.email === "techecho.kanpur@gmail.com";
   const { data, isLoading } = useSWR("/api/leads?limit=500", fetcher);
 
   const leads = data?.leads || [];
@@ -147,22 +151,6 @@ export default function ReportsPage() {
     "Lost": "#78716c",
   };
 
-
-
-  if (isLoading) {
-    return (
-      <div className="space-y-6">
-        <div><h1 className="text-2xl font-bold tracking-tight text-foreground lg:text-3xl">Reports & Analytics</h1></div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {[1,2,3,4].map(i => <div key={i} className="h-32 animate-pulse bg-muted/20 rounded-2xl border border-border" />)}
-        </div>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          {[1,2,3,4].map(i => <div key={i} className="h-64 animate-pulse bg-muted/20 rounded-2xl border border-border" />)}
-        </div>
-      </div>
-    );
-  }
-
   const maxStatusCount = Math.max(...Object.values(stats.statusMap), 1);
   const maxSourceCount = Math.max(...Object.values(stats.sourceMap), 1);
   const maxProductCount = Math.max(...Object.values(stats.productMap), 1);
@@ -170,13 +158,21 @@ export default function ReportsPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight text-foreground lg:text-3xl">
-          Reports & Analytics
-        </h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Real-time insights powered by your CRM data
-        </p>
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight text-foreground lg:text-4xl italic font-black">
+            {isAdmin ? "Global Insights" : "Reports & Analytics"}
+          </h1>
+          <p className="mt-1 text-sm text-muted-foreground font-medium">
+            {isAdmin ? "Unified performance metrics across all organizations" : "Real-time insights powered by your CRM data"}
+          </p>
+        </div>
+        {isAdmin && (
+          <div className="px-4 py-2 bg-indigo-500/10 border border-indigo-500/20 rounded-2xl flex items-center gap-2">
+            <ShieldCheck className="h-4 w-4 text-indigo-500" />
+            <span className="text-[10px] font-black text-indigo-500 uppercase tracking-widest">Admin Access Level</span>
+          </div>
+        )}
       </div>
 
       {/* KPI Cards */}

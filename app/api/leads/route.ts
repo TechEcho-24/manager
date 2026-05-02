@@ -27,11 +27,15 @@ export async function GET(request: Request) {
     const sortOptions: any = {};
     sortOptions[sortField] = sortOrder;
 
-    // Filters - STRICT USER ISOLATION
-    const userId = (session.user as any).id;
+    // Filters - STRICT USER ISOLATION (Except for Super Admin)
+    const user = session.user as any;
+    const userId = user.id;
+    const isAdmin = user.email === "techecho.kanpur@gmail.com";
+
     if (!userId) return NextResponse.json({ error: "Session identity failure" }, { status: 401 });
     
-    const query: any = { userId: userId };
+    // Admin gets all data, clients only get their own
+    const query: any = isAdmin ? {} : { userId: userId };
 
     const search = searchParams.get("search");
     if (search) {
