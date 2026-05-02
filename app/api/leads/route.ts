@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import dbConnect from "@/lib/db";
 import { Lead } from "@/models/lead";
+import { User } from "@/models/user";
+import { Organization } from "@/models/organization";
 import { subDays, startOfMonth, subMonths, startOfDay, endOfDay } from "date-fns";
 import { auth } from "@/auth";
 
@@ -25,9 +27,11 @@ export async function GET(request: Request) {
     const sortOptions: any = {};
     sortOptions[sortField] = sortOrder;
 
-    // Filters
-    const organizationId = (session.user as any).organizationId;
-    const query: any = { organizationId: organizationId };
+    // Filters - STRICT USER ISOLATION
+    const userId = (session.user as any).id;
+    if (!userId) return NextResponse.json({ error: "Session identity failure" }, { status: 401 });
+    
+    const query: any = { userId: userId };
 
     const search = searchParams.get("search");
     if (search) {
@@ -126,18 +130,54 @@ export async function GET(request: Request) {
 import { checkLeadLimit } from "@/lib/plan-validator";
 
 export async function POST(request: Request) {
+  let session: any = null;
   try {
     await dbConnect();
-    const session = await auth();
+    session = await auth();
     if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    const organizationId = (session.user as any).organizationId;
+    let organizationId = (session.user as any).organizationId;
+    
+    // Fallback 1: Fetch from DB if session is stale
+    if (!organizationId && session.user.email) {
+      const user = await User.findOne({ email: session.user.email });
+      if (user?.organizationId) {
+        organizationId = user.organizationId;
+      }
+    }
+
+    // Fallback 2: AUTO-CREATE ORG if still missing
+    if (!organizationId && session.user.email) {
+      console.log("Auto-creating organization for user:", session.user.email);
+      const newOrg = await Organization.create({
+        name: `${session.user.name || session.user.email.split('@')[0]}'s Workspace`,
+        email: session.user.email,
+        phone: "0000000000",
+        ownerId: session.user.email,
+        plan: "starter",
+        subscription: { status: "trial" }
+      });
+      
+      organizationId = newOrg._id.toString();
+      
+      // Update User record
+      await User.updateOne(
+        { email: session.user.email },
+        { $set: { organizationId: organizationId } }
+      );
+    }
+
     if (!organizationId) {
-      return NextResponse.json({ error: "Organization not found. Please complete onboarding." }, { status: 400 });
+      return NextResponse.json({ error: "System failed to establish workspace identity." }, { status: 500 });
+    }
+
+    const userId = (session.user as any).id;
+    if (!userId) {
+       return NextResponse.json({ error: "User identity required" }, { status: 401 });
     }
 
     // Check Plan Limit
-    const planStatus = await checkLeadLimit(organizationId);
+    const planStatus = await checkLeadLimit(organizationId, userId);
     if (planStatus.isBlocked) {
       return NextResponse.json({ 
         error: planStatus.message, 
@@ -146,10 +186,17 @@ export async function POST(request: Request) {
     }
 
     const data = await request.json();
+    
+    // DEBUG LOGS
+    console.log("Lead Creation Request:", {
+      userId,
+      organizationId,
+      payload: data
+    });
 
     const lead = new Lead({
       ...data,
-      userId: (session.user as any).id,
+      userId: userId, // FORCE FROM SESSION
       organizationId: organizationId,
       activityTimeline: [
         {
@@ -168,7 +215,17 @@ export async function POST(request: Request) {
       warning: planStatus.isWarning ? planStatus.message : undefined
     }, { status: 201 });
   } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error("CRITICAL: Lead Creation API Crash:", {
+      message: error.message,
+      stack: error.stack,
+      user: session?.user?.email || "Unknown",
+      orgId: (session?.user as any)?.organizationId || "Unknown"
+    });
+    
+    return NextResponse.json({ 
+      error: error.message || "Internal Server Error",
+      details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    }, { status: 500 });
   }
 }
 
@@ -179,8 +236,8 @@ export async function DELETE(request: Request) {
     if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const { ids } = await request.json();
-    const organizationId = (session.user as any).organizationId;
-    await Lead.deleteMany({ _id: { $in: ids }, organizationId: organizationId }); // DELETE ONLY ORG DATA
+    const userId = (session.user as any).id;
+    await Lead.deleteMany({ _id: { $in: ids }, userId: userId }); // DELETE ONLY USER DATA
 
     return NextResponse.json({ message: "Leads deleted successfully" });
   } catch (error) {
@@ -195,10 +252,10 @@ export async function PATCH(request: Request) {
     if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const { ids, status } = await request.json();
-    const organizationId = (session.user as any).organizationId;
+    const userId = (session.user as any).id;
 
     await Lead.updateMany(
-      { _id: { $in: ids }, organizationId: organizationId }, // UPDATE ONLY ORG DATA
+      { _id: { $in: ids }, userId: userId }, // UPDATE ONLY USER DATA
       { 
         $set: { status, updatedAt: new Date() },
         $push: { activityTimeline: { action: "Status updated", description: `Updated to ${status}`, createdAt: new Date(), createdBy: session.user.name } }

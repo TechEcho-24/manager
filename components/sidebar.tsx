@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { cn } from "@/lib/utils";
 import {
   LayoutDashboard,
@@ -109,8 +109,13 @@ function NavLink({
 
 export function Sidebar({ collapsed, onToggle }: SidebarProps) {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const { data: session } = useSession();
   const role = (session?.user as any)?.role || "client";
+
+  const fullCurrentPath = searchParams.toString() 
+    ? `${pathname}?${searchParams.toString()}` 
+    : pathname;
 
   const navItems = allNavItems.filter(item => {
     if (role === "admin" && item.role === "client") return false;
@@ -136,9 +141,6 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
         >
           <div className="relative">
             <div className="absolute -inset-1 rounded-xl bg-primary/20 blur-sm group-hover:bg-primary/40 transition-all" />
-            {/* <div className="relative flex h-10 w-10 shrink-0 items-center justify-center group-hover:scale-110 transition-transform">
-              <img src="/assets/logo.png" alt="Pinglly Logo" className="h-8 object-contain" />
-            </div> */}
           </div>
           {!collapsed && (
             <div className="flex flex-col">
@@ -152,18 +154,30 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
           )}
         </Link>
 
-        {/* Navigation */}
+        {/* Navigation Section */}
         <nav className="flex-1 space-y-1 overflow-y-auto p-3">
-          {navItems.map((item) => (
-            <NavLink
-              key={item.href}
-              href={item.href}
-              icon={item.icon}
-              title={item.title}
-              isActive={pathname === item.href}
-              collapsed={collapsed}
-            />
-          ))}
+          {navItems.map((item) => {
+            // Strict check for Overview to avoid overlapping with tabs
+            let isActive = false;
+            if (item.href === "/dashboard") {
+              isActive = pathname === "/dashboard" && !searchParams.get("tab");
+            } else if (item.href.includes('?')) {
+              isActive = fullCurrentPath === item.href;
+            } else {
+              isActive = pathname === item.href;
+            }
+
+            return (
+              <NavLink
+                key={item.href}
+                href={item.href}
+                icon={item.icon}
+                title={item.title}
+                isActive={isActive}
+                collapsed={collapsed}
+              />
+            );
+          })}
         </nav>
 
         {/* Bottom section */}

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { 
   Users, 
   DollarSign, 
@@ -39,11 +39,21 @@ export function AdminDashboard() {
   const fetchData = async () => {
     try {
       const res = await fetch("/api/admin/stats");
+      
+      if (!res.ok) {
+        const errorText = await res.text();
+        console.error("Admin Stats API Error:", errorText);
+        throw new Error(`Server returned ${res.status}`);
+      }
+
       const json = await res.json();
       if (json.error) throw new Error(json.error);
       setData(json);
     } catch (err: any) {
+      console.error("Dashboard Fetch Failed:", err);
       toast.error("Signal failure: " + err.message);
+      // Fallback data to prevent infinite loader
+      setData(prev => prev || { stats: { totalUsers: 0, totalLeads: 0, totalRevenue: 0 }, userUsage: [], recentActivity: [] });
     } finally {
       setLoading(false);
     }
@@ -53,7 +63,7 @@ export function AdminDashboard() {
     fetchData();
   }, []);
 
-  if (loading) {
+  if (loading || !data) {
     return (
       <div className="flex h-full items-center justify-center p-20">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -71,6 +81,31 @@ export function AdminDashboard() {
           <p className="text-[10px] font-black text-muted-foreground/50 tracking-[0.4em] uppercase mt-2">
             Super Admin Protocol • Access Level: Maximum
           </p>
+        </div>
+
+        <div className="flex items-center gap-2 bg-muted/50 p-1.5 rounded-2xl border border-border/10 backdrop-blur-xl">
+           {[
+             { id: 'dashboard', label: 'Dashboard', icon: Activity },
+             { id: 'users', label: 'Subscribers', icon: Users },
+             { id: 'revenue', label: 'Revenue', icon: DollarSign }
+           ].map((tab) => (
+             <button
+               key={tab.id}
+               onClick={() => {
+                 setActiveTab(tab.id as any);
+                 router.push(`/dashboard?tab=${tab.id}`, { scroll: false });
+               }}
+               className={cn(
+                 "flex items-center gap-2 px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all duration-300",
+                 activeTab === tab.id 
+                  ? "bg-white text-black shadow-[0_10px_20px_rgba(0,0,0,0.2)] scale-[1.02]" 
+                  : "text-muted-foreground/50 hover:text-foreground hover:bg-white/5"
+               )}
+             >
+               <tab.icon className="h-3 w-3" />
+               {tab.label}
+             </button>
+           ))}
         </div>
       </div>
 
@@ -152,7 +187,7 @@ export function AdminDashboard() {
           <div className="p-8 border-b border-border/10 flex items-center justify-between">
             <h3 className="font-black text-sm tracking-[0.3em] opacity-80 text-foreground uppercase">Subscriber Clusters</h3>
             <div className="flex gap-4">
-               {Object.entries(data.planDistribution).map(([plan, count]: any) => (
+               {Object.entries(data?.planDistribution || {}).map(([plan, count]: any) => (
                  <span key={plan} className="text-[10px] font-black tracking-widest text-foreground/30 uppercase">
                    {plan}: <span className="text-indigo-400">{count}</span>
                  </span>
@@ -165,14 +200,23 @@ export function AdminDashboard() {
                    <tr>
                       <th className="px-8 py-5">Node Identity</th>
                       <th className="px-6 py-5">Protocol Plan</th>
-                      <th className="px-6 py-5">Usage (Leads)</th>
-                      <th className="px-6 py-5">Expires In</th>
+                      <th className="px-6 py-5">Lead Usage</th>
+                      <th className="px-6 py-5">Team Usage</th>
+                      <th className="px-6 py-5">Reminders</th>
                       <th className="px-6 py-5 text-right">Status</th>
-                      <th className="px-8 py-5"></th>
-                   </tr>
+                    </tr>
                 </thead>
                 <tbody className="divide-y divide-border/5 text-foreground">
-                   {data.userUsage.map((user: any) => (
+                   {data.userUsage.length === 0 ? (
+                     <tr>
+                        <td colSpan={6} className="px-8 py-20 text-center">
+                           <div className="flex flex-col items-center gap-3 opacity-20">
+                              <Users className="h-12 w-12" />
+                              <p className="font-black tracking-[0.2em] uppercase text-xs">No Nodes Detected</p>
+                           </div>
+                        </td>
+                     </tr>
+                   ) : data.userUsage.map((user: any) => (
                       <tr key={user.id} className="hover:bg-primary/[0.02] transition-colors group">
                          <td className="px-8 py-6">
                             <div className="flex flex-col">
@@ -193,31 +237,41 @@ export function AdminDashboard() {
                             </span>
                          </td>
                          <td className="px-6 py-6">
-                            <div className="flex items-center gap-2 font-black">
-                               <span>{user.leads}</span>
-                               <div className="w-16 h-1 bg-muted rounded-full overflow-hidden">
+                            <div className="flex flex-col gap-1.5">
+                               <div className="flex items-center justify-between text-[10px] font-black">
+                                 <span>{user.usage.leads} / {user.usage.leadsLimit === Infinity ? "∞" : user.usage.leadsLimit}</span>
+                                 <span className="opacity-40">{Math.round((user.usage.leads / (user.usage.leadsLimit || 1)) * 100)}%</span>
+                               </div>
+                               <div className="w-24 h-1 bg-muted rounded-full overflow-hidden">
                                   <div 
-                                    className="h-full bg-indigo-500" 
-                                    style={{ width: `${Math.min((user.leads / 500) * 100, 100)}%` }} 
+                                    className={cn(
+                                      "h-full transition-all duration-500",
+                                      (user.usage.leads / user.usage.leadsLimit) >= 0.8 ? "bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.5)]" : "bg-indigo-500"
+                                    )} 
+                                    style={{ width: `${Math.min((user.usage.leads / (user.usage.leadsLimit || 1)) * 100, 100)}%` }} 
                                   />
                                </div>
                             </div>
                          </td>
                          <td className="px-6 py-6">
-                            <div className="flex flex-col">
-                               <span className="text-[10px] font-black text-foreground/80">
-                                  {user.expiresAt ? formatDistanceToNow(new Date(user.expiresAt), { addSuffix: false }) : 'Lifetime'}
-                               </span>
-                               {user.expiresAt && (
-                                 <span className="text-[8px] font-bold text-muted-foreground/30 uppercase tracking-tighter">Remaining</span>
-                               )}
+                            <div className="flex items-center gap-2 font-black text-[11px]">
+                               <Users className="h-3 w-3 text-muted-foreground/40" />
+                               <span>{user.usage.team} / {user.usage.teamLimit === Infinity ? "∞" : user.usage.teamLimit}</span>
                             </div>
                          </td>
-                         <td className="px-6 py-6 text-right font-black uppercase text-[9px]">{user.status}</td>
-                         <td className="px-8 py-6 text-right">
-                            <button className="h-9 w-9 rounded-xl bg-white/[0.03] border border-white/5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all hover:bg-red-500/10 hover:text-red-500">
-                               <MoreVertical className="h-4 w-4" />
-                            </button>
+                         <td className="px-6 py-6">
+                            <div className="flex items-center gap-2 font-black text-[11px]">
+                               <Activity className="h-3 w-3 text-muted-foreground/40" />
+                               <span>{user.usage.reminders} / {user.usage.remindersLimit === Infinity ? "∞" : user.usage.remindersLimit}</span>
+                            </div>
+                         </td>
+                         <td className="px-6 py-6 text-right font-black uppercase text-[9px]">
+                            <span className={cn(
+                              "px-2 py-0.5 rounded-md",
+                              user.status === "active" ? "bg-emerald-500/10 text-emerald-500" : "bg-orange-500/10 text-orange-500"
+                            )}>
+                              {user.status}
+                            </span>
                          </td>
                       </tr>
                    ))}
@@ -233,7 +287,7 @@ export function AdminDashboard() {
              <Card className="border-border bg-card/50 dark:bg-zinc-900/40 backdrop-blur-3xl shadow-xl rounded-[2.5rem] p-8 border-t border-t-white/5 dark:border-t-white/5">
                <h3 className="text-[10px] font-black tracking-[0.3em] opacity-40 text-foreground mb-6 uppercase">Financial Pulse</h3>
                <div className="space-y-4">
-                  {data.recentPurchases.map((p: any) => (
+                  {(data?.recentPurchases || []).map((p: any) => (
                     <div key={p.id} className="flex justify-between items-center bg-muted/30 p-4 rounded-2xl border border-border/50">
                       <div className="flex flex-col">
                         <span className="text-xs font-black text-foreground">{p.email?.split('@')[0] || 'Unknown'}</span>

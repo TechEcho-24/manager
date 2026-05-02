@@ -141,13 +141,7 @@ export function ChatWidget() {
 
     const isTriggerWord = cleanContent.toLowerCase().includes("form") || cleanContent.toLowerCase().includes("lead") || cleanContent.toLowerCase().includes("nayi");
 
-    if (role === "admin" && isTriggerWord) {
-      setTimeout(() => {
-        setMessages(p => [...p, { id: "block", role: "assistant", content: "⚠️ **Access Denied.** Administrative accounts are restricted from operational lead entry. Please use a Client profile for data input.", timestamp: new Date() }]);
-        setIsLoading(false);
-      }, 500);
-      return;
-    }
+    // Removed admin block to allow testing
 
     if (stepIndexRef.current >= 0) {
       const currentStep = STEPS[stepIndexRef.current];

@@ -25,5 +25,10 @@ const UserSchema = new Schema<IUser>(
   { timestamps: true }
 );
 
+// Clear the model from mongoose if we need to force a schema update in dev
+if (process.env.NODE_ENV === 'development') {
+  delete mongoose.models.User;
+}
+
 export const User: Model<IUser> =
   mongoose.models.User || mongoose.model<IUser>("User", UserSchema);

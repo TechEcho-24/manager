@@ -59,17 +59,13 @@ export async function POST(req: Request) {
       organizationId: String(org._id)
     };
 
-    if (session?.user?.email) {
-      await User.updateOne(
-        { email: session.user.email },
-        { $set: updateData }
-      );
-    } else {
-      await User.updateOne(
-        { email },
-        { $set: updateData }
-      );
-    }
+    const targetEmail = session?.user?.email || email;
+    
+    await User.findOneAndUpdate(
+      { email: targetEmail.toLowerCase().trim() },
+      { $set: updateData },
+      { upsert: true, new: true }
+    );
 
     return NextResponse.json({ success: true, organizationId: org._id });
   } catch (error: any) {

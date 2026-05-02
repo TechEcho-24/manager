@@ -43,6 +43,11 @@ const OrganizationSchema = new Schema<IOrganization>(
   { timestamps: true }
 );
 
+// Clear the model from mongoose if we need to force a schema update in dev
+if (process.env.NODE_ENV === 'development') {
+  delete mongoose.models.Organization;
+}
+
 export const Organization: Model<IOrganization> =
   mongoose.models.Organization ||
   mongoose.model<IOrganization>("Organization", OrganizationSchema);

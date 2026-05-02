@@ -188,11 +188,17 @@ export function OnboardingForm() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(formData),
         });
-        if (!response.ok) throw new Error("Failed to initialize protocol");
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || "Failed to initialize protocol");
+        
         localStorage.removeItem("onboardingPrefill");
+        
+        // Pass both to trigger a session refresh with new data
         await update({
           onboardingCompleted: true,
+          organizationId: result.organizationId,
         });
+        
         setIsFinished(true);
       } catch (error) {
         console.error("Onboarding error:", error);

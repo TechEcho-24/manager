@@ -255,7 +255,8 @@ export function LeadFormPanel({
       });
 
       if (!res.ok) {
-        throw new Error("Failed to save lead");
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.error || "Failed to save lead");
       }
 
       toast.success(
@@ -263,8 +264,8 @@ export function LeadFormPanel({
       );
       onOpenChange(false);
       if (onSuccess) onSuccess();
-    } catch (error) {
-      toast.error("Failed to save lead");
+    } catch (error: any) {
+      toast.error(error.message || "Failed to save lead");
     } finally {
       setIsSubmitting(false);
     }

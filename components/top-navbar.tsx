@@ -6,6 +6,7 @@ import useSWR from "swr";
 import { useDebounce } from "use-debounce";
 import { MobileSidebar } from "@/components/mobile-sidebar";
 import { Bell, Search, Zap, Loader2, LogOut } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { signOut, useSession } from "next-auth/react";

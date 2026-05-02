@@ -4,7 +4,9 @@ import { User } from "@/models/user";
 import { Organization } from "@/models/organization";
 import { Payment } from "@/models/payment";
 import { Lead } from "@/models/lead";
+import { Reminder } from "@/models/reminder";
 import { auth } from "@/auth";
+import { PLAN_CONFIG } from "@/lib/plan-config";
 
 export const dynamic = "force-dynamic";
 
@@ -18,20 +20,78 @@ export async function GET() {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const activeOrgIds = await Organization.find({ "subscription.status": "active" }).distinct("_id");
+    // Fetch all Clients
+    const clients = await User.find({ role: "client" });
+    const totalUsersCount = clients.length;
+    
+    // Filter valid 24-char IDs to prevent Mongoose crashes
+    const orgIds = [...new Set(clients
+      .map(c => c.organizationId)
+      .filter(id => id && id.length === 24)
+    )];
 
-    const [totalUsers, totalOrgs, payments, allLeads] = await Promise.all([
-      User.countDocuments({ role: "client", organizationId: { $in: activeOrgIds } }),
-      Organization.find({ _id: { $in: activeOrgIds } }),
+    const [organizations, payments, allLeadsCount] = await Promise.all([
+      Organization.find({ _id: { $in: orgIds } }),
       Payment.find({ status: "paid" }),
-      Lead.countDocuments({ organizationId: { $in: activeOrgIds } }),
+      Lead.countDocuments(),
     ]);
+
+    const orgMap = Object.fromEntries(organizations.map(o => [o._id.toString(), o]));
+
+    // Efficient Aggregation for Usage Tracking
+    const [leadUsage, teamUsage, reminderUsage] = await Promise.all([
+      Lead.aggregate([
+        { $group: { _id: "$userId", count: { $sum: 1 } } }
+      ]),
+      User.aggregate([
+        { $group: { _id: "$organizationId", count: { $sum: 1 } } }
+      ]),
+      Reminder.aggregate([
+        { 
+          $match: { 
+            createdAt: { $gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1) } 
+          } 
+        },
+        { $group: { _id: "$userId", count: { $sum: 1 } } }
+      ])
+    ]);
+
+    const usageMap = {
+      leads: Object.fromEntries(leadUsage.filter(u => u._id).map(u => [u._id.toString(), u.count])),
+      team: Object.fromEntries(teamUsage.filter(u => u._id).map(u => [u._id.toString(), u.count])),
+      reminders: Object.fromEntries(reminderUsage.filter(u => u._id).map(u => [u._id.toString(), u.count]))
+    };
+
+    const userStats = clients.map((user) => {
+      const userIdStr = user._id.toString();
+      const orgIdStr = user.organizationId;
+      const org = orgIdStr ? orgMap[orgIdStr] : null;
+      const plan = org?.plan || "starter";
+      const config = (PLAN_CONFIG as any)[plan];
+
+      return {
+        id: userIdStr,
+        name: user.name || user.email.split('@')[0],
+        email: user.email,
+        plan: plan,
+        usage: {
+          leads: usageMap.leads[userIdStr] || 0,
+          leadsLimit: config.maxLeads,
+          team: usageMap.team[orgIdStr || ''] || 1,
+          teamLimit: config.maxUsers,
+          reminders: usageMap.reminders[userIdStr] || 0,
+          remindersLimit: config.maxRemindersPerMonth
+        },
+        status: org?.subscription?.status || "active",
+        expiresAt: org?.subscription?.currentPeriodEnd || org?.subscription?.trialEndsAt
+      };
+    });
 
     // Plan Distribution
     const planDistribution = {
-      starter: totalOrgs.filter(o => o.plan === "starter").length,
-      growth: totalOrgs.filter(o => o.plan === "growth").length,
-      pro: totalOrgs.filter(o => o.plan === "pro").length,
+      starter: organizations.filter(o => o.plan === "starter").length,
+      growth: organizations.filter(o => o.plan === "growth").length,
+      pro: organizations.filter(o => o.plan === "pro").length,
     };
 
     // Revenue Analytics
@@ -49,7 +109,17 @@ export async function GET() {
 
     const totalRevenue = payments.reduce((acc, p) => acc + (p.amount || 0), 0);
 
-    // Recent Activity (Mock for now, can be real from a dedicated log model)
+    // Recent Activity
+    const [recentLeads, recentUsers] = await Promise.all([
+      Lead.find().sort({ createdAt: -1 }).limit(5),
+      User.find({ role: "client" }).sort({ createdAt: -1 }).limit(5),
+    ]);
+
+    const recentActivity = [
+      ...recentLeads.map(l => ({ type: "lead", message: `New lead: ${l.fullName}`, date: l.createdAt })),
+      ...recentUsers.map(u => ({ type: "user", message: `New signup: ${u.email}`, date: u.createdAt })),
+    ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
     const recentPurchases = payments
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
       .slice(0, 5)
@@ -61,47 +131,27 @@ export async function GET() {
         date: p.createdAt
       }));
 
-    // User-wise Usage
-    // Note: In a large system, this would be a separate aggregation
-    const userUsage = await Promise.all(totalOrgs.slice(0, 10).map(async (org) => {
-      const leadsCount = await Lead.countDocuments({ organizationId: org._id });
-      return {
-        id: org._id,
-        name: org.name,
-        email: org.email,
-        plan: org.plan,
-        leads: leadsCount,
-        status: org.subscription.status,
-        expiresAt: org.subscription.currentPeriodEnd || org.subscription.trialEndsAt
-      };
-    }));
-
-    // Live Activity Feed
-    const [recentLeads, recentUsers] = await Promise.all([
-      Lead.find({ organizationId: { $in: activeOrgIds } }).sort({ createdAt: -1 }).limit(5),
-      User.find({ role: "client", organizationId: { $in: activeOrgIds } }).sort({ createdAt: -1 }).limit(5),
-    ]);
-
-    const recentActivity = [
-      ...recentLeads.map(l => ({ type: "lead", message: `New lead: ${l.fullName}`, date: l.createdAt })),
-      ...recentUsers.map(u => ({ type: "user", message: `New user: ${u.email}`, date: u.createdAt })),
-    ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).slice(0, 10);
-
     return NextResponse.json({
       stats: {
-        totalUsers,
-        totalLeads: allLeads,
+        totalUsers: totalUsersCount,
+        totalLeads: allLeadsCount,
         totalRevenue,
         dailyRevenue,
-        monthlyRevenue,
+        monthlyRevenue
       },
       planDistribution,
-      recentPurchases,
-      userUsage,
-      recentActivity
+      userUsage: userStats,
+      recentActivity,
+      recentPurchases
     });
   } catch (error: any) {
-    console.error("Admin Stats Error:", error);
-    return NextResponse.json({ error: "Failed to fetch admin statistics" }, { status: 500 });
+    console.error("ADMIN STATS CRITICAL FAILURE:", {
+      message: error.message,
+      stack: error.stack
+    });
+    return NextResponse.json({ 
+      error: error.message || "Failed to fetch admin statistics",
+      details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    }, { status: 500 });
   }
 }
