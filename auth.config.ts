@@ -13,6 +13,7 @@ export const authConfig = {
       if (user) {
         token.id = user.id;
         token.role = user.role;
+        token.organizationId = user.organizationId;
         token.onboardingCompleted = user.onboardingCompleted;
       }
       return token;
@@ -21,6 +22,7 @@ export const authConfig = {
       if (token && session.user) {
         session.user.id = token.id;
         session.user.role = token.role;
+        session.user.organizationId = token.organizationId;
         session.user.onboardingCompleted = token.onboardingCompleted;
       }
       return session;

@@ -50,6 +50,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                 name: user.name,
                 email: user.email,
                 role: user.role || "client",
+                organizationId: user.organizationId,
                 onboardingCompleted: user.onboardingCompleted || false,
               };
             }
@@ -80,6 +81,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       if (user) {
         token.id = user.id;
         token.role = user.role;
+        token.organizationId = user.organizationId;
         token.onboardingCompleted = user.onboardingCompleted || false;
       }
 
@@ -87,6 +89,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       if (trigger === "update") {
         if (session?.onboardingCompleted !== undefined) {
           token.onboardingCompleted = session.onboardingCompleted;
+        }
+        if (session?.organizationId !== undefined) {
+          token.organizationId = session.organizationId;
         }
       }
 
@@ -97,6 +102,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       if (session.user) {
         session.user.id = token.id as string;
         session.user.role = token.role as string;
+        session.user.organizationId = token.organizationId as string;
         session.user.onboardingCompleted = Boolean(
           token.onboardingCompleted
         );

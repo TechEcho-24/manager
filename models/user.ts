@@ -6,6 +6,7 @@ export interface IUser extends Document {
   phone: string;
   password?: string;
   role: "client" | "admin";
+  organizationId?: string;
   onboardingCompleted: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -18,6 +19,7 @@ const UserSchema = new Schema<IUser>(
     phone: { type: String, required: true },
     password: { type: String },
     role: { type: String, enum: ["client", "admin"], default: "client" },
+    organizationId: { type: String, index: true },
     onboardingCompleted: { type: Boolean, default: false },
   },
   { timestamps: true }

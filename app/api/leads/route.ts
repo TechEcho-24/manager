@@ -26,7 +26,8 @@ export async function GET(request: Request) {
     sortOptions[sortField] = sortOrder;
 
     // Filters
-    const query: any = { userId: (session.user as any).id };
+    const organizationId = (session.user as any).organizationId;
+    const query: any = { organizationId: organizationId };
 
     const search = searchParams.get("search");
     if (search) {
@@ -122,17 +123,34 @@ export async function GET(request: Request) {
   }
 }
 
+import { checkLeadLimit } from "@/lib/plan-validator";
+
 export async function POST(request: Request) {
   try {
     await dbConnect();
     const session = await auth();
     if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
+    const organizationId = (session.user as any).organizationId;
+    if (!organizationId) {
+      return NextResponse.json({ error: "Organization not found. Please complete onboarding." }, { status: 400 });
+    }
+
+    // Check Plan Limit
+    const planStatus = await checkLeadLimit(organizationId);
+    if (planStatus.isBlocked) {
+      return NextResponse.json({ 
+        error: planStatus.message, 
+        limitReached: true 
+      }, { status: 403 });
+    }
+
     const data = await request.json();
 
     const lead = new Lead({
       ...data,
-      userId: (session.user as any).id, // AUTO-ASSIGN OWNER
+      userId: (session.user as any).id,
+      organizationId: organizationId,
       activityTimeline: [
         {
           action: "Lead created",
@@ -144,7 +162,11 @@ export async function POST(request: Request) {
     });
 
     await lead.save();
-    return NextResponse.json({ message: "Lead created successfully", id: lead._id }, { status: 201 });
+    return NextResponse.json({ 
+      message: "Lead created successfully", 
+      id: lead._id,
+      warning: planStatus.isWarning ? planStatus.message : undefined
+    }, { status: 201 });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
@@ -157,7 +179,8 @@ export async function DELETE(request: Request) {
     if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const { ids } = await request.json();
-    await Lead.deleteMany({ _id: { $in: ids }, userId: (session.user as any).id }); // DELETE ONLY OWN DATA
+    const organizationId = (session.user as any).organizationId;
+    await Lead.deleteMany({ _id: { $in: ids }, organizationId: organizationId }); // DELETE ONLY ORG DATA
 
     return NextResponse.json({ message: "Leads deleted successfully" });
   } catch (error) {
@@ -172,9 +195,10 @@ export async function PATCH(request: Request) {
     if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const { ids, status } = await request.json();
+    const organizationId = (session.user as any).organizationId;
 
     await Lead.updateMany(
-      { _id: { $in: ids }, userId: (session.user as any).id }, // UPDATE ONLY OWN DATA
+      { _id: { $in: ids }, organizationId: organizationId }, // UPDATE ONLY ORG DATA
       { 
         $set: { status, updatedAt: new Date() },
         $push: { activityTimeline: { action: "Status updated", description: `Updated to ${status}`, createdAt: new Date(), createdBy: session.user.name } }

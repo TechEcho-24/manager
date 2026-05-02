@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 import { AnimatedNumber } from "@/components/animated-number";
 import { LeadFormPanel } from "@/components/lead-form-panel";
 import { formatDistanceToNow, format } from "date-fns";
@@ -67,6 +68,8 @@ interface DashboardData {
 
 import { useSession } from "next-auth/react";
 import { AdminDashboard } from "./AdminDashboard";
+import { UpgradePrompt } from "@/components/upgrade-prompt";
+import Link from "next/link";
 
 export default function DashboardPage() {
   const { data: session, status: sessionStatus } = useSession();
@@ -74,6 +77,8 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [planStatus, setPlanStatus] = useState<any>(null);
 
   const isAdmin = (session?.user as any)?.role === "admin";
 
@@ -173,8 +178,45 @@ export default function DashboardPage() {
     },
   ];
 
+  async function checkLimits() {
+    try {
+      const res = await fetch("/api/plan/check-leads");
+      const json = await res.json();
+      setPlanStatus(json);
+      if (json.isBlocked) {
+        setShowUpgradeModal(true);
+        return false;
+      }
+      return true;
+    } catch (err) {
+      return true;
+    }
+  }
+
+  const handleCreateNew = async () => {
+    const canCreate = await checkLimits();
+    if (canCreate) setIsFormOpen(true);
+  };
+
   return (
     <div className="space-y-6">
+      {showUpgradeModal && planStatus?.isBlocked && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/60 backdrop-blur-sm">
+          <div className="w-full max-w-md">
+            <UpgradePrompt 
+              description={planStatus.message} 
+              onClose={() => setShowUpgradeModal(false)}
+            />
+          </div>
+        </div>
+      )}
+
+      {planStatus?.isWarning && !showUpgradeModal && (
+        <div className="bg-amber-500/10 border border-amber-500/20 p-3 rounded-xl flex items-center justify-between">
+          <p className="text-xs font-bold text-amber-600">{planStatus.message}</p>
+          <Link href="/settings?tab=subscription" className="text-[10px] font-black text-amber-600 underline">UPGRADE</Link>
+        </div>
+      )}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-foreground lg:text-3xl">
@@ -185,7 +227,7 @@ export default function DashboardPage() {
           </p>
         </div>
         <button 
-          onClick={() => setIsFormOpen(true)}
+          onClick={handleCreateNew}
           className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground shadow-lg shadow-primary/20 transition-all hover:translate-y-[-2px] hover:shadow-xl hover:shadow-primary/30 active:translate-y-0"
         >
           <TrendingUp className="h-4 w-4" />

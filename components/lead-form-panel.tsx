@@ -25,6 +25,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { UpgradePrompt } from "./upgrade-prompt";
 import { Dialog } from "@/components/ui/dialog";
 import {
   Form,
@@ -93,6 +94,12 @@ export function LeadFormPanel({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [tagInput, setTagInput] = useState("");
   const [noteInput, setNoteInput] = useState("");
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [planConfig, setPlanConfig] = useState<any>(null);
+
+  useEffect(() => {
+    fetch("/api/plan/config").then(r => r.json()).then(data => setPlanConfig(data));
+  }, []);
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const form = useForm<LeadFormValues>({
@@ -270,6 +277,17 @@ export function LeadFormPanel({
       contentClassName="w-full h-full sm:h-auto sm:max-h-[90vh] sm:max-w-4xl p-0 flex flex-col bg-card sm:border border-border sm:rounded-2xl shadow-2xl overflow-hidden"
       showCloseButton={false}
     >
+        {showUpgradeModal && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/60 backdrop-blur-sm">
+            <div className="w-full max-w-md">
+              <UpgradePrompt 
+                type="feature"
+                description="This input method is available in higher plans. Upgrade to unlock." 
+                onClose={() => setShowUpgradeModal(false)}
+              />
+            </div>
+          </div>
+        )}
         <div className='flex shrink-0 items-center justify-between border-b border-border px-6 py-5 bg-muted/20'>
           <h2 className='text-xl font-bold tracking-tight text-foreground'>
             {isEditMode ? "Edit Lead" : "Add New Lead"}
@@ -395,21 +413,40 @@ export function LeadFormPanel({
                       name='leadSource'
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Source *</FormLabel>
+                          <FormLabel className="flex items-center gap-2">
+                            Source *
+                            {planConfig?.plan === 'starter' && (
+                              <span className="text-[8px] font-black bg-indigo-500/10 text-indigo-500 px-1.5 py-0.5 rounded-full">PLAN: STARTER</span>
+                            )}
+                          </FormLabel>
                           <FormControl>
-                            <Select {...field}>
-                              <option value='Website Form'>Website Form</option>
-                              <option value='Cold Call'>Cold Call</option>
-                              <option value='Referral'>Referral</option>
-                              <option value='Social Media'>Social Media</option>
-                              <option value='Email Campaign'>
-                                Email Campaign
-                              </option>
-                              <option value='Walk-in'>Walk-in</option>
-                              <option value='Exhibition'>Exhibition</option>
-                              <option value='Partner'>Partner</option>
-                              <option value='Other'>Other</option>
-                            </Select>
+                            <div className="relative">
+                              <Select 
+                                {...field} 
+                                onChange={(e) => {
+                                  const val = e.target.value;
+                                  if (val === 'Voice Chatbot' && planConfig?.plan === 'starter') {
+                                    setShowUpgradeModal(true);
+                                    return;
+                                  }
+                                  if (val === 'AI Capture' && planConfig?.plan !== 'pro') {
+                                    setShowUpgradeModal(true);
+                                    return;
+                                  }
+                                  field.onChange(e);
+                                }}
+                              >
+                                <option value='Website Form'>Website Form</option>
+                                <option value='Manual Entry'>Manual Entry</option>
+                                <option value='Cold Call'>Cold Call</option>
+                                <option value='Referral'>Referral</option>
+                                <option value='Voice Chatbot'>Voice Chatbot {planConfig?.plan === 'starter' ? '🔒' : ''}</option>
+                                <option value='AI Capture'>AI Capture {planConfig?.plan !== 'pro' ? '🔒' : ''}</option>
+                                <option value='Social Media'>Social Media</option>
+                                <option value='Email Campaign'>Email Campaign</option>
+                                <option value='Other'>Other</option>
+                              </Select>
+                            </div>
                           </FormControl>
                           <FormMessage />
                         </FormItem>

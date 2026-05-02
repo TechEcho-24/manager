@@ -18,7 +18,11 @@ import {
   PhoneCall,
   Trophy,
   Target,
+  Mic,
+  Image as ImageIcon,
+  Lock,
 } from "lucide-react";
+import { UpgradePrompt } from "@/components/upgrade-prompt";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -78,11 +82,30 @@ export default function TasksPage() {
   const [newTask, setNewTask] = useState("");
   const [priority, setPriority] = useState<Priority>("medium");
   const [filter, setFilter] = useState<"all" | "active" | "done">("all");
+  const [taskType, setTaskType] = useState<"text" | "voice" | "image">("text");
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [planConfig, setPlanConfig] = useState<any>(null);
+
+  useEffect(() => {
+    fetch("/api/plan/config").then(r => r.json()).then(data => setPlanConfig(data));
+  }, []);
 
   // Load from localStorage on mount
   useEffect(() => {
     setDayData(loadTasks());
   }, []);
+
+  const handleTypeChange = (type: "voice" | "image") => {
+    if (type === "voice" && planConfig?.plan === "starter") {
+      setShowUpgradeModal(true);
+      return;
+    }
+    if (type === "image" && planConfig?.plan !== "pro") {
+      setShowUpgradeModal(true);
+      return;
+    }
+    setTaskType(type);
+  };
 
   // Save whenever tasks change
   useEffect(() => {
@@ -95,14 +118,15 @@ export default function TasksPage() {
     if (!newTask.trim()) return;
     const task: Task = {
       id: crypto.randomUUID(),
-      text: newTask.trim(),
+      text: `${taskType === 'voice' ? '🎤 ' : taskType === 'image' ? '📸 ' : ''}${newTask.trim()}`,
       completed: false,
       priority,
       createdAt: new Date().toISOString(),
     };
     setDayData((prev) => ({ ...prev, tasks: [task, ...prev.tasks] }));
     setNewTask("");
-  }, [newTask, priority]);
+    setTaskType("text");
+  }, [newTask, priority, taskType]);
 
   const toggleTask = (id: string) => {
     setDayData((prev) => ({
@@ -204,15 +228,54 @@ export default function TasksPage() {
 
       {/* Add Task */}
       <Card className="border-border bg-card shadow-xl rounded-2xl overflow-hidden">
+        {showUpgradeModal && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/60 backdrop-blur-sm">
+            <div className="w-full max-w-md">
+              <UpgradePrompt 
+                type="feature"
+                description="This assignment method is available in higher plans. Upgrade to unlock." 
+                onClose={() => setShowUpgradeModal(false)}
+              />
+            </div>
+          </div>
+        )}
         <CardContent className="p-5">
-          <div className="flex flex-col sm:flex-row gap-3">
-            <Input
-              placeholder="What do you need to do today?"
-              className="flex-1 h-12 rounded-xl bg-background border-border shadow-sm pl-4 text-sm font-medium"
-              value={newTask}
-              onChange={(e) => setNewTask(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && addTask()}
-            />
+          <div className="flex flex-col gap-4">
+            <div className="flex gap-2 mb-1">
+              {[
+                { type: "text", icon: CheckSquare, label: "Text" },
+                { type: "voice", icon: Mic, label: "Voice", plan: "Growth" },
+                { type: "image", icon: ImageIcon, label: "Image", plan: "Pro" },
+              ].map((t) => (
+                <button
+                  key={t.type}
+                  onClick={() => t.type !== "text" ? handleTypeChange(t.type as any) : setTaskType("text")}
+                  className={cn(
+                    "flex items-center gap-2 px-3 py-1.5 rounded-lg text-[10px] font-black tracking-widest border transition-all",
+                    taskType === t.type 
+                      ? "bg-primary text-white border-primary shadow-lg shadow-primary/20" 
+                      : "bg-muted/30 text-muted-foreground border-border hover:bg-muted/50"
+                  )}
+                >
+                  <t.icon className="h-3 w-3" />
+                  {t.label}
+                  {t.plan && planConfig?.plan === 'starter' && t.type === 'voice' && (
+                    <Lock className="h-2.5 w-2.5 opacity-40" />
+                  )}
+                  {t.plan === 'Pro' && planConfig?.plan !== 'pro' && (
+                    <Lock className="h-2.5 w-2.5 opacity-40" />
+                  )}
+                </button>
+              ))}
+            </div>
+            <div className="flex flex-col sm:flex-row gap-3">
+              <Input
+                placeholder={taskType === 'text' ? "What do you need to do today?" : `Describe the ${taskType} task...`}
+                className="flex-1 h-12 rounded-xl bg-background border-border shadow-sm pl-4 text-sm font-medium"
+                value={newTask}
+                onChange={(e) => setNewTask(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && addTask()}
+              />
             <div className="flex gap-2">
               {(["high", "medium", "low"] as Priority[]).map((p) => {
                 const cfg = priorityConfig[p];

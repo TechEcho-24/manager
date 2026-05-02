@@ -16,6 +16,8 @@ import {
   ChevronLeft,
   ChevronRight,
   Zap,
+  DollarSign,
+  UserCheck,
 } from "lucide-react";
 import {
   Tooltip,
@@ -34,6 +36,8 @@ const allNavItems = [
   { title: "Contacts", href: "/contacts", icon: Contact, role: "client" },
   { title: "Deals", href: "/deals", icon: Handshake, role: "client" },
   { title: "Tasks", href: "/tasks", icon: CheckSquare, role: "client" },
+  { title: "Subscribers", href: "/dashboard?tab=users", icon: UserCheck, role: "admin" },
+  { title: "Revenue", href: "/dashboard?tab=revenue", icon: DollarSign, role: "admin" },
   { title: "Insights", href: "/reports", icon: BarChart3 },
 ];
 
@@ -110,6 +114,7 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
 
   const navItems = allNavItems.filter(item => {
     if (role === "admin" && item.role === "client") return false;
+    if (role === "client" && item.role === "admin") return false;
     return true;
   });
 
@@ -131,9 +136,9 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
         >
           <div className="relative">
             <div className="absolute -inset-1 rounded-xl bg-primary/20 blur-sm group-hover:bg-primary/40 transition-all" />
-            <div className="relative flex h-10 w-10 shrink-0 items-center justify-center group-hover:scale-110 transition-transform">
+            {/* <div className="relative flex h-10 w-10 shrink-0 items-center justify-center group-hover:scale-110 transition-transform">
               <img src="/assets/logo.png" alt="Pinglly Logo" className="h-8 object-contain" />
-            </div>
+            </div> */}
           </div>
           {!collapsed && (
             <div className="flex flex-col">

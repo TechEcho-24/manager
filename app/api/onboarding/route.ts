@@ -53,16 +53,21 @@ export async function POST(req: Request) {
       await org.save();
     }
 
-    // Mark user onboarding complete
+    // Mark user onboarding complete and link organization
+    const updateData = { 
+      onboardingCompleted: true,
+      organizationId: String(org._id)
+    };
+
     if (session?.user?.email) {
       await User.updateOne(
         { email: session.user.email },
-        { $set: { onboardingCompleted: true } }
+        { $set: updateData }
       );
     } else {
       await User.updateOne(
         { email },
-        { $set: { onboardingCompleted: true } }
+        { $set: updateData }
       );
     }
 

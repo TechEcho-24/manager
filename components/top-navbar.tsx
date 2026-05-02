@@ -27,6 +27,11 @@ export function TopNavbar() {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [debouncedQuery] = useDebounce(searchQuery, 300);
   const searchRef = useRef<HTMLDivElement>(null);
+  const [plan, setPlan] = useState<string>("");
+
+  useEffect(() => {
+    fetch("/api/plan/config").then(r => r.json()).then(data => setPlan(data.plan));
+  }, []);
 
   const { data, isLoading } = useSWR(
     debouncedQuery ? `/api/leads?search=${encodeURIComponent(debouncedQuery)}&limit=5` : null,
@@ -190,9 +195,21 @@ export function TopNavbar() {
             </div>
           </div>
           <div className="hidden flex-col items-start md:flex">
-            <span className="text-[11px] font-bold tracking-wider text-muted-foreground transition-colors group-hover:text-destructive">
-              {userName}
-            </span>
+            <div className="flex items-center gap-2">
+              <span className="text-[11px] font-bold tracking-wider text-muted-foreground transition-colors group-hover:text-destructive">
+                {userName}
+              </span>
+              {plan && (
+                <span className={cn(
+                  "text-[8px] font-black px-1.5 py-0.5 rounded-full border uppercase tracking-tighter",
+                  plan === 'pro' ? "bg-indigo-500/10 text-indigo-500 border-indigo-500/20" :
+                  plan === 'growth' ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20" :
+                  "bg-blue-500/10 text-blue-500 border-blue-500/20"
+                )}>
+                  {plan}
+                </span>
+              )}
+            </div>
             <span className="text-[9px] font-medium text-muted-foreground/50">
               Sign Out
             </span>

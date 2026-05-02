@@ -7,6 +7,7 @@ export interface ILead extends Document {
   fullName: string;
   phone: string;
   userId: string;
+  organizationId: string;
   alternatePhone?: string;
   email?: string;
   company?: string;
@@ -67,7 +68,8 @@ const LeadSchema = new Schema<ILead>(
   {
     fullName: { type: String, required: true },
     phone: { type: String, required: true },
-    userId: { type: String, required: true, index: true }, // Added for Multi-tenancy
+    userId: { type: String, required: true, index: true },
+    organizationId: { type: String, required: true, index: true },
     alternatePhone: { type: String },
     email: { type: String },
     company: { type: String },
