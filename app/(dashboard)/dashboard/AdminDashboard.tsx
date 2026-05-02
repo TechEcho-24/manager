@@ -25,6 +25,7 @@ import { toast } from "sonner";
 
 export function AdminDashboard() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const tabParam = searchParams.get("tab") || "dashboard";
   
   const [data, setData] = useState<any>(null);
@@ -53,7 +54,13 @@ export function AdminDashboard() {
       console.error("Dashboard Fetch Failed:", err);
       toast.error("Signal failure: " + err.message);
       // Fallback data to prevent infinite loader
-      setData(prev => prev || { stats: { totalUsers: 0, totalLeads: 0, totalRevenue: 0 }, userUsage: [], recentActivity: [] });
+      setData((prev: any) => prev || { 
+        stats: { totalUsers: 0, totalLeads: 0, totalRevenue: 0, dailyRevenue: 0, monthlyRevenue: 0 }, 
+        planDistribution: { starter: 0, growth: 0, pro: 0 },
+        userUsage: [], 
+        recentActivity: [],
+        recentPurchases: []
+      });
     } finally {
       setLoading(false);
     }
@@ -118,7 +125,7 @@ export function AdminDashboard() {
               { title: "Platform Revenue", value: data.stats.totalRevenue, icon: DollarSign, color: "emerald", trend: "Lifetime", prefix: "₹" },
               { title: "Daily Revenue", value: data.stats.dailyRevenue, icon: Activity, color: "orange", trend: "Today", prefix: "₹" },
               { title: "Total Leads", value: data.stats.totalLeads, icon: Zap, color: "indigo", trend: "Across Orgs" },
-            ].map((stat) => (
+            ].map((stat: any) => (
               <Card key={stat.title} className="border-border bg-card/50 dark:bg-zinc-900/40 backdrop-blur-3xl shadow-xl rounded-3xl overflow-hidden group hover:border-indigo-500/40 transition-all border-t border-t-white/5 dark:border-t-white/5">
                 <CardContent className="p-7">
                   <div className="flex items-center justify-between">

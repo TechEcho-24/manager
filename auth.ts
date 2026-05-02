@@ -122,10 +122,11 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     async jwt({ token, user, trigger, session }) {
       // ✅ First login
       if (user) {
-        token.id = user.id;
-        token.role = user.role;
-        token.organizationId = user.organizationId;
-        token.onboardingCompleted = user.onboardingCompleted || false;
+        const u = user as any;
+        token.id = u.id;
+        token.role = u.role;
+        token.organizationId = u.organizationId;
+        token.onboardingCompleted = u.onboardingCompleted || false;
       }
 
       // 🔥 IMPORTANT: update token after onboarding
@@ -143,10 +144,11 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
     async session({ session, token }) {
       if (session.user) {
-        session.user.id = token.id as string;
-        session.user.role = token.role as string;
-        session.user.organizationId = token.organizationId as string;
-        session.user.onboardingCompleted = Boolean(
+        const u = session.user as any;
+        u.id = token.id as string;
+        u.role = token.role as string;
+        u.organizationId = token.organizationId as string;
+        u.onboardingCompleted = Boolean(
           token.onboardingCompleted
         );
       }

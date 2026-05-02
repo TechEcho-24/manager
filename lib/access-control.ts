@@ -18,7 +18,7 @@ export function getEffectivePlan(organization: IOrganization): PlanType {
   if (
     ["expired", "cancelled", "past_due"].includes(organization.subscription.status)
   ) {
-    return "free";
+    return "starter";
   }
 
   // Return the actual plan
@@ -27,7 +27,7 @@ export function getEffectivePlan(organization: IOrganization): PlanType {
 
 export function canAccessFeature(
   organization: IOrganization,
-  feature: keyof typeof PLAN_CONFIG["free"]["features"]
+  feature: keyof typeof PLAN_CONFIG["starter"]["features"]
 ): boolean {
   const plan = getEffectivePlan(organization);
   return PLAN_CONFIG[plan].features[feature] === true;

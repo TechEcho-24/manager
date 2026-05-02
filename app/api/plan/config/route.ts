@@ -3,6 +3,7 @@ import { auth } from "@/auth";
 import { Organization } from "@/models/organization";
 import { PLAN_CONFIG, PlanType } from "@/lib/plan-config";
 import dbConnect from "@/lib/db";
+import { User } from "@/models/user";
 
 export const dynamic = "force-dynamic";
 
@@ -17,22 +18,24 @@ export async function GET() {
     
     // Auto-create fallback if missing
     if (!organizationId) {
-      const { User } = await import("@/models/user");
-      const user = await User.findOne({ email: session.user.email });
+      const email = session.user.email;
+      if (!email) return NextResponse.json({ error: "Email required" }, { status: 400 });
+
+      const user = await User.findOne({ email });
       
       if (user?.organizationId) {
         organizationId = user.organizationId;
       } else {
         const newOrg = await Organization.create({
-          name: `${session.user.name || session.user.email?.split('@')[0]}'s Workspace`,
-          email: session.user.email,
+          name: `${session.user.name || email.split('@')[0]}'s Workspace`,
+          email: email,
           phone: "0000000000",
-          ownerId: session.user.email as string,
+          ownerId: email,
           plan: "starter",
           subscription: { status: "trial" }
         });
         organizationId = newOrg._id.toString();
-        await User.updateOne({ email: session.user.email }, { $set: { organizationId } });
+        await User.updateOne({ email: email }, { $set: { organizationId } });
       }
     }
 

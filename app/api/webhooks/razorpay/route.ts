@@ -70,7 +70,7 @@ export async function POST(req: Request) {
           const org = await Organization.findById(payment.organizationId);
           if (org) {
             org.subscription.status = "cancelled";
-            org.plan = "free";
+            org.plan = "starter";
             await org.save();
           }
         }

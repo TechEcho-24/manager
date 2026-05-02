@@ -9,12 +9,15 @@ export async function GET() {
     const session = await auth();
     if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    const organizationId = (session.user as any).organizationId;
+    const user = session.user as any;
+    const organizationId = user.organizationId;
+    const userId = user.id;
+
     if (!organizationId) {
       return NextResponse.json({ error: "Organization not found" }, { status: 400 });
     }
 
-    const status = await checkLeadLimit(organizationId);
+    const status = await checkLeadLimit(organizationId, userId);
     return NextResponse.json(status);
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });

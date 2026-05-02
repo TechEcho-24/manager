@@ -1,4 +1,4 @@
-export type PlanType = "starter" | "growth" | "pro";
+export type PlanType = "starter" | "growth" | "pro" | "enterprise";
 
 export interface PlanConfig {
   maxLeads: number;
@@ -39,6 +39,18 @@ export const PLAN_CONFIG: Record<PlanType, PlanConfig> = {
     },
   },
   pro: {
+    maxLeads: Infinity,
+    maxUsers: Infinity,
+    maxRemindersPerMonth: Infinity,
+    features: {
+      leadInput: "ai_capture",
+      taskAssignment: "image",
+      automation: "advanced",
+      analytics: true,
+      apiAccess: true,
+    },
+  },
+  enterprise: {
     maxLeads: Infinity,
     maxUsers: Infinity,
     maxRemindersPerMonth: Infinity,

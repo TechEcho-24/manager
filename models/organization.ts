@@ -5,7 +5,7 @@ export interface IOrganization extends Document {
   email: string;
   phone: string;
   ownerId: string; // Will link to user's email or ID from NextAuth
-  plan: "starter" | "growth" | "pro";
+  plan: "starter" | "growth" | "pro" | "enterprise";
   subscription: {
     status: "trial" | "active" | "past_due" | "cancelled" | "expired";
     trialEndsAt?: Date;
@@ -25,7 +25,7 @@ const OrganizationSchema = new Schema<IOrganization>(
     ownerId: { type: String, required: true, index: true },
     plan: {
       type: String,
-      enum: ["starter", "growth", "pro"],
+      enum: ["starter", "growth", "pro", "enterprise"],
       default: "starter",
     },
     subscription: {

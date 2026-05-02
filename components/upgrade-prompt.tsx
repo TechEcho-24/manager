@@ -57,18 +57,16 @@ export function UpgradePrompt({
                 CLOSE
               </Button>
             )}
-            <Button 
-              asChild
+            <Link 
+              href="/settings?tab=subscription"
               className={cn(
-                "flex-1 rounded-xl h-12 font-black text-xs tracking-widest shadow-xl transition-all hover:scale-105 active:scale-95",
+                "flex-1 rounded-xl h-12 flex items-center justify-center font-black text-xs tracking-widest shadow-xl transition-all hover:scale-105 active:scale-95 text-white",
                 isWarning ? "bg-amber-600 hover:bg-amber-500 shadow-amber-600/20" : "bg-primary shadow-primary/20",
                 isFeature && "bg-indigo-600 hover:bg-indigo-500 shadow-indigo-600/20"
               )}
             >
-              <Link href="/settings?tab=subscription">
-                UPGRADE PLAN
-              </Link>
-            </Button>
+              UPGRADE PLAN
+            </Link>
           </div>
         </div>
       </CardContent>

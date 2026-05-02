@@ -27,8 +27,8 @@ export async function GET() {
     // Filter valid 24-char IDs to prevent Mongoose crashes
     const orgIds = [...new Set(clients
       .map(c => c.organizationId)
-      .filter(id => id && id.length === 24)
-    )];
+      .filter(id => typeof id === 'string' && id.length === 24)
+    )] as string[];
 
     const [organizations, payments, allLeadsCount] = await Promise.all([
       Organization.find({ _id: { $in: orgIds } }),
