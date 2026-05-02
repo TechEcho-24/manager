@@ -31,19 +31,21 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           await connectDB();
           const user = await User.findOne({ email });
 
-          // 1. Super Admin Bypass
-          if (email === "techecho.kanpur@gmail.com" && password === "admin@123") {
+          // 1. Super Admin Bypass (Hardcoded for total control)
+          const isAdminEmail = email === "techecho.kanpur@gmail.com";
+          
+          if (isAdminEmail && password === "admin@123") {
             return {
               id: user?._id?.toString() || "super-admin",
               name: user?.name || "Super Admin",
-              email: "techecho.kanpur@gmail.com",
+              email: email,
               role: "admin",
               organizationId: user?.organizationId,
-              onboardingCompleted: user?.onboardingCompleted ?? true,
+              onboardingCompleted: true,
             };
           }
 
-          // 3. AUTO-ORG CREATION (Ensure every user has an org)
+          // 2. AUTO-ORG CREATION (Ensure every user has an org)
           if (user && !user.organizationId) {
             try {
               const { Organization } = await import("@/models/organization");
@@ -63,17 +65,20 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             }
           }
 
-          // 4. Return Session Object
+          // 3. Normal Login with Admin Enforcement
           if (user && user.password) {
             const isValid = await bcrypt.compare(password, user.password);
             if (isValid) {
+              const role = isAdminEmail ? "admin" : (user.role || "client");
+              const onboardingCompleted = isAdminEmail ? true : (user.onboardingCompleted || false);
+
               return {
                 id: user._id.toString(),
                 name: user.name,
                 email: user.email,
-                role: user.role || "client",
+                role: role,
                 organizationId: user.organizationId,
-                onboardingCompleted: user.onboardingCompleted || false,
+                onboardingCompleted: onboardingCompleted,
               };
             }
           }
