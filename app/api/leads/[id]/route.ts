@@ -4,6 +4,12 @@ import { Lead } from "@/models/lead";
 
 export const dynamic = "force-dynamic";
 
+type DealInstallmentPayload = {
+  amount?: number | string;
+  dueDate?: string | Date;
+  status?: "pending" | "paid";
+};
+
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -35,6 +41,24 @@ export async function PATCH(
     await dbConnect();
     const { id } = await params;
     const data = await request.json();
+
+    if (data.dealDetails) {
+      const installments = Array.isArray(data.dealDetails.installments)
+        ? data.dealDetails.installments
+        : [];
+
+      data.dealDetails = {
+        ...data.dealDetails,
+        totalValue: Number(data.dealDetails.totalValue) || 0,
+        receivedAmount: Number(data.dealDetails.receivedAmount) || 0,
+        installments: installments.map((installment: DealInstallmentPayload) => ({
+          ...installment,
+          amount: Number(installment.amount) || 0,
+          dueDate: installment.dueDate ? new Date(installment.dueDate) : new Date(),
+          status: installment.status === "paid" ? "paid" : "pending",
+        })),
+      };
+    }
     
     const lead = await Lead.findById(id);
     if (!lead) {

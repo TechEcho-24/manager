@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useSession } from "next-auth/react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { 
   X, 
   Send, 
@@ -11,7 +11,6 @@ import {
   Command,
   Zap,
   Mic,
-  MicOff,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { LEAD_STATUSES, LEAD_PRIORITIES } from "@/lib/constants";
@@ -24,7 +23,55 @@ interface Message {
   timestamp: Date;
 }
 
-const STEPS = [
+type UserWithRole = {
+  role?: string;
+};
+
+type LeadAssistantData = Partial<{
+  fullName: string;
+  phone: string;
+  email: string;
+  company: string;
+  priority: string;
+  status: string;
+  leadSource: string;
+}>;
+
+type LeadStepKey = keyof LeadAssistantData;
+
+type Step = {
+  key: LeadStepKey;
+  question: string;
+  optional?: boolean;
+  options?: readonly string[];
+};
+
+type SpeechRecognitionEventLike = {
+  results: {
+    0: {
+      0: {
+        transcript: string;
+      };
+    };
+  };
+};
+
+type SpeechRecognitionLike = {
+  continuous: boolean;
+  interimResults: boolean;
+  lang: string;
+  onstart: (() => void) | null;
+  onend: (() => void) | null;
+  onresult: ((event: SpeechRecognitionEventLike) => void) | null;
+  start: () => void;
+};
+
+type SpeechRecognitionConstructor = new () => SpeechRecognitionLike;
+
+const createMessageId = (prefix: string) =>
+  `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+
+const STEPS: Step[] = [
   { key: "fullName", question: "Neural Link Active. Starting new lead entry. Please provide the **Full Name**.", optional: false },
   { key: "phone", question: "Copy that. Now, what is the **Phone Number**?", optional: false },
   { key: "email", question: "Acknowledged. Do you have an **Email ID**? (You can skip this)", optional: true },
@@ -36,9 +83,11 @@ const STEPS = [
 export function ChatWidget() {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
-  const { data: session } = useSession();
-  const role = (session?.user as any)?.role || "client";
+  const { data: session, status } = useSession();
+  const isLoggedIn = status === "authenticated" && !!session?.user;
+  const role = isLoggedIn ? ((session?.user as UserWithRole)?.role || "client") : "visitor";
   const pathname = usePathname();
+  const router = useRouter();
   
   const isOrange = pathname === "/" || pathname === "/login" || pathname === "/signup";
   const theme = {
@@ -61,7 +110,20 @@ export function ChatWidget() {
 
   const [stepIndex, setStepIndex] = useState(-1);
   const stepIndexRef = useRef(-1); 
-  const leadDataRef = useRef<any>({}); 
+  const leadDataRef = useRef<LeadAssistantData>({});
+
+  const getLeadCreationIntent = (value: string) => {
+    const lower = value.toLowerCase();
+    return (
+      lower.includes("start lead form") ||
+      lower.includes("add new lead") ||
+      lower.includes("create lead") ||
+      lower.includes("nayi lead") ||
+      lower.includes("new lead") ||
+      (lower.includes("lead") && /\b(add|create|capture|start|new)\b/.test(lower)) ||
+      (lower.includes("form") && lower.includes("lead"))
+    );
+  };
 
   const updateStep = (index: number) => {
     setStepIndex(index);
@@ -74,7 +136,11 @@ export function ChatWidget() {
       setIsListening(false);
       return;
     }
-    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    const speechWindow = window as Window & {
+      SpeechRecognition?: SpeechRecognitionConstructor;
+      webkitSpeechRecognition?: SpeechRecognitionConstructor;
+    };
+    const SpeechRecognition = speechWindow.SpeechRecognition || speechWindow.webkitSpeechRecognition;
     if (!SpeechRecognition) return;
 
     const recognition = new SpeechRecognition();
@@ -85,13 +151,13 @@ export function ChatWidget() {
     recognition.onstart = () => setIsListening(true);
     recognition.onend = () => {
       if (stepIndexRef.current >= 0) {
-        try { recognition.start(); } catch(e) {}
+        try { recognition.start(); } catch {}
       } else {
         setIsListening(false);
       }
     };
 
-    recognition.onresult = (event: any) => {
+    recognition.onresult = (event: SpeechRecognitionEventLike) => {
       const transcript = event.results[0][0].transcript;
       const finalInput = transcript.toLowerCase()
         .replace(/\s*at\s+the\s+rate\s*/g, "@")
@@ -108,19 +174,27 @@ export function ChatWidget() {
     recognition.start();
   };
 
-  useEffect(() => {
-    if (messages.length === 0) {
-      setMessages([{
-        id: "wel",
-        role: "assistant",
-        content: role === "admin" 
+  const welcomeMessage = useMemo<Message | null>(() => {
+    if (status === "loading") return null;
+
+    return {
+      id: "wel",
+      role: "assistant",
+      content: !isLoggedIn
+        ? "Welcome to Pinglly by TechEcho. I can help you understand the website, CRM features, pricing, workflows, and how the platform works."
+        : role === "admin"
           ? "Master System Terminal Online. Greetings, Commander. Ready to oversee the Pinglly network?"
           : "Neural Core Online. Shall we start capturing new leads, Commander?",
-        suggestions: role === "admin" ? ["Platform Health", "Client List"] : ["Start Lead Form", "Check status"],
-        timestamp: new Date(),
-      }]);
-    }
-  }, [role]);
+      suggestions: !isLoggedIn
+        ? ["About Pinglly", "Features overview", "Pricing info"]
+        : role === "admin" ? ["Platform Health", "Client List"] : ["Start Lead Form", "Check status"],
+      timestamp: new Date(),
+    };
+  }, [isLoggedIn, role, status]);
+  const visibleMessages = useMemo(
+    () => messages.length === 0 && welcomeMessage ? [welcomeMessage] : messages,
+    [messages, welcomeMessage],
+  );
 
   const scrollRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -129,7 +203,7 @@ export function ChatWidget() {
         scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
       }, 100);
     }
-  }, [messages, isLoading]);
+  }, [visibleMessages, isLoading]);
 
   const handleSend = async (content: string) => {
     const cleanContent = content.trim();
@@ -139,11 +213,24 @@ export function ChatWidget() {
     setInputValue("");
     setIsLoading(true);
 
-    const isTriggerWord = cleanContent.toLowerCase().includes("form") || cleanContent.toLowerCase().includes("lead") || cleanContent.toLowerCase().includes("nayi");
+    const isTriggerWord = getLeadCreationIntent(cleanContent);
 
     // Removed admin block to allow testing
 
     if (stepIndexRef.current >= 0) {
+      if (!isLoggedIn) {
+        updateStep(-1);
+        setMessages(p => [...p, {
+          id: createMessageId("login-required"),
+          role: "assistant",
+          content: "Please log in to add a new lead. Redirecting you to the login page.",
+          timestamp: new Date()
+        }]);
+        setIsLoading(false);
+        router.push("/login");
+        return;
+      }
+
       const currentStep = STEPS[stepIndexRef.current];
       let cleanValue = cleanContent === "Skip" ? "" : cleanContent;
 
@@ -159,7 +246,7 @@ export function ChatWidget() {
         const nextStep = STEPS[nextIndex];
         setTimeout(() => {
           setMessages(p => [...p, {
-            id: `step-${nextIndex}`,
+            id: createMessageId(`step-${nextIndex}`),
             role: "assistant",
             content: nextStep.question,
             suggestions: nextStep.options ? [...nextStep.options] : (nextStep.optional ? ["Skip"] : []),
@@ -183,7 +270,7 @@ export function ChatWidget() {
           });
           if (res.ok) {
             setMessages(p => [...p, {
-              id: "fin",
+              id: createMessageId("fin"),
               role: "assistant",
               content: `⚡ **Neural Link Secured!** Lead for **${finalPayload.fullName}** has been successully archived.`,
               suggestions: ["Start Lead Form"],
@@ -193,8 +280,9 @@ export function ChatWidget() {
             const errData = await res.json();
             throw new Error(errData.error || "Rejection");
           }
-        } catch (e: any) {
-          setMessages(p => [...p, { id: "err", role: "assistant", content: `❌ **Signal Failure:** ${e.message}`, timestamp: new Date() }]);
+        } catch (e) {
+          const message = e instanceof Error ? e.message : "Unable to create lead";
+          setMessages(p => [...p, { id: createMessageId("err"), role: "assistant", content: `❌ **Signal Failure:** ${message}`, timestamp: new Date() }]);
         }
         updateStep(-1);
         setIsLoading(false);
@@ -203,10 +291,22 @@ export function ChatWidget() {
     }
 
     if (isTriggerWord) {
+      if (!isLoggedIn) {
+        setMessages(p => [...p, {
+          id: createMessageId("login-redirect"),
+          role: "assistant",
+          content: "Lead creation is available after login. Redirecting you to the login page.",
+          timestamp: new Date()
+        }]);
+        setIsLoading(false);
+        router.push("/login");
+        return;
+      }
+
       updateStep(0);
       leadDataRef.current = { leadSource: "AI Assistant" };
       setTimeout(() => {
-        setMessages(p => [...p, { id: "intro", role: "assistant", content: STEPS[0].question, suggestions: ["Cancel Form"], timestamp: new Date() }]);
+        setMessages(p => [...p, { id: createMessageId("intro"), role: "assistant", content: STEPS[0].question, suggestions: ["Cancel Form"], timestamp: new Date() }]);
         setIsLoading(false);
       }, 500);
       return;
@@ -214,7 +314,7 @@ export function ChatWidget() {
 
     if (cleanContent === "Cancel Form") {
       updateStep(-1);
-      setMessages(p => [...p, { id: "can", role: "assistant", content: "Sequence aborted.", timestamp: new Date() }]);
+      setMessages(p => [...p, { id: createMessageId("can"), role: "assistant", content: "Sequence aborted.", timestamp: new Date() }]);
       setIsLoading(false);
       return;
     }
@@ -233,7 +333,10 @@ export function ChatWidget() {
         suggestions: data.suggestions || [],
         timestamp: new Date(),
       }]);
-    } catch (err) {} finally { setIsLoading(false); }
+      if (data.action === "LOGIN_REQUIRED") {
+        router.push("/login");
+      }
+    } catch {} finally { setIsLoading(false); }
   };
 
   return (
@@ -259,14 +362,14 @@ export function ChatWidget() {
 
           <div className="flex-1 relative overflow-hidden flex flex-col">
             <div ref={scrollRef} className="flex-1 overflow-y-auto px-6 py-6 space-y-6 no-scrollbar pb-40">
-              {messages.map((msg, idx) => (
+              {visibleMessages.map((msg, idx) => (
                 <div key={msg.id} className={cn("flex flex-col gap-1.5 max-w-[90%] animate-in fade-in slide-in-from-bottom-2", msg.role === "user" ? "ml-auto items-end" : "items-start")}>
                   <div className={cn(
                     "px-4 py-3 rounded-2xl text-[13px] border shadow-lg transition-all",
                     msg.role === "assistant" ? "bg-white/[0.04] text-white/90 border-white/10 rounded-tl-none font-medium" : cn(theme.primary, "text-white border-white/10 rounded-tr-none font-bold")
                   )}>
                     {msg.content}
-                    {msg.role === "assistant" && msg.suggestions && msg.suggestions.length > 0 && idx === messages.length - 1 && !isLoading && (
+                    {msg.role === "assistant" && msg.suggestions && msg.suggestions.length > 0 && idx === visibleMessages.length - 1 && !isLoading && (
                       <div className="flex flex-wrap gap-2 mt-5 pt-5 border-t border-white/5">
                         {msg.suggestions.map((s, i) => (
                           <button key={i} onClick={() => handleSend(s)} className={cn("flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-4 py-2 text-[9px] font-black text-white/40 tracking-widest hover:text-white transition-all", theme.primaryHover)}>
@@ -286,13 +389,13 @@ export function ChatWidget() {
               "bg-gradient-to-t from-black via-black/95 to-transparent border-t border-white/5",
               "sm:bg-transparent sm:border-none sm:from-transparent"
             )}>
-              {stepIndexRef.current >= 0 && (
+              {stepIndex >= 0 && (
                 <div className={cn("flex items-center justify-between mb-4 p-3 rounded-xl animate-in slide-in-from-bottom-2", theme.bgSubtle, theme.borderSubtle, "border")}>
                   <div className="flex items-center gap-3">
                     <div className={cn("relative h-2 w-2 rounded-full", theme.bgPulse)}>
                       <div className={cn("absolute inset-0 rounded-full animate-ping opacity-75", theme.bgPulse)} />
                     </div>
-                    <span className={cn("text-[9px] font-black tracking-widest", theme.text)}>Awaiting: {STEPS[stepIndexRef.current].key}</span>
+                    <span className={cn("text-[9px] font-black tracking-widest", theme.text)}>Awaiting: {STEPS[stepIndex].key}</span>
                   </div>
                   <button onClick={() => handleSend("Cancel Form")} className="text-[9px] font-black text-red-500/40 hover:text-red-500">Abort</button>
                 </div>

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { auth } from "@/auth";
 
 const KNOWLEDGE_BASE = {
   system: {
@@ -25,6 +26,7 @@ const KNOWLEDGE_BASE = {
 
 export async function POST(req: Request) {
   try {
+    const session = await auth();
     const { message, email } = await req.json();
 
     if (email) {
@@ -43,7 +45,15 @@ export async function POST(req: Request) {
     const phoneMatch = msg.match(/\+?\d{10,12}/);
     const leadIntent = msg.includes("lead") && (msg.includes("add") || msg.includes("nayi") || msg.includes("create"));
 
-    if (leadIntent || emailMatch || phoneMatch) {
+    if (!session?.user && leadIntent) {
+      return NextResponse.json({
+        response: "Please log in to add a new lead. You can still ask me about Pinglly, CRM features, pricing, and how the website works.",
+        action: "LOGIN_REQUIRED",
+        suggestions: ["About Pinglly", "Features overview", "Pricing info"],
+      });
+    }
+
+    if (session?.user && (leadIntent || emailMatch || phoneMatch)) {
       // Extract name (simple heuristic: look for "name is X" or "naam context")
       const nameMatch = msg.match(/(?:naam|name)(?:\s+is\s+|\s+hai\s+|\s+)(\w+)/i);
       const name = nameMatch ? nameMatch[1] : "New Prospect";
@@ -69,7 +79,7 @@ export async function POST(req: Request) {
     }
     else if (KNOWLEDGE_BASE.leads.triggers.some(t => msg.includes(t))) {
       response = KNOWLEDGE_BASE.leads.desc;
-      suggestions = ["Lead priorities", "Add new lead"];
+      suggestions = session?.user ? ["Lead priorities", "Add new lead"] : ["Features overview", "Pricing info"];
     }
     else if (KNOWLEDGE_BASE.workflows.triggers.some(t => msg.includes(t))) {
       if (msg.includes("1")) response = KNOWLEDGE_BASE.workflows.w1;
@@ -93,7 +103,7 @@ export async function POST(req: Request) {
 
     await new Promise(resolve => setTimeout(resolve, 1500));
     return NextResponse.json({ response, suggestions });
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: "Failure" }, { status: 500 });
   }
 }
