@@ -49,7 +49,7 @@ const leadFormSchema = z.object({
   leadSource: z.string().min(1, "Lead Source is required"),
   campaignName: z.string().optional(),
   referredBy: z.string().optional(),
-  product: z.string().min(1, "Product/Service is required"),
+  product: z.string().optional(),
   requirementDescription: z.string().optional(),
   budget: z.string().optional(),
   quantity: z.string().optional(),
@@ -62,11 +62,11 @@ const leadFormSchema = z.object({
   tags: z.array(z.string()).optional(),
   status: z.string(),
   dealDetails: z.object({
-    totalValue: z.number(),
-    receivedAmount: z.number(),
+    totalValue: z.coerce.number(),
+    receivedAmount: z.coerce.number(),
     paymentPlan: z.enum(['one-time', 'monthly', 'milestones']),
     installments: z.array(z.object({
-      amount: z.number(),
+      amount: z.coerce.number(),
       dueDate: z.string(),
       status: z.enum(['pending', 'paid']),
     })),
@@ -74,6 +74,11 @@ const leadFormSchema = z.object({
 });
 
 type LeadFormValues = z.infer<typeof leadFormSchema>;
+type DealInstallmentInput = {
+  amount?: number | string;
+  dueDate?: string | Date;
+  status?: 'pending' | 'paid';
+};
 
 interface LeadFormPanelProps {
   open: boolean;
@@ -95,6 +100,7 @@ export function LeadFormPanel({
   const [tagInput, setTagInput] = useState("");
   const [noteInput, setNoteInput] = useState("");
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [showDealModal, setShowDealModal] = useState(false);
   const [planConfig, setPlanConfig] = useState<any>(null);
 
   useEffect(() => {
@@ -114,7 +120,7 @@ export function LeadFormPanel({
       leadSource: "Website Form",
       campaignName: "",
       referredBy: "",
-      product: "Shopify",
+      product: "",
       requirementDescription: "",
       budget: "Under ₹10K",
       quantity: "",
@@ -154,7 +160,7 @@ export function LeadFormPanel({
         leadSource: leadData.leadSource || "Website Form",
         campaignName: leadData.campaignName || "",
         referredBy: leadData.referredBy || "",
-        product: leadData.product || "Shopify",
+        product: leadData.product || "",
         requirementDescription: leadData.requirementDescription || "",
         budget: leadData.budget || "Under ₹10K",
         quantity: leadData.quantity || "",
@@ -168,11 +174,17 @@ export function LeadFormPanel({
           : "",
         tags: leadData.tags || [],
         status: leadData.status || "New",
-        dealDetails: leadData.dealDetails || {
-          totalValue: 0,
-          receivedAmount: 0,
-          paymentPlan: 'one-time',
-          installments: [],
+        dealDetails: {
+          totalValue: Number(leadData.dealDetails?.totalValue) || 0,
+          receivedAmount: Number(leadData.dealDetails?.receivedAmount) || 0,
+          paymentPlan: leadData.dealDetails?.paymentPlan || 'one-time',
+          installments: (leadData.dealDetails?.installments || []).map((inst: DealInstallmentInput) => ({
+            amount: Number(inst.amount) || 0,
+            dueDate: inst.dueDate
+              ? new Date(inst.dueDate).toISOString().split("T")[0]
+              : new Date().toISOString().split("T")[0],
+            status: inst.status || 'pending',
+          })),
         },
       });
     } else if (!isEditMode) {
@@ -181,7 +193,20 @@ export function LeadFormPanel({
   }, [leadData, isLoading, isEditMode, form]);
 
   const watchLeadSource = form.watch("leadSource");
+  const watchLeadStatus = form.watch("status");
   const tags = form.watch("tags") || [];
+  const showDealTracking = watchLeadStatus === "Converted (Won)";
+  const watchedPaymentPlan = form.watch("dealDetails.paymentPlan");
+  const watchedTotalValue = Number(form.watch("dealDetails.totalValue")) || 0;
+  const watchedReceivedAmount = Number(form.watch("dealDetails.receivedAmount")) || 0;
+  const watchedInstallments = form.watch("dealDetails.installments") || [];
+  const remainingDealAmount = Math.max(watchedTotalValue - watchedReceivedAmount, 0);
+  const milestoneTotal = watchedInstallments.reduce(
+    (acc, curr) => acc + (Number(curr.amount) || 0),
+    0,
+  );
+  const unscheduledMilestoneAmount = Math.max(remainingDealAmount - milestoneTotal, 0);
+  const isMilestonePlan = watchedPaymentPlan === "milestones";
 
   const handleAddTag = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" && tagInput.trim()) {
@@ -241,10 +266,12 @@ export function LeadFormPanel({
           ...values.dealDetails,
           totalValue: Number(values.dealDetails.totalValue) || 0,
           receivedAmount: Number(values.dealDetails.receivedAmount) || 0,
-          installments: (values.dealDetails.installments || []).map((inst) => ({
-            ...inst,
-            amount: Number(inst.amount) || 0,
-          })),
+          installments: values.dealDetails.paymentPlan === "milestones"
+            ? (values.dealDetails.installments || []).map((inst) => ({
+                ...inst,
+                amount: Number(inst.amount) || 0,
+              }))
+            : [],
         },
       };
 
@@ -270,6 +297,212 @@ export function LeadFormPanel({
       setIsSubmitting(false);
     }
   };
+
+  const dealTrackingContent = (
+    <div className='space-y-6 pt-4 border-t border-border mt-4'>
+      <div className="flex items-center gap-2">
+         <Zap className="h-4 w-4 text-primary" />
+         <h3 className='text-sm font-bold text-foreground tracking-wider'>
+          Deal & Payment Tracking
+        </h3>
+      </div>
+
+      <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
+        <FormField
+          control={form.control}
+          name='dealDetails.totalValue'
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="text-xs font-semibold tracking-wider text-muted-foreground">Deal Value (₹)</FormLabel>
+              <FormControl>
+                <Input type="number" className="h-10 rounded-xl bg-primary/5 font-bold text-primary" {...field} />
+              </FormControl>
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name='dealDetails.receivedAmount'
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="text-xs font-semibold tracking-wider text-muted-foreground">Received (₹)</FormLabel>
+              <FormControl>
+                <Input type="number" className="h-10 rounded-xl bg-emerald-500/5 font-bold text-emerald-600" {...field} />
+              </FormControl>
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name='dealDetails.paymentPlan'
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="text-xs font-semibold tracking-wider text-muted-foreground">Payment Plan</FormLabel>
+              <FormControl>
+                <Select
+                  {...field}
+                  className="rounded-xl"
+                  onChange={(e) => {
+                    field.onChange(e);
+                    if (e.target.value === "milestones" && (form.getValues("dealDetails.installments") || []).length === 0) {
+                      const totalValue = Number(form.getValues("dealDetails.totalValue")) || 0;
+                      const receivedAmount = Number(form.getValues("dealDetails.receivedAmount")) || 0;
+                      const balanceLeft = Math.max(totalValue - receivedAmount, 0);
+                      form.setValue("dealDetails.installments", [
+                        {
+                          amount: balanceLeft,
+                          dueDate: new Date().toISOString().split('T')[0],
+                          status: 'pending',
+                        },
+                      ], { shouldDirty: true, shouldTouch: true, shouldValidate: true });
+                    }
+                  }}
+                >
+                  <option value='one-time'>One-time</option>
+                  <option value='monthly'>Monthly</option>
+                  <option value='milestones'>Milestones</option>
+                </Select>
+              </FormControl>
+            </FormItem>
+          )}
+        />
+      </div>
+
+      <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+        <div className="rounded-xl border border-primary/10 bg-primary/5 px-4 py-3">
+          <div className="text-[10px] font-bold tracking-wider text-muted-foreground">Deal Value</div>
+          <div className="mt-1 text-sm font-black text-primary">₹{watchedTotalValue.toLocaleString()}</div>
+        </div>
+        <div className="rounded-xl border border-emerald-500/10 bg-emerald-500/5 px-4 py-3">
+          <div className="text-[10px] font-bold tracking-wider text-muted-foreground">Received</div>
+          <div className="mt-1 text-sm font-black text-emerald-600">₹{watchedReceivedAmount.toLocaleString()}</div>
+        </div>
+        <div className="rounded-xl border border-amber-500/10 bg-amber-500/5 px-4 py-3">
+          <div className="text-[10px] font-bold tracking-wider text-muted-foreground">Balance Left</div>
+          <div className="mt-1 text-sm font-black text-amber-600">₹{remainingDealAmount.toLocaleString()}</div>
+        </div>
+	      </div>
+
+	      {isMilestonePlan ? (
+	        <div className="space-y-3">
+	          <div className="flex items-center justify-between">
+	            <div className="space-y-1">
+	              <FormLabel className="text-xs font-bold tracking-wider text-muted-foreground">Payment Milestones / Installments</FormLabel>
+	              {watchedInstallments.length > 0 && (
+	                <div className={cn(
+	                  "text-[10px] font-bold px-2 py-0.5 rounded-full border",
+	                  milestoneTotal === remainingDealAmount
+	                    ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20"
+	                    : "bg-amber-500/10 text-amber-600 border-amber-500/20"
+	                )}>
+	                  Milestone Total: ₹{milestoneTotal.toLocaleString()} / Balance Left: ₹{remainingDealAmount.toLocaleString()}
+	                  {milestoneTotal !== remainingDealAmount &&
+	                    ` (${milestoneTotal > remainingDealAmount ? "Over-scheduled" : "Remaining to schedule"}: ₹${Math.abs(remainingDealAmount - milestoneTotal).toLocaleString()})`}
+	                </div>
+	              )}
+	            </div>
+	            <Button
+	              type="button"
+	              variant="outline"
+	              size="sm"
+	              className="h-7 text-[10px] font-bold border-primary/20 text-primary hover:bg-primary/5"
+	              onClick={() => {
+	                const current = form.getValues("dealDetails.installments") || [];
+	                form.setValue("dealDetails.installments", [
+	                  ...current,
+	                  { amount: unscheduledMilestoneAmount, dueDate: new Date().toISOString().split('T')[0], status: 'pending' }
+	                ], { shouldDirty: true, shouldTouch: true, shouldValidate: true });
+	              }}
+	            >
+	              + Add Milestone
+	            </Button>
+	          </div>
+
+	          <div className="space-y-3">
+	            {watchedInstallments.map((_, index) => (
+	              <div key={index} className="flex gap-3 items-end bg-muted/20 p-3 rounded-xl border border-border">
+	                <FormField
+	                  control={form.control}
+	                  name={`dealDetails.installments.${index}.dueDate`}
+	                  render={({ field }) => (
+	                    <FormItem className="flex-1">
+	                      <FormLabel className="text-[10px] text-muted-foreground">Due Date</FormLabel>
+	                      <FormControl>
+	                        <Input type="date" className="h-8 text-xs rounded-lg" {...field} />
+	                      </FormControl>
+	                    </FormItem>
+	                  )}
+	                />
+	                <FormField
+	                  control={form.control}
+	                  name={`dealDetails.installments.${index}.amount`}
+	                  render={({ field }) => (
+	                    <FormItem className="flex-1">
+	                      <FormLabel className="text-[10px] text-muted-foreground">Amount (₹)</FormLabel>
+	                      <FormControl>
+	                        <Input type="number" className="h-8 text-xs rounded-lg font-bold" {...field} />
+	                      </FormControl>
+	                    </FormItem>
+	                  )}
+	                />
+	                <FormField
+	                  control={form.control}
+	                  name={`dealDetails.installments.${index}.status`}
+	                  render={({ field }) => (
+	                    <FormItem className="w-[100px]">
+	                      <FormLabel className="text-[10px] text-muted-foreground">Status</FormLabel>
+	                      <FormControl>
+	                        <Select {...field} className="h-8 text-xs rounded-lg">
+	                          <option value="pending">Pending</option>
+	                          <option value="paid">Paid</option>
+	                        </Select>
+	                      </FormControl>
+	                    </FormItem>
+	                  )}
+	                />
+	                <div className="flex gap-1 mb-[2px]">
+	                   <Button
+	                    type="button"
+	                    variant="ghost"
+	                    size="icon"
+	                    className="h-7 w-7 text-primary hover:bg-primary/10 rounded-lg"
+	                    title="Send Reminder"
+	                  >
+	                    <Mail className="h-3.5 w-3.5" />
+	                  </Button>
+	                  <Button
+	                    type="button"
+	                    variant="ghost"
+	                    size="icon"
+	                    className="h-7 w-7 text-rose-500 hover:bg-rose-500/10 rounded-lg"
+	                    onClick={() => {
+	                      const current = form.getValues("dealDetails.installments") || [];
+	                      form.setValue(
+	                        "dealDetails.installments",
+	                        current.filter((_, i) => i !== index),
+	                        { shouldDirty: true, shouldTouch: true, shouldValidate: true },
+	                      );
+	                    }}
+	                  >
+	                    <Trash2 className="h-3.5 w-3.5" />
+	                  </Button>
+	                </div>
+	              </div>
+	            ))}
+	            {watchedInstallments.length === 0 && (
+	              <div className="text-center py-6 border-2 border-dashed border-border rounded-2xl text-muted-foreground">
+	                <p className="text-xs italic">No payment milestones added yet</p>
+	              </div>
+	            )}
+	          </div>
+	        </div>
+      ) : (
+        <div className="rounded-xl border border-dashed border-border bg-muted/20 px-4 py-6 text-center text-xs text-muted-foreground">
+          Select Milestones as the payment plan to schedule the balance amount.
+        </div>
+      )}
+    </div>
+  );
 
   return (
     <Dialog 
@@ -495,9 +728,10 @@ export function LeadFormPanel({
                       name='product'
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Interested Product/Service *</FormLabel>
+                          <FormLabel>Interested Product/Service</FormLabel>
                           <FormControl>
                             <Select {...field}>
+                              <option value=''>Select product/service</option>
                               <option value='Shopify'>Shopify</option>
                               <option value='WordPress'>WordPress</option>
                               <option value='Custom Website'>Custom Website</option>
@@ -528,22 +762,24 @@ export function LeadFormPanel({
                         </FormItem>
                       )}
                     />
-                    <FormField
-                      control={form.control}
-                      name='requirementDescription'
-                      render={({ field }) => (
-                        <FormItem className='md:col-span-2'>
-                          <FormLabel>Requirement Description</FormLabel>
-                          <FormControl>
-                            <Textarea
-                              placeholder='Details about what they are looking for...'
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                    { ["Converted (Won)", "Follow-up Required","Proposal Sent"].includes(watchLeadStatus) && (
+                      <FormField
+                        control={form.control}
+                        name='requirementDescription'
+                        render={({ field }) => (
+                          <FormItem className='md:col-span-2'>
+                            <FormLabel>Requirement Description</FormLabel>
+                            <FormControl>
+                              <Textarea
+                                placeholder='Details about what they are looking for...'
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    )}
                     <FormField
                       control={form.control}
                       name='quantity'
@@ -709,169 +945,6 @@ export function LeadFormPanel({
                     </div>
                   </div>
                 </div>
-                {/* Deal Details - Only for Converted Leads */}
-                {form.watch("status") === "Converted (Won)" && (
-                  <div className='space-y-6 pt-4 border-t border-border mt-4'>
-                    <div className="flex items-center gap-2">
-                       <Zap className="h-4 w-4 text-primary" />
-                       <h3 className='text-sm font-bold text-foreground tracking-wider'>
-                        Deal & Payment Tracking
-                      </h3>
-                    </div>
-                    
-                    <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
-                      <FormField
-                        control={form.control}
-                        name='dealDetails.totalValue'
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="text-xs font-semibold tracking-wider text-muted-foreground">Deal Value (₹)</FormLabel>
-                            <FormControl>
-                              <Input type="number" className="h-10 rounded-xl bg-primary/5 font-bold text-primary" {...field} />
-                            </FormControl>
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name='dealDetails.receivedAmount'
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="text-xs font-semibold tracking-wider text-muted-foreground">Received (₹)</FormLabel>
-                            <FormControl>
-                              <Input type="number" className="h-10 rounded-xl bg-emerald-500/5 font-bold text-emerald-600" {...field} />
-                            </FormControl>
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name='dealDetails.paymentPlan'
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="text-xs font-semibold tracking-wider text-muted-foreground">Payment Plan</FormLabel>
-                            <FormControl>
-                              <Select {...field} className="rounded-xl">
-                                <option value='one-time'>One-time</option>
-                                <option value='monthly'>Monthly</option>
-                                <option value='milestones'>Milestones</option>
-                              </Select>
-                            </FormControl>
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between">
-                        <div className="space-y-1">
-                          <FormLabel className="text-xs font-bold tracking-wider text-muted-foreground">Payment Milestones / Installments</FormLabel>
-                          {form.watch("dealDetails.installments") && form.watch("dealDetails.installments").length > 0 && (
-                            <div className={cn(
-                              "text-[10px] font-bold px-2 py-0.5 rounded-full border",
-                              (form.watch("dealDetails.installments").reduce((acc, curr) => acc + (Number(curr.amount) || 0), 0)) === Number(form.watch("dealDetails.totalValue"))
-                                ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20"
-                                : "bg-amber-500/10 text-amber-600 border-amber-500/20"
-                            )}>
-                              Milestone Total: ₹{form.watch("dealDetails.installments").reduce((acc, curr) => acc + (Number(curr.amount) || 0), 0).toLocaleString()} 
-                              {form.watch("dealDetails.installments").reduce((acc, curr) => acc + (Number(curr.amount) || 0), 0) !== Number(form.watch("dealDetails.totalValue")) && 
-                                ` (Mismatch: Total Deal Value is ₹${Number(form.watch("dealDetails.totalValue")).toLocaleString()})`}
-                            </div>
-                          )}
-                        </div>
-                        <Button 
-                          type="button" 
-                          variant="outline" 
-                          size="sm" 
-                          className="h-7 text-[10px] font-bold border-primary/20 text-primary hover:bg-primary/5"
-                          onClick={() => {
-                            const current = form.getValues("dealDetails.installments") || [];
-                            form.setValue("dealDetails.installments", [
-                              ...current, 
-                              { amount: 0, dueDate: new Date().toISOString().split('T')[0], status: 'pending' }
-                            ]);
-                          }}
-                        >
-                          + Add Milestone
-                        </Button>
-                      </div>
-
-                      <div className="space-y-3">
-                        {form.watch("dealDetails.installments")?.map((_, index) => (
-                          <div key={index} className="flex gap-3 items-end bg-muted/20 p-3 rounded-xl border border-border">
-                            <FormField
-                              control={form.control}
-                              name={`dealDetails.installments.${index}.dueDate`}
-                              render={({ field }) => (
-                                <FormItem className="flex-1">
-                                  <FormLabel className="text-[10px] text-muted-foreground">Due Date</FormLabel>
-                                  <FormControl>
-                                    <Input type="date" className="h-8 text-xs rounded-lg" {...field} />
-                                  </FormControl>
-                                </FormItem>
-                              )}
-                            />
-                            <FormField
-                              control={form.control}
-                              name={`dealDetails.installments.${index}.amount`}
-                              render={({ field }) => (
-                                <FormItem className="flex-1">
-                                  <FormLabel className="text-[10px] text-muted-foreground">Amount (₹)</FormLabel>
-                                  <FormControl>
-                                    <Input type="number" className="h-8 text-xs rounded-lg font-bold" {...field} />
-                                  </FormControl>
-                                </FormItem>
-                              )}
-                            />
-                            <FormField
-                              control={form.control}
-                              name={`dealDetails.installments.${index}.status`}
-                              render={({ field }) => (
-                                <FormItem className="w-[100px]">
-                                  <FormLabel className="text-[10px] text-muted-foreground">Status</FormLabel>
-                                  <FormControl>
-                                    <Select {...field} className="h-8 text-xs rounded-lg">
-                                      <option value="pending">Pending</option>
-                                      <option value="paid">Paid</option>
-                                    </Select>
-                                  </FormControl>
-                                </FormItem>
-                              )}
-                            />
-                            <div className="flex gap-1 mb-[2px]">
-                               <Button
-                                type="button"
-                                variant="ghost"
-                                size="icon"
-                                className="h-7 w-7 text-primary hover:bg-primary/10 rounded-lg"
-                                title="Send Reminder"
-                              >
-                                <Mail className="h-3.5 w-3.5" />
-                              </Button>
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="icon"
-                                className="h-7 w-7 text-rose-500 hover:bg-rose-500/10 rounded-lg"
-                                onClick={() => {
-                                  const current = form.getValues("dealDetails.installments");
-                                  form.setValue("dealDetails.installments", current.filter((_, i) => i !== index));
-                                }}
-                              >
-                                <Trash2 className="h-3.5 w-3.5" />
-                              </Button>
-                            </div>
-                          </div>
-                        ))}
-                        {(!form.watch("dealDetails.installments") || form.watch("dealDetails.installments").length === 0) && (
-                          <div className="text-center py-6 border-2 border-dashed border-border rounded-2xl text-muted-foreground">
-                            <p className="text-xs italic">No payment milestones added yet</p>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                )}
               </div>
 
               {/* Right Panel - Metadata & Actions */}
@@ -888,6 +961,12 @@ export function LeadFormPanel({
                           <Select
                             {...field}
                             className='bg-white/5 border-white/10 focus:ring-[oklch(0.60_0.22_260)]'
+                            onChange={(e) => {
+                              field.onChange(e);
+                              if (e.target.value === "Converted (Won)") {
+                                setShowDealModal(true);
+                              }
+                            }}
                           >
                             {LEAD_STATUSES.map((status) => (
                               <option key={status} value={status}>
@@ -901,6 +980,17 @@ export function LeadFormPanel({
                     )}
                   />
                 </div>
+                {showDealTracking && (
+                  <Button
+                    type='button'
+                    variant='outline'
+                    className='w-full justify-center border-primary/20 bg-primary/5 text-primary hover:bg-primary/10'
+                    onClick={() => setShowDealModal(true)}
+                  >
+                    <Zap className='mr-2 h-4 w-4' />
+                    Open Deal & Payment Tracking
+                  </Button>
+                )}
 
                 {/* Read Only Meta */}
                 {isEditMode && leadData && (
@@ -1013,6 +1103,13 @@ export function LeadFormPanel({
                 )}
               </div>
             </form>
+            <Dialog
+              open={showDealModal && showDealTracking}
+              onOpenChange={setShowDealModal}
+              contentClassName="w-full max-w-3xl max-h-[88vh] overflow-y-auto bg-card border border-border rounded-2xl p-6 shadow-2xl"
+            >
+              {dealTrackingContent}
+            </Dialog>
           </Form>
         )}
 
