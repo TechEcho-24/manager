@@ -15,6 +15,13 @@ import {
 import { cn } from "@/lib/utils";
 import { LEAD_STATUSES, LEAD_PRIORITIES } from "@/lib/constants";
 
+const getGreeting = () => {
+  const hour = new Date().getHours();
+  if (hour < 12) return "Good morning";
+  if (hour < 18) return "Good afternoon";
+  return "Good evening";
+};
+
 interface Message {
   id: string;
   role: "assistant" | "user";
@@ -80,10 +87,26 @@ const STEPS: Step[] = [
   { key: "status", question: "Final check: What is the current **Lifecycle Status**?", options: LEAD_STATUSES, optional: false }
 ];
 
+const formatMessage = (content: string) => {
+  const parts = content.split(/(\*\*.*?\*\*|\[.*?\]\(.*?\))/g);
+  return parts.map((part, i) => {
+    if (part.startsWith('**') && part.endsWith('**')) {
+      return <strong key={i} className="font-bold text-white">{part.slice(2, -2)}</strong>;
+    }
+    const linkMatch = part.match(/\[(.*?)\]\((.*?)\)/);
+    if (linkMatch) {
+      return <a key={i} href={linkMatch[2]} target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline underline-offset-2">{linkMatch[1]}</a>;
+    }
+    return <span key={i}>{part}</span>;
+  });
+};
+
 export function ChatWidget() {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const { data: session, status } = useSession();
+//... skipping unchanged lines for brevity in instruction, using actual replacement ...
+
   const isLoggedIn = status === "authenticated" && !!session?.user;
   const role = isLoggedIn ? ((session?.user as UserWithRole)?.role || "client") : "visitor";
   const pathname = usePathname();
@@ -107,6 +130,21 @@ export function ChatWidget() {
   const [inputValue, setInputValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isListening, setIsListening] = useState(false);
+
+  const loadingTexts = ["Thinking...", "Analyzing...", "Getting results for you...", "Formulating response..."];
+  const [loadingTextIndex, setLoadingTextIndex] = useState(0);
+
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (isLoading) {
+      interval = setInterval(() => {
+        setLoadingTextIndex((prev) => (prev + 1) % loadingTexts.length);
+      }, 1500);
+    } else {
+      setLoadingTextIndex(0);
+    }
+    return () => clearInterval(interval);
+  }, [isLoading]);
 
   const [stepIndex, setStepIndex] = useState(-1);
   const stepIndexRef = useRef(-1); 
@@ -181,7 +219,7 @@ export function ChatWidget() {
       id: "wel",
       role: "assistant",
       content: !isLoggedIn
-        ? "Welcome to Pinglly by TechEcho. I can help you understand the website, CRM features, pricing, workflows, and how the platform works."
+        ? `Hi there! ${getGreeting()}. How can I help you?`
         : role === "admin"
           ? "Master System Terminal Online. Greetings, Commander. Ready to oversee the Pinglly network?"
           : "Neural Core Online. Shall we start capturing new leads, Commander?",
@@ -339,6 +377,9 @@ export function ChatWidget() {
     } catch {} finally { setIsLoading(false); }
   };
 
+  const lastMessage = visibleMessages[visibleMessages.length - 1];
+  const activeSuggestions = lastMessage?.role === "assistant" && !isLoading ? lastMessage.suggestions : null;
+
   return (
     <div className="fixed bottom-6 right-6 z-[9999] font-sans antialiased text-white">
       {isOpen && (
@@ -353,8 +394,8 @@ export function ChatWidget() {
                 <Command className="h-5 w-5 text-white" />
               </div>
               <div>
-                <h3 className="font-bold tracking-tight text-sm text-white/90 italic">Neural Core</h3>
-                <div className="flex items-center gap-1.5"><div className="h-1 w-1 rounded-full bg-emerald-500 animate-pulse" /><span className="text-[8px] font-bold text-emerald-500/60 tracking-widest">Active Link</span></div>
+                <h3 className="font-bold tracking-tight text-sm text-white/90 italic">Ping</h3>
+                <div className="flex items-center gap-1.5"><div className="h-1 w-1 rounded-full bg-emerald-500 animate-pulse" /><span className="text-[8px] font-bold text-emerald-500/60 tracking-widest">Online</span></div>
               </div>
             </div>
             <button onClick={() => setIsOpen(false)} className="rounded-xl bg-white/5 p-2 hover:bg-white/10 border border-white/10 transition-all"><X className="h-4 w-4 text-white/40" /></button>
@@ -365,23 +406,25 @@ export function ChatWidget() {
               {visibleMessages.map((msg, idx) => (
                 <div key={msg.id} className={cn("flex flex-col gap-1.5 max-w-[90%] animate-in fade-in slide-in-from-bottom-2", msg.role === "user" ? "ml-auto items-end" : "items-start")}>
                   <div className={cn(
-                    "px-4 py-3 rounded-2xl text-[13px] border shadow-lg transition-all",
-                    msg.role === "assistant" ? "bg-white/[0.04] text-white/90 border-white/10 rounded-tl-none font-medium" : cn(theme.primary, "text-white border-white/10 rounded-tr-none font-bold")
+                    "px-4 py-3 rounded-2xl text-[13px] border shadow-lg transition-all whitespace-pre-wrap",
+                    msg.role === "assistant" ? "bg-white/[0.04] text-white/90 border-white/10 rounded-tl-none font-medium leading-relaxed" : cn(theme.primary, "text-white border-white/10 rounded-tr-none font-bold")
                   )}>
-                    {msg.content}
-                    {msg.role === "assistant" && msg.suggestions && msg.suggestions.length > 0 && idx === visibleMessages.length - 1 && !isLoading && (
-                      <div className="flex flex-wrap gap-2 mt-5 pt-5 border-t border-white/5">
-                        {msg.suggestions.map((s, i) => (
-                          <button key={i} onClick={() => handleSend(s)} className={cn("flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-4 py-2 text-[9px] font-black text-white/40 tracking-widest hover:text-white transition-all", theme.primaryHover)}>
-                            {s} <ArrowRight className="h-3 w-3" />
-                          </button>
-                        ))}
-                      </div>
-                    )}
+                    {formatMessage(msg.content)}
                   </div>
                 </div>
               ))}
-              {isLoading && <div className={cn("px-6 text-[8px] font-bold tracking-[0.4em] animate-pulse", theme.textMuted)}>Syncing...</div>}
+              {isLoading && (
+                <div className="flex flex-col gap-1.5 max-w-[90%] items-start animate-in fade-in slide-in-from-bottom-2">
+                  <div className="px-4 py-3 rounded-2xl border shadow-lg bg-white/[0.04] text-white/90 border-white/10 rounded-tl-none font-medium flex items-center gap-3">
+                    <div className="flex gap-1.5">
+                      <div className="w-1.5 h-1.5 bg-white/50 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
+                      <div className="w-1.5 h-1.5 bg-white/50 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
+                      <div className="w-1.5 h-1.5 bg-white/50 rounded-full animate-bounce"></div>
+                    </div>
+                    <span className="text-[11px] text-white/50 animate-pulse tracking-wide">{loadingTexts[loadingTextIndex]}</span>
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className={cn(
@@ -389,6 +432,15 @@ export function ChatWidget() {
               "bg-gradient-to-t from-black via-black/95 to-transparent border-t border-white/5",
               "sm:bg-transparent sm:border-none sm:from-transparent"
             )}>
+              {activeSuggestions && activeSuggestions.length > 0 && (
+                <div className="flex flex-wrap gap-2 mb-4 animate-in slide-in-from-bottom-2">
+                  {activeSuggestions.map((s, i) => (
+                    <button key={i} onClick={() => handleSend(s)} className={cn("flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-[10px] font-bold text-white/60 tracking-wide hover:text-white transition-all shadow-lg backdrop-blur-xl", theme.primaryHover, "hover:border-white/20")}>
+                      {s}
+                    </button>
+                  ))}
+                </div>
+              )}
               {stepIndex >= 0 && (
                 <div className={cn("flex items-center justify-between mb-4 p-3 rounded-xl animate-in slide-in-from-bottom-2", theme.bgSubtle, theme.borderSubtle, "border")}>
                   <div className="flex items-center gap-3">

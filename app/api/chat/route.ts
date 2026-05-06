@@ -1,109 +1,387 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 
-const KNOWLEDGE_BASE = {
-  system: {
-    overview: "LeadPro CRM is a neural-themed sales command center designed to optimize your lead lifecycle. It combines lead tracking, financial deal management with milestones, daily productivity goals, and real-time analytics. Powered by Pinglly.",
-    purpose: "The system helps sales teams transition from messy spreadsheets to a highly organized digital command center, ensuring no lead is lost and every payment is tracked.",
-    branding: "Powered by TechEcho - Your Neural Sales Command Center.",
-    triggers: ["what it does", "purpose", "about", "help", "kya hai", "kya karta"]
-  },
-  leads: {
-    desc: "Leads Section: Manage prospects with 3-tier priority (High/Med/Low) and a full pipeline (New to Won/Lost). Tracks Source (LinkedIn/Web) and Product Interest.",
-    triggers: ["lead", "prospect", "pipeline", "priority", "sales"]
-  },
-  deals: {
-    desc: "Deals (Financial Command Center): Manage payments via Milestones (progress-based) or Installments (time-based). Tracks collected vs outstanding revenue.",
-    triggers: ["deal", "payment", "money", "milestone", "installment", "revenue"]
-  },
-  workflows: {
-    w1: "Workflow 1 (Adding Lead): Leads -> Add New -> Fill Form -> Submit. Boosts daily goals.",
-    w2: "Workflow 2 (Follow-ups): Follow-ups -> Today's list -> Complete -> Add Notes.",
-    w3: "Workflow 3 (Deals): When Won -> Deals -> Create Deal -> Select Payment Structure.",
-    triggers: ["workflow", "process", "steps", "guide"]
-  }
-};
+// ============================================================
+//  PINGLLY SYSTEM PROMPT — Full Knowledge Base
+// ============================================================
+const PINGLLY_SYSTEM_PROMPT = `
+Tumhara naam "Ping" hai aur tum Pinglly ke official AI assistant ho.
+Tum existing users ki help karte ho — unhe features use karna sikhate ho,
+plans samjhate ho, pricing batate ho, aur unke har sawaal ka jawab dete ho.
 
-export async function POST(req: Request) {
+## Pinglly kya hai?
+Pinglly ek smart CRM (Customer Relationship Management) system hai jisme
+businesses apne contacts, leads, tasks, sales pipeline aur team ko ek hi
+jagah se manage kar sakte hain. Sabse khaas baat — VOICE se bhi sab kuch
+control kiya ja sakta hai. Chatbot (Ping) se directly baat karke bhi kaam
+ho jaata hai.
+
+## Pinglly ke Fayde (Benefits):
+- Sab kuch ek jagah — contacts, tasks, deals, team, payments ek dashboard par
+- Voice se manage karo — type karne ki zaroorat nahi, bol do kaam ho jayega
+- Time bachta hai — automation se follow-ups aur reminders khud chale jaate hain
+- Koi lead miss nahi hoti — pipeline hamesha updated rehti hai
+- Chhote aur bade dono businesses ke liye suitable
+- Mobile par bhi poora kaam hota hai
+- Pro mein AI features — smart suggestions aur insights milti hain
+
+---
+
+## Pinglly ke Main Features:
+
+### 1. Contact & Lead Management
+- Naye contacts aur leads add karo (manually, chatbot se, ya AI se — plan ke hisaab se)
+- Poori history ek jagah — calls, notes, follow-ups
+- Leads ko status se filter karo: New, In Progress, Converted, Lost
+- Import/Export contacts support
+
+### 2. Task Management (Image + Video + Voice)
+- Tasks create karo, team members ya clients ko assign karo
+- Task ke saath IMAGE attach karo (site photo, document, screenshot)
+- Task ke saath VIDEO attach karo (demo ya instruction)
+- VOICE NOTE record karke task mein attach karo
+- Status track karo: Pending → In Progress → Done
+- Deadline aur automatic reminders
+
+### 3. Voice Integration (Pinglly ki USP)
+- Microphone icon press karo aur bol do — kaam ho jayega
+- Example: "Ramesh ka kal 3 baje follow-up set karo" → task ban jaayega
+- Voice notes seedha contacts aur tasks mein save hote hain
+- Hands-free CRM — driving ya meeting mein bhi use karo
+
+### 4. Chatbot (Ping) se Direct Management
+- Ping se baat karo aur seedha kaam karo
+- "Aaj ke pending tasks dikhao", "Naya lead add karo", "Pipeline status batao"
+- Pro plan mein AI khud suggest karta hai kaunsa lead hot hai
+
+### 5. Sales Pipeline
+- Stages: Lead → Qualified → Proposal → Negotiation → Won/Lost
+- Visual board — drag & drop se deals move karo
+- Expected value aur closing date set karo
+
+### 6. Payment Reminders & Links
+- Customers ko payment reminder bhejo
+- Payment links banao (plan ke hisaab se basic/branded/full tracking)
+- Monthly limits: Starter 50/mo, Growth 500/mo, Pro unlimited
+
+### 7. Follow-ups
+- Starter: Basic follow-ups
+- Growth: Advanced follow-ups
+- Pro: Smart AI-suggested follow-ups — AI batata hai kab aur kaise follow-up karo
+
+### 8. Reports & Analytics
+- Starter: Basic reports
+- Growth: Detailed reports
+- Pro: Advanced reports + AI insights — trends aur predictions bhi
+
+### 9. Automation
+- Growth: Basic automation (jaise automatic welcome message)
+- Pro: Advanced multi-step automation (lead aaya → task assign → reminder gaya → follow-up schedule hua)
+
+### 10. Integrations & API
+- Starter: Limited integrations
+- Growth: Full integrations
+- Pro: Full integrations + API access (apne tools se connect karo)
+
+### 11. Team Management
+- Roles: Admin, Manager, Member
+- Tasks distribute karo team mein
+- Activity log dekho
+- Limits: Starter 1 member, Growth 5 members, Pro unlimited
+
+---
+
+## Pinglly Plans & Pricing:
+
+### STARTER PLAN
+Monthly price: $2.9/month
+Yearly price: $2.61/month (10% off) = $31.32/year — $3.48 bachao
+Best for: Solopreneurs aur individuals jo basic CRM chahte hain
+
+Kya milta hai:
+- Leads: 500 tak
+- Team: 1 member (sirf aap)
+- Lead add karne ka tarika: Sirf manually
+- Tasks: Sirf text
+- Role-based access: Basic
+- Payment reminders: 50/month
+- Payment links: Basic
+- Follow-ups: Basic
+- Reports: Basic reports
+- Integrations: Limited
+- Support: Email support
+- Automation: Nahi
+- Voice tasks: Nahi
+- API access: Nahi
+
+Signup link: pinglly.com/signup?plan=Starter
+
+---
+
+### GROWTH PLAN (MOST POPULAR)
+Monthly price: $6.9/month
+Yearly price: $6.21/month (10% off) = $74.52/year — $8.28 bachao
+Best for: Chhoti teams aur growing businesses
+
+Kya milta hai:
+- Leads: 5,000 tak
+- Team: 5 members
+- Lead add karne ka tarika: Manual + Chatbot se bhi
+- Tasks: Text + Voice note attach kar sakte ho
+- Role-based access: Advanced
+- Payment reminders: 500/month
+- Payment links: Branded payment links
+- Follow-ups: Advanced
+- Reports: Detailed reports
+- Integrations: Full integrations
+- Support: Priority support
+- Automation: Basic automation
+- Voice tasks: Haan
+- API access: Nahi
+
+Signup link: pinglly.com/signup?plan=Growth
+
+---
+
+### PRO PLAN
+Monthly price: $14.9/month
+Yearly price: $13.41/month (10% off) = $160.92/year — $17.88 bachao
+Best for: Badi teams, agencies, power users
+
+Kya milta hai:
+- Leads: Unlimited
+- Team: Unlimited members
+- Lead add karne ka tarika: Manual + Chatbot + AI (AI khud leads suggest karta hai)
+- Tasks: Text + Voice + Image — sab kuch attach kar sakte ho
+- Role-based access: Advanced
+- Payment reminders: Unlimited
+- Payment links: Full tracking + Custom branding
+- Follow-ups: Smart AI-suggested follow-ups
+- Reports: Advanced reports + AI insights
+- Integrations: Full integrations
+- Support: Dedicated support (sabse fast)
+- Automation: Advanced multi-step automation
+- Voice tasks: Haan
+- API access: Haan
+
+Signup link: pinglly.com/signup?plan=Pro
+
+---
+
+## Yearly Savings (10% Discount):
+- Starter yearly: $31.32/year (monthly ki jagah yearly lo, $3.48 bachao)
+- Growth yearly: $74.52/year ($8.28 bachao)
+- Pro yearly: $160.92/year ($17.88 bachao)
+
+---
+
+## Kaun sa Plan Lena Chahiye?
+- Akele kaam karte ho, abhi shuru kar rahe ho → STARTER ($2.9/mo)
+- 2-5 log ki team hai, leads zyada hain → GROWTH ($6.9/mo) — sabse popular
+- Badi team, automation chahiye, AI features chahiye → PRO ($14.9/mo)
+- Confuse ho kaunsa plan lein → Growth best choice hai, upgrade karna aasaan hai
+
+---
+
+## Tumhara Kaam (Rules):
+
+1. LANGUAGE: User jis language mein baat kare — Hindi, English ya Hinglish — usi mein jawab do. Language switch mat karo beech mein.
+
+2. PRICE POOCHHE: Exact price batao — monthly aur yearly dono. Yearly savings bhi mention karo.
+
+3. PLAN COMPARISON: Clearly batao kis plan mein kya milta hai aur kya nahi milta.
+
+4. FEATURE NAHI HAI: Agar user ke plan mein feature nahi hai toh bolo "Yeh [Growth/Pro] plan mein available hai — upgrade karke use kar sakte ho."
+
+5. SHORT JAWAB: 3-5 lines kafi hain. Steps explain karne ho toh numbered list use karo.
+
+6. VOICE HIGHLIGHT KARO: Jab bhi relevant ho, voice aur AI features ki USP mention karo.
+
+7. HONEST RAHO: Jo nahi pata uske liye bolo "Iske liye support@pinglly.com se contact karein."
+
+8. SIGNUP LINKS: Plan lene ya upgrade ke liye signup links do jo upar diye hain.
+
+9. LEAD MANAGEMENT: Agar user lead add karna chahta hai ya lead-related data (naam, email, phone) share kare, toh unhe confirm karo ki lead create ho rahi hai. Data extract karo aur action trigger karo.
+`;
+
+// ============================================================
+//  LANGUAGE DETECTION
+// ============================================================
+function detectLanguage(message: string): "hindi" | "english" | "hinglish" {
+  const hindiUnicode = /[\u0900-\u097F]/;
+  const hindiRomanWords =
+    /\b(kya|hai|kaise|karo|mujhe|aap|nahi|haan|theek|batao|dikhao|chahiye|wala|mera|tera|unka|kab|kahan|kyun|kaun|kitna|sab|yeh|wo|aur|par|se|ko|ka|ki|ke|bhi|toh|agar|lekin|sirf|bahut|accha|thoda|zaroor|seedha|poora|plan|price|kitne|bata|lo|do|lena|kaunsa|wali|karta|karti|milta|milti)\b/i;
+
+  if (hindiUnicode.test(message)) return "hindi";
+  if (hindiRomanWords.test(message)) return "hinglish";
+  return "english";
+}
+
+// ============================================================
+//  LEAD INTENT DETECTION
+// ============================================================
+function detectLeadIntent(msg: string): boolean {
+  return (
+    msg.includes("lead") &&
+    (msg.includes("add") ||
+      msg.includes("nayi") ||
+      msg.includes("naya") ||
+      msg.includes("create") ||
+      msg.includes("new") ||
+      msg.includes("banao") ||
+      msg.includes("daalo"))
+  );
+}
+
+// ============================================================
+//  MAIN ROUTE HANDLER
+// ============================================================
+export async function POST(req: NextRequest) {
   try {
     const session = await auth();
-    const { message, email } = await req.json();
+    const { message, conversationHistory = [], email: contactEmail } = await req.json();
 
-    if (email) {
-      return NextResponse.json({ 
-        response: "Neural Signal Optimized. Your request is registered with Pinglly Special Operations. Expect a briefing within 24 hours.", 
-        suggestions: ["Features overview", "See Dashbaord"] 
+    // ── Special: Contact/Demo request via email ──────────────
+    if (contactEmail) {
+      return NextResponse.json({
+        reply:
+          "Neural Signal Optimized. Your request is registered with Pinglly Special Operations. Expect a briefing within 24 hours.",
+        suggestions: ["Features overview", "See Dashboard"],
       });
     }
 
-    const msg = message.toLowerCase();
-    let response = "";
-    let suggestions: string[] = ["Workflow 1", "Manage Deals", "About LeadPro"];
+    if (!message || typeof message !== "string") {
+      return NextResponse.json(
+        { error: "Message is required" },
+        { status: 400 }
+      );
+    }
 
-    // 1. Autonomous Lead Agent (Real Data Extraction & Action Trigger)
+    const msg = message.toLowerCase();
+
+    // ── Autonomous Lead Agent ────────────────────────────────
     const emailMatch = msg.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/);
     const phoneMatch = msg.match(/\+?\d{10,12}/);
-    const leadIntent = msg.includes("lead") && (msg.includes("add") || msg.includes("nayi") || msg.includes("create"));
+    const leadIntent = detectLeadIntent(msg);
 
+    // Not logged in but trying to add lead
     if (!session?.user && leadIntent) {
       return NextResponse.json({
-        response: "Please log in to add a new lead. You can still ask me about Pinglly, CRM features, pricing, and how the website works.",
+        reply: "Lead add karne ke liye pehle login karein. Aap mujhse Pinglly features, pricing, aur plans ke baare mein pooch sakte hain bina login ke.",
         action: "LOGIN_REQUIRED",
         suggestions: ["About Pinglly", "Features overview", "Pricing info"],
       });
     }
 
+    // Logged in + lead intent or contact data detected
     if (session?.user && (leadIntent || emailMatch || phoneMatch)) {
-      // Extract name (simple heuristic: look for "name is X" or "naam context")
       const nameMatch = msg.match(/(?:naam|name)(?:\s+is\s+|\s+hai\s+|\s+)(\w+)/i);
       const name = nameMatch ? nameMatch[1] : "New Prospect";
       const phone = phoneMatch ? phoneMatch[0] : "";
       const email = emailMatch ? emailMatch[0] : "";
 
-      return NextResponse.json({ 
-        response: `Neural Task Initiated: Creating lead for **${name}**. Data extracted from signal. Status: Processing Database Write...`,
+      return NextResponse.json({
+        reply: `Lead create ho rahi hai **${name}** ke liye. Data extract ho gaya — database mein save ho raha hai...`,
         action: "CREATE_LEAD",
-        leadData: { fullName: name, phone, email, source: "AI Assistant", status: "New", priority: "Medium" },
-        suggestions: ["Open Leads Section", "View Dashboard"]
+        leadData: {
+          fullName: name,
+          phone,
+          email,
+          source: "AI Assistant",
+          status: "New",
+          priority: "Medium",
+        },
+        suggestions: ["Open Leads Section", "View Dashboard"],
       });
     }
-    // 2. General/System/About Intent (Global Priority)
-    else if (KNOWLEDGE_BASE.system.triggers.some(t => msg.includes(t)) || msg.includes("kya hai") || msg.includes("kaise help")) {
-      response = `${KNOWLEDGE_BASE.system.overview} ${KNOWLEDGE_BASE.system.purpose} ${KNOWLEDGE_BASE.system.branding || ""}`;
-      suggestions = ["Explain Workflow 1", "How to manage deals?", "Pricing info"];
-    } 
-    // 2. Specialized Modules
-    else if (KNOWLEDGE_BASE.deals.triggers.some(t => msg.includes(t))) {
-      response = KNOWLEDGE_BASE.deals.desc;
-      suggestions = ["Track installments", "Set milestones"];
-    }
-    else if (KNOWLEDGE_BASE.leads.triggers.some(t => msg.includes(t))) {
-      response = KNOWLEDGE_BASE.leads.desc;
-      suggestions = session?.user ? ["Lead priorities", "Add new lead"] : ["Features overview", "Pricing info"];
-    }
-    else if (KNOWLEDGE_BASE.workflows.triggers.some(t => msg.includes(t))) {
-      if (msg.includes("1")) response = KNOWLEDGE_BASE.workflows.w1;
-      else if (msg.includes("2")) response = KNOWLEDGE_BASE.workflows.w2;
-      else if (msg.includes("3")) response = KNOWLEDGE_BASE.workflows.w3;
-      else response = `Workflows: 1. Adding leads, 2. Completing follow-ups, 3. Creating deals. Which one should I explain?`;
-      suggestions = ["Workflow 1", "Workflow 2", "Workflow 3"];
-    }
-    else if (msg.includes("founder") || msg.includes("anuj") || msg.includes("pinglly")) {
-      response = "LeadPro is  developed for high-performance sales by Pinglly. It's a next-gen Neural Sales Tool.";
-      suggestions = ["App purpose", "Back to dashboard"];
-    } else if (msg.includes("kaise") || msg.includes("how")) {
-      response = "I can guide you through any process. For example: Workflow 1 for adding leads or Workflow 3 for creating deals. What do you need help with?";
-      suggestions = ["Workflow 1", "Manage Deals"];
-    }
-    else {
-      // Sophisticated RAG-like Fallback
-      response = "Analyzing documentation layers... Identity confirmed. While I don't have a direct answer for that phrase, I can guide you through Leads, Deals, Workflows, or Analytics. Try asking 'About LeadPro' or 'Workflow 1'.";
-      suggestions = ["About LeadPro", "Workflow 1", "Manage Deals"];
+
+    // ── Gemini API Call ──────────────────────────────────────
+    const apiKey = process.env.GEMINI_API_KEY;
+
+    if (apiKey) {
+      const langInstruction = "User is speaking in English. Reply in English only. Keep responses short and professional.";
+
+      const contents = [
+        ...conversationHistory.map(
+          (turn: { role: string; content: string }) => ({
+            role: turn.role === "assistant" ? "model" : "user",
+            parts: [{ text: turn.content }],
+          })
+        ),
+        {
+          role: "user",
+          parts: [{ text: message }],
+        },
+      ];
+
+      const response = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${apiKey}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            systemInstruction: {
+              parts: [
+                { text: `${PINGLLY_SYSTEM_PROMPT}\n\n${langInstruction}` },
+              ],
+            },
+            contents,
+            generationConfig: {
+              temperature: 0.7,
+              maxOutputTokens: 4000,
+            },
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        const err = await response.text();
+        console.error("Gemini API error:", err);
+        throw new Error("Gemini API failed");
+      }
+
+      const data = await response.json();
+      const reply = data.candidates?.[0]?.content?.parts?.[0]?.text;
+
+      if (!reply) throw new Error("Empty response from Gemini");
+
+      return NextResponse.json({ response: reply });
     }
 
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    return NextResponse.json({ response, suggestions });
-  } catch {
-    return NextResponse.json({ error: "Failure" }, { status: 500 });
+    // ── Ollama (Local, uncomment to use) ────────────────────
+    /*
+    const ollamaResponse = await fetch("http://localhost:11434/api/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "llama3.2:3b",
+        messages: [
+          { role: "system", content: PINGLLY_SYSTEM_PROMPT },
+          ...conversationHistory.map((t: { role: string; text: string }) => ({
+            role: t.role === "assistant" ? "assistant" : "user",
+            content: t.text,
+          })),
+          { role: "user", content: message },
+        ],
+        stream: false,
+      }),
+    });
+    const ollamaData = await ollamaResponse.json();
+    return NextResponse.json({ reply: ollamaData.message.content });
+    */
+
+    // ── Fallback ─────────────────────────────────────────────
+    return NextResponse.json({
+      response: "System initialization in progress. Please ensure GEMINI_API_KEY is configured in your environment.",
+    });
+  } catch (error) {
+    console.error("Chat route error:", error);
+    return NextResponse.json(
+      {
+        response:
+          "An internal error occurred while connecting to the AI core. Please try again or contact support@pinglly.com.",
+      },
+      { status: 500 }
+    );
   }
 }
