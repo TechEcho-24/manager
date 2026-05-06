@@ -344,18 +344,30 @@ export async function POST(req: NextRequest) {
 
       const langInstruction = "User is speaking in English. Reply in English only. Keep responses short and professional.";
 
-      const contents = [
-        ...conversationHistory.map(
-          (turn: { role: string; content: string }) => ({
-            role: turn.role === "assistant" ? "model" : "user",
-            parts: [{ text: turn.content }],
-          })
-        ),
+      const rawContents = [
+        ...conversationHistory
+          .filter((turn: any) => turn.content && typeof turn.content === "string" && turn.content.trim() !== "")
+          .map(
+            (turn: { role: string; content: string }) => ({
+              role: turn.role === "assistant" ? "model" : "user",
+              parts: [{ text: turn.content }],
+            })
+          ),
         {
           role: "user",
           parts: [{ text: message }],
         },
       ];
+
+      const contents: any[] = [];
+      for (const msg of rawContents) {
+        const last = contents[contents.length - 1];
+        if (last && last.role === msg.role) {
+          last.parts[0].text += `\n\n${msg.parts[0].text}`;
+        } else {
+          contents.push({ role: msg.role, parts: [{ text: msg.parts[0].text }] });
+        }
+      }
 
       const response = await fetch(
         `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${apiKey}`,
@@ -378,9 +390,12 @@ export async function POST(req: NextRequest) {
       );
 
       if (!response.ok) {
+        if (response.status === 429) {
+           throw new Error("API Limit Reached: We are receiving too many requests right now. Please wait about a minute and try again.");
+        }
         const err = await response.text();
         console.error("Gemini API error:", err);
-        throw new Error("Gemini API failed");
+        throw new Error(`Gemini API rejected request: ${err}`);
       }
 
       const data = await response.json();
@@ -421,8 +436,7 @@ export async function POST(req: NextRequest) {
     console.error("Chat route error:", error);
     return NextResponse.json(
       {
-        response:
-          "An internal error occurred while connecting to the AI core. Please try again or contact support@pinglly.com.",
+        response: `An internal error occurred while connecting to the AI core. Error: ${error instanceof Error ? error.message : String(error)}`,
       },
       { status: 500 }
     );
