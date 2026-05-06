@@ -51,6 +51,8 @@ export interface ILead extends Document {
     totalValue: number;
     receivedAmount: number;
     paymentPlan: 'one-time' | 'monthly' | 'milestones';
+    monthlyPaymentDate?: number;
+    paymentDate?: Date;
     installments: {
       amount: number;
       dueDate: Date;
@@ -130,6 +132,8 @@ const LeadSchema = new Schema<ILead>(
         enum: ['one-time', 'monthly', 'milestones'],
         default: 'one-time' 
       },
+      monthlyPaymentDate: { type: Number, min: 1, max: 31 },
+      paymentDate: { type: Date },
       installments: [
         {
           amount: { type: Number, required: true },

@@ -91,17 +91,17 @@ export function ChatWidget() {
   
   const isOrange = pathname === "/" || pathname === "/login" || pathname === "/signup";
   const theme = {
-    primary: isOrange ? "bg-[#ff6b35]" : "bg-indigo-600",
-    primaryHover: isOrange ? "hover:bg-[#ff6b35]/30" : "hover:bg-indigo-600/30",
-    primaryShadow: isOrange ? "shadow-[#ff6b35]/30" : "shadow-indigo-600/30",
-    primaryShadowLg: isOrange ? "shadow-[#ff6b35]/40" : "shadow-indigo-600/40",
-    text: isOrange ? "text-[#ff6b35]" : "text-indigo-400",
-    textMuted: isOrange ? "text-[#ff6b35]/50" : "text-indigo-500/50",
-    bgSubtle: isOrange ? "bg-[#ff6b35]/10" : "bg-indigo-600/10",
-    bgVerySubtle: isOrange ? "bg-[#ff6b35]/5" : "bg-indigo-500/5",
-    borderSubtle: isOrange ? "border-[#ff6b35]/20" : "border-indigo-600/20",
-    fill: isOrange ? "fill-[#ff6b35]" : "fill-indigo-500",
-    bgPulse: isOrange ? "bg-[#ff6b35]" : "bg-indigo-500",
+    primary: isOrange ? "bg-[#ff6b35]" : "bg-primary",
+    primaryHover: isOrange ? "hover:bg-[#ff6b35]/30" : "hover:bg-primary/30",
+    primaryShadow: isOrange ? "shadow-[#ff6b35]/30" : "shadow-primary/30",
+    primaryShadowLg: isOrange ? "shadow-[#ff6b35]/40" : "shadow-primary/40",
+    text: isOrange ? "text-[#ff6b35]" : "text-primary",
+    textMuted: isOrange ? "text-[#ff6b35]/50" : "text-primary/50",
+    bgSubtle: isOrange ? "bg-[#ff6b35]/10" : "bg-primary/10",
+    bgVerySubtle: isOrange ? "bg-[#ff6b35]/5" : "bg-primary/5",
+    borderSubtle: isOrange ? "border-[#ff6b35]/20" : "border-primary/20",
+    fill: isOrange ? "fill-[#ff6b35]" : "fill-primary",
+    bgPulse: isOrange ? "bg-[#ff6b35]" : "bg-primary",
   };
 
   const [inputValue, setInputValue] = useState("");
@@ -405,16 +405,16 @@ export function ChatWidget() {
                   type="text"
                   placeholder={isListening ? "Listening to Signal..." : "Console interface..."}
                   className={cn(
-                    "h-14 w-full rounded-2xl border border-blue-500/20 bg-blue-500/10 backdrop-blur-xl pl-5 pr-28 text-sm text-white transition-all font-bold focus:bg-blue-500/20 focus:outline-none focus:border-blue-400/50 shadow-[0_8px_32px_rgba(59,130,246,0.1)]",
-                    isListening && "border-blue-500 shadow-[0_0_30px_rgba(59,130,246,0.4)] animate-pulse bg-blue-500/25"
+                    "h-14 w-full rounded-2xl border border-primary/20 bg-primary/10 backdrop-blur-xl pl-5 pr-28 text-sm text-white transition-all font-bold focus:bg-primary/20 focus:outline-none focus:border-primary/50 shadow-lg shadow-primary/10",
+                    isListening && "border-primary shadow-[0_0_30px_rgba(var(--primary),0.4)] animate-pulse bg-primary/25"
                   )}
                   value={inputValue}
                   onChange={(e) => setInputValue(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && handleSend(inputValue)}
                 />
                 <div className="absolute right-1.5 top-1/2 -translate-y-1/2 flex items-center gap-1.5">
-                  <button onClick={toggleListening} className={cn("h-11 w-11 flex items-center justify-center rounded-xl transition-all", isListening ? "bg-red-500 text-white animate-pulse shadow-lg" : "bg-white/5 text-white/30 hover:bg-blue-500/20 hover:text-white")}><Mic className="h-4 w-4" /></button>
-                  <button onClick={() => handleSend(inputValue)} className="h-11 w-11 flex items-center justify-center rounded-xl bg-blue-600 text-white shadow-lg shadow-blue-600/20 active:scale-95 transition-all hover:bg-blue-500"><Send className="h-4 w-4" /></button>
+                  <button onClick={toggleListening} className={cn("h-11 w-11 flex items-center justify-center rounded-xl transition-all", isListening ? "bg-red-500 text-white animate-pulse shadow-lg" : "bg-white/5 text-white/30 hover:bg-primary/20 hover:text-white")}><Mic className="h-4 w-4" /></button>
+                  <button onClick={() => handleSend(inputValue)} className="h-11 w-11 flex items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-lg shadow-primary/20 active:scale-95 transition-all hover:bg-primary/90"><Send className="h-4 w-4" /></button>
                 </div>
               </div>
               <div className="flex items-center justify-center mt-6">

@@ -13,6 +13,8 @@ export interface IOrganization extends Document {
     razorpayCustomerId?: string;
     razorpaySubscriptionId?: string;
   };
+  logoUrl?: string;
+  primaryColor?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -39,6 +41,8 @@ const OrganizationSchema = new Schema<IOrganization>(
       razorpayCustomerId: { type: String },
       razorpaySubscriptionId: { type: String },
     },
+    logoUrl: { type: String },
+    primaryColor: { type: String },
   },
   { timestamps: true }
 );

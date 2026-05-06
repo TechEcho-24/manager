@@ -33,6 +33,8 @@ export async function POST(req: Request) {
         email: email,
         phone: data.phone || "000",
         ownerId: email,
+        logoUrl: data.logoUrl,
+        primaryColor: data.primaryColor,
         plan: payment ? "pro" : "free", // simplified plan logic
         subscription: { 
           status: payment ? "active" : "trial",
@@ -46,6 +48,8 @@ export async function POST(req: Request) {
       }
     } else {
       org.name = companyName;
+      if (data.logoUrl) org.logoUrl = data.logoUrl;
+      if (data.primaryColor) org.primaryColor = data.primaryColor;
       if (payment) {
         org.plan = "pro";
         org.subscription.status = "active";
