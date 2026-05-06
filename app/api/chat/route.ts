@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
+import dbConnect from "@/lib/db";
+import { Lead } from "@/models/lead";
 
 // ============================================================
 //  PINGLLY SYSTEM PROMPT — Full Knowledge Base
@@ -299,6 +301,47 @@ export async function POST(req: NextRequest) {
     const apiKey = process.env.GEMINI_API_KEY;
 
     if (apiKey) {
+      let crmContext = "";
+      if (session?.user) {
+        try {
+          await dbConnect();
+          const user = session.user as any;
+          const orgId = user.organizationId || user.id;
+
+          const leads = await Lead.find({ organizationId: orgId })
+            .sort({ updatedAt: -1 })
+            .limit(50)
+            .lean();
+
+          if (leads && leads.length > 0) {
+            const summarizedLeads = leads.map((l: any) => {
+              let summary = `- Name: ${l.fullName}`;
+              if (l.company) summary += `, Company: ${l.company}`;
+              summary += `, Status: ${l.status}`;
+              
+              if (l.dealDetails && l.dealDetails.totalValue > 0) {
+                summary += `, Deal Value: ₹${l.dealDetails.totalValue}, Received: ₹${l.dealDetails.receivedAmount}`;
+                const pendingInst = l.dealDetails.installments?.filter((i: any) => i.status === 'pending') || [];
+                if (pendingInst.length > 0) {
+                  const nextDue = pendingInst.sort((a: any, b: any) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime())[0];
+                  if (nextDue) {
+                    summary += `, Next Payment Due: ₹${nextDue.amount} on ${new Date(nextDue.dueDate).toISOString().split('T')[0]}`;
+                  }
+                }
+              }
+              if (l.nextFollowupDate) {
+                summary += `, Follow-up: ${new Date(l.nextFollowupDate).toISOString().split('T')[0]}`;
+              }
+              return summary;
+            });
+
+            crmContext = `\n\n--- LIVE CRM DATA (DO NOT INVENT DATA, USE THIS TO ANSWER) ---\nHere are the user's recent leads and their payment/due details:\n${summarizedLeads.join('\n')}\nIf the user asks about payments, due dates, latest leads, or follow-ups, use ONLY the data above to answer. Give direct, short answers.`;
+          }
+        } catch (err) {
+          console.error("Failed to fetch CRM context:", err);
+        }
+      }
+
       const langInstruction = "User is speaking in English. Reply in English only. Keep responses short and professional.";
 
       const contents = [
@@ -322,7 +365,7 @@ export async function POST(req: NextRequest) {
           body: JSON.stringify({
             systemInstruction: {
               parts: [
-                { text: `${PINGLLY_SYSTEM_PROMPT}\n\n${langInstruction}` },
+                { text: `${PINGLLY_SYSTEM_PROMPT}\n\n${langInstruction}${crmContext}` },
               ],
             },
             contents,
