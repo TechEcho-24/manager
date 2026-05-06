@@ -48,7 +48,7 @@ export default function ContactPage() {
                 </div>
                 <h3 className="text-xl font-bold mb-2">Sales Hotline</h3>
                 <p className="text-white/50 text-sm mb-4">Direct line to our enterprise sales team.</p>
-                <a href="tel:+919876543210" className="text-white font-bold tracking-wider hover:text-[#ff6b35] transition-colors">+91 98765 43210</a>
+                <a href="tel:+917303366737" className="text-white font-bold tracking-wider hover:text-[#ff6b35] transition-colors">+91 7303366737</a>
               </div>
 
             </div>
@@ -61,7 +61,7 @@ export default function ContactPage() {
                  <h3 className="text-2xl font-black italic mb-4">Global Headquarters</h3>
                  <p className="text-white/60 leading-relaxed font-medium">
                    TechEcho Innovations<br />
-                   Level 42, Neural Tech Park<br />
+                     
                    Kanpur, Uttar Pradesh<br />
                    India 208001
                  </p>
