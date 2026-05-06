@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSession, signOut } from "next-auth/react";
+import { CldUploadWidget } from "next-cloudinary";
 import {
   User,
   Building2,
@@ -85,7 +86,8 @@ export function OnboardingForm() {
     foundingYear: "",
     revenue: "1M-5M",
     // Visual
-    brandColor: "#7c3aed",
+    logoUrl: "",
+    primaryColor: "#7c3aed",
     tagline: "Intelligence for Sales",
     brandVoice: "Professional",
     fontStyle: "Modern",
@@ -158,7 +160,7 @@ export function OnboardingForm() {
         );
       case 4:
         return !!(
-          formData.brandColor &&
+          formData.primaryColor &&
           formData.tagline &&
           formData.brandVoice &&
           formData.fontStyle
@@ -190,15 +192,15 @@ export function OnboardingForm() {
         });
         const result = await response.json();
         if (!response.ok) throw new Error(result.error || "Failed to initialize protocol");
-        
+
         localStorage.removeItem("onboardingPrefill");
-        
+
         // Pass both to trigger a session refresh with new data
         await update({
           onboardingCompleted: true,
           organizationId: result.organizationId,
         });
-        
+
         setIsFinished(true);
       } catch (error) {
         console.error("Onboarding error:", error);
@@ -636,46 +638,84 @@ export function OnboardingForm() {
                       <Label className='text-xs font-semibold tracking-wide text-white/60 ml-1'>
                         Master Logo <span className='text-red-500'>*</span>
                       </Label>
-                      <div className='group relative h-64 w-full cursor-pointer flex-col items-center justify-center rounded-2xl border border-dashed border-white/20 bg-white/[0.02] hover:border-indigo-500/50 hover:bg-indigo-500/5 transition-all flex'>
-                        <Upload className='h-10 w-10 text-white/20 group-hover:text-indigo-400 transition-all' />
-                        <span className='mt-4 text-[9px] font-black tracking-widest text-white/30'>
-                          SVG / PNG / WebP
-                        </span>
-                      </div>
+                      <CldUploadWidget
+                        uploadPreset={process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || "ml_default"}
+                        options={{
+                          cropping: true,
+                          croppingAspectRatio: 1,
+                          showSkipCropButton: false,
+                          clientAllowedFormats: ["png", "jpeg", "jpg", "svg", "webp"],
+                          maxFiles: 1,
+                        }}
+                        onSuccess={(result: any) => {
+                          setFormData((prev) => ({
+                            ...prev,
+                            logoUrl: result?.info?.secure_url || "",
+                          }));
+                        }}
+                      >
+                        {({ open }) => (
+                          <div
+                            onClick={() => open()}
+                            className='group relative h-64 w-full cursor-pointer flex-col items-center justify-center rounded-2xl border border-dashed border-white/20 bg-white/[0.02] hover:border-indigo-500/50 hover:bg-indigo-500/5 transition-all flex overflow-hidden'
+                          >
+                            {formData.logoUrl ? (
+                              <img src={formData.logoUrl} alt="Logo" className="w-full h-full object-contain p-4" />
+                            ) : (
+                              <>
+                                <Upload className='h-10 w-10 text-white/20 group-hover:text-indigo-400 transition-all' />
+                                <span className='mt-4 text-[9px] font-black tracking-widest text-white/30'>
+                                  SVG / PNG / WebP (SQUARE)
+                                </span>
+                              </>
+                            )}
+                          </div>
+                        )}
+                      </CldUploadWidget>
                     </div>
                     <div className='space-y-4'>
                       <Label className='text-xs font-semibold tracking-wide text-white/60 ml-1'>
                         Neural Primary Color{" "}
                         <span className='text-red-500'>*</span>
                       </Label>
-                      <div className='grid grid-cols-4 gap-3'>
-                        {[
-                          "#7c3aed",
-                          "#ff6b35",
-                          "#3b82f6",
-                          "#10b981",
-                          "#f43f5e",
-                          "#fbbf24",
-                          "#ffffff",
-                          "#000000",
-                        ].map((color) => (
-                          <button
-                            key={color}
-                            onClick={() =>
-                              setFormData((prev) => ({
-                                ...prev,
-                                brandColor: color,
-                              }))
-                            }
-                            className={cn(
-                              "h-10 w-full rounded-lg transition-all",
-                              formData.brandColor === color
-                                ? "ring-2 ring-indigo-500 ring-offset-4 ring-offset-[#050510]"
-                                : "opacity-30 hover:opacity-100",
-                            )}
-                            style={{ backgroundColor: color }}
+                      <div className='flex gap-3'>
+                        <div className='flex-1 grid grid-cols-4 gap-3'>
+                          {[
+                            "#8b5cf6",
+                            "#f97316",
+                            "#2563eb",
+                            "#059669",
+                            "#e11d48",
+                            "#f59e0b",
+                            "#f8fafc",
+                            "#0f172a",
+                          ].map((color) => (
+                            <button
+                              key={color}
+                              onClick={() =>
+                                setFormData((prev) => ({
+                                  ...prev,
+                                  primaryColor: color,
+                                }))
+                              }
+                              className={cn(
+                                "h-10 w-full rounded-lg transition-all",
+                                formData.primaryColor === color
+                                  ? "ring-2 ring-indigo-500 ring-offset-4 ring-offset-[#050510]"
+                                  : "opacity-30 hover:opacity-100",
+                              )}
+                              style={{ backgroundColor: color }}
+                            />
+                          ))}
+                        </div>
+                        <div className="flex flex-col gap-2">
+                          <input
+                            type="color"
+                            value={formData.primaryColor}
+                            onChange={(e) => setFormData(prev => ({ ...prev, primaryColor: e.target.value }))}
+                            className="h-10 w-10 rounded-lg cursor-pointer bg-transparent border-none p-0 overflow-hidden"
                           />
-                        ))}
+                        </div>
                       </div>
                     </div>
                     <div className='space-y-2'>
@@ -869,7 +909,7 @@ export function OnboardingForm() {
                     <div className='relative mx-auto w-[340px] h-[550px] rounded-[2.5rem] bg-black border-[8px] border-white/5 shadow-2xl overflow-hidden'>
                       <div
                         className='h-24 w-full flex items-center px-6 gap-3'
-                        style={{ backgroundColor: formData.brandColor }}
+                        style={{ backgroundColor: formData.primaryColor }}
                       >
                         <div className='h-12 w-12 rounded-full bg-white/20 flex items-center justify-center overflow-hidden border border-white/30'>
                           <img
@@ -908,7 +948,7 @@ export function OnboardingForm() {
                         </div>
                         <div
                           className='h-12 w-12 rounded-full flex items-center justify-center text-white'
-                          style={{ backgroundColor: formData.brandColor }}
+                          style={{ backgroundColor: formData.primaryColor }}
                         >
                           <Send className='h-5 w-5' />
                         </div>

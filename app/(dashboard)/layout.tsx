@@ -1,10 +1,13 @@
 "use client";
 
-import { useState, Suspense } from "react";
+import { useState, Suspense, useEffect } from "react";
 import { Sidebar } from "@/components/sidebar";
 import { TopNavbar } from "@/components/top-navbar";
 import { TrialBanner } from "@/components/trial-banner";
 import { cn } from "@/lib/utils";
+import useSWR from "swr";
+
+const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 export default function DashboardLayout({
   children,
@@ -12,6 +15,17 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const { data } = useSWR("/api/organization/branding", fetcher);
+
+  useEffect(() => {
+    if (data?.primaryColor) {
+      document.documentElement.style.setProperty("--primary", data.primaryColor);
+      // also optionally set primary-foreground to a contrasting color or white
+      // document.documentElement.style.setProperty("--primary-foreground", "#ffffff");
+    } else {
+      document.documentElement.style.removeProperty("--primary");
+    }
+  }, [data?.primaryColor]);
 
   return (
     <Suspense fallback={<div className="min-h-dvh bg-background" />}>
