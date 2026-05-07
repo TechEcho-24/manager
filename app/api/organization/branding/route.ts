@@ -43,6 +43,8 @@ export async function PATCH(req: Request) {
     const email = session.user.email.toLowerCase().trim();
     const org = await Organization.findOne({ ownerId: email });
 
+    console.log("PATCH /api/organization/branding - Received data:", data);
+
     if (!org) {
       return NextResponse.json({ error: "Organization not found" }, { status: 404 });
     }
@@ -50,7 +52,11 @@ export async function PATCH(req: Request) {
     if (data.logoUrl !== undefined) org.logoUrl = data.logoUrl;
     if (data.primaryColor !== undefined) org.primaryColor = data.primaryColor;
 
+    console.log("PATCH /api/organization/branding - Saving org with logoUrl:", org.logoUrl, "primaryColor:", org.primaryColor);
+
     await org.save();
+
+    console.log("PATCH /api/organization/branding - Successfully saved");
 
     return NextResponse.json({ success: true, message: "Branding updated successfully" });
   } catch (error: any) {

@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, Suspense, useEffect } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { Sidebar } from "@/components/sidebar";
 import { TopNavbar } from "@/components/top-navbar";
 import { TrialBanner } from "@/components/trial-banner";
@@ -16,12 +18,20 @@ export default function DashboardLayout({
 }) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const { data } = useSWR("/api/organization/branding", fetcher);
+  const { data: session } = useSession();
+  const pathname = usePathname();
+  const router = useRouter();
+
+  useEffect(() => {
+    const orgRole = (session?.user as any)?.orgRole || "owner";
+    if (orgRole === "member" && !pathname.startsWith("/tasks")) {
+      router.replace("/tasks");
+    }
+  }, [session, pathname, router]);
 
   useEffect(() => {
     if (data?.primaryColor) {
       document.documentElement.style.setProperty("--primary", data.primaryColor);
-      // also optionally set primary-foreground to a contrasting color or white
-      // document.documentElement.style.setProperty("--primary-foreground", "#ffffff");
     } else {
       document.documentElement.style.removeProperty("--primary");
     }
