@@ -23,6 +23,7 @@ import {
   Settings,
   Menu,
   Zap,
+  UserCheck,
 } from "lucide-react";
 import { useState } from "react";
 
@@ -36,6 +37,7 @@ const navItems = [
   { title: "Contacts", href: "/contacts", icon: Contact },
   { title: "Deals", href: "/deals", icon: Handshake },
   { title: "Tasks", href: "/tasks", icon: CheckSquare },
+  { title: "Team", href: "/team", icon: UserCheck },
   { title: "Reports", href: "/reports", icon: BarChart3 },
   { title: "Settings", href: "/settings", icon: Settings },
 ];

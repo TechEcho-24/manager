@@ -3,7 +3,7 @@ import connectDB from "@/lib/db";
 import { TaskTab } from "@/models/taskTab";
 import { auth } from "@/auth";
 
-export async function POST(req: Request, { params }: { params: { tabId: string } }) {
+export async function POST(req: Request, { params }: { params: Promise<{ tabId: string }> }) {
   try {
     const session = await auth();
     const orgRole = (session?.user as any)?.orgRole;
@@ -20,7 +20,8 @@ export async function POST(req: Request, { params }: { params: { tabId: string }
       return NextResponse.json({ error: "Missing userId or permission" }, { status: 400 });
     }
 
-    const tab = await TaskTab.findOne({ _id: params.tabId, organizationId: session.user.organizationId });
+    const { tabId } = await params;
+    const tab = await TaskTab.findOne({ _id: tabId, organizationId: session.user.organizationId });
     if (!tab) {
       return NextResponse.json({ error: "Tab not found" }, { status: 404 });
     }

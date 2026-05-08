@@ -38,6 +38,7 @@ const allNavItems = [
   { title: "Contacts", href: "/contacts", icon: Contact, role: "client" },
   { title: "Deals", href: "/deals", icon: Handshake, role: "client" },
   { title: "Tasks", href: "/tasks", icon: CheckSquare, role: "client" },
+  { title: "Team", href: "/team", icon: UserCheck, role: "client" },
   { title: "Subscribers", href: "/dashboard?tab=users", icon: UserCheck, role: "admin" },
   { title: "Revenue", href: "/dashboard?tab=revenue", icon: DollarSign, role: "admin" },
   { title: "Insights", href: "/reports", icon: BarChart3 },

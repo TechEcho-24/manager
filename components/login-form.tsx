@@ -19,6 +19,7 @@ export default function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const plan = searchParams.get("plan");
+  const inviteToken = searchParams.get("invite");
   const [email, setEmail] = useState(searchParams.get("email") || "");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -39,6 +40,10 @@ export default function LoginForm() {
 
       if (result?.error) {
         setError("Invalid credentials. Please verify your email and password.");
+      } else if (inviteToken) {
+        // If user came from an invite link, redirect to join
+        router.push(`/invite/${inviteToken}`);
+        router.refresh();
       } else {
         router.push("/dashboard");
         router.refresh();
@@ -237,7 +242,7 @@ export default function LoginForm() {
 
         <p className="mt-8 text-center text-[10px] font-bold text-white/40 tracking-widest">
           Don&apos;t have an account?{" "}
-          <Link href="/signup" className="text-indigo-400 hover:text-white underline ml-1">Create One</Link>
+          <Link href={inviteToken ? `/signup?invite=${inviteToken}` : "/signup"} className="text-indigo-400 hover:text-white underline ml-1">Create One</Link>
         </p>
 
         <p className="mt-16 text-center text-[10px] font-black tracking-[0.4em] text-white/10">

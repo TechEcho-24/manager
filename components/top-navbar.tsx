@@ -13,7 +13,7 @@ import { signOut, useSession } from "next-auth/react";
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
-export function TopNavbar() {
+export function TopNavbar({ isMember = false }: { isMember?: boolean }) {
   const router = useRouter();
   const { data: session } = useSession();
   const userName = session?.user?.name || "User";
@@ -76,7 +76,8 @@ export function TopNavbar() {
         </span>
       </div>
 
-      {/* Search bar */}
+      {/* Search bar — hidden for members */}
+      {!isMember && (
       <div className="ml-auto flex-1 lg:ml-0 lg:max-w-md" ref={searchRef}>
         <div className="relative hidden sm:block">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground/40 transition-colors group-hover:text-primary/50" />
@@ -151,10 +152,12 @@ export function TopNavbar() {
           )}
         </div>
       </div>
+      )}
 
       {/* Right side: search icon (mobile), notifications, avatar */}
       <div className="ml-auto flex items-center gap-1.5">
-        {/* Mobile search button */}
+        {/* Mobile search button — hidden for members */}
+        {!isMember && (
         <button
           className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-white/[0.06] hover:text-foreground sm:hidden"
           aria-label="Search"
@@ -164,11 +167,13 @@ export function TopNavbar() {
         >
           <Search className="h-5 w-5" />
         </button>
+        )}
 
         {/* Theme Toggle */}
         <ThemeToggle />
 
-        {/* Notifications */}
+        {/* Notifications — hidden for members */}
+        {!isMember && (
         <button
           className="relative inline-flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-white/[0.06] hover:text-foreground"
           aria-label="Notifications"
@@ -176,6 +181,7 @@ export function TopNavbar() {
           <Bell className="h-5 w-5" />
           <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-[oklch(0.65_0.25_30)] ring-2 ring-[oklch(0.11_0.01_260)]" />
         </button>
+        )}
 
         <div className="h-8 w-[1px] bg-border/40 mx-1 hidden sm:block" />
 
@@ -200,7 +206,7 @@ export function TopNavbar() {
               <span className="text-[11px] font-bold tracking-wider text-muted-foreground transition-colors group-hover:text-destructive">
                 {userName}
               </span>
-              {plan && (
+              {!isMember && plan && (
                 <span className={cn(
                   "text-[8px] font-black px-1.5 py-0.5 rounded-full border uppercase tracking-tighter",
                   plan === 'pro' ? "bg-indigo-500/10 text-indigo-500 border-indigo-500/20" :

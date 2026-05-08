@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, use } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { Loader2, CheckCircle2, XCircle, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-export default function InvitePage({ params }: { params: { token: string } }) {
+export default function InvitePage({ params }: { params: Promise<{ token: string }> }) {
+  const { token } = use(params);
   const router = useRouter();
   const { data: session, status, update } = useSession();
   
@@ -16,7 +17,8 @@ export default function InvitePage({ params }: { params: { token: string } }) {
 
   useEffect(() => {
     if (status === "unauthenticated") {
-      router.push(`/login?callbackUrl=/invite/${params.token}`);
+      // Send to signup with invite token — they need an account first
+      router.push(`/signup?invite=${token}`);
     } else if (status === "authenticated") {
       handleJoin();
     }
@@ -28,7 +30,7 @@ export default function InvitePage({ params }: { params: { token: string } }) {
       const res = await fetch("/api/organization/team/join", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ token: params.token }),
+        body: JSON.stringify({ token }),
       });
       
       const data = await res.json();
@@ -37,14 +39,18 @@ export default function InvitePage({ params }: { params: { token: string } }) {
         throw new Error(data.error || "Failed to join team");
       }
 
+      // Update the session with new org info
       await update({
         organizationId: data.organizationId,
-        orgRole: data.role // role isn't strictly returned but session update will fetch if we had a full session callback refresh, actually NextAuth needs full refresh or we just push to dashboard
+        orgRole: data.role,
       });
 
       setSuccess(true);
+
+      // Members go to /tasks, staff/owners go to /dashboard
+      const redirectTo = data.role === "member" ? "/tasks" : "/dashboard";
       setTimeout(() => {
-        router.push("/dashboard");
+        router.push(redirectTo);
       }, 2000);
 
     } catch (err: any) {
@@ -80,7 +86,7 @@ export default function InvitePage({ params }: { params: { token: string } }) {
           <div className="py-6 flex flex-col items-center gap-4">
             <CheckCircle2 className="h-12 w-12 text-emerald-500 mb-2" />
             <p className="text-emerald-500 font-medium">Successfully joined the workspace!</p>
-            <p className="text-sm text-muted-foreground">Redirecting to your dashboard...</p>
+            <p className="text-sm text-muted-foreground">Redirecting...</p>
           </div>
         ) : null}
       </div>

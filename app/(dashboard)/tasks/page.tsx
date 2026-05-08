@@ -6,7 +6,7 @@ import useSWR, { mutate } from "swr";
 import { useSession } from "next-auth/react";
 import {
   CheckSquare, Plus, Trash2, Circle, CheckCircle2, Clock, Flame, 
-  Settings, Users, Target, PhoneCall, Trophy, Shield, X, Save, UserPlus
+  Settings, Users, Target, PhoneCall, Trophy, Shield, X, Save, UserPlus, Pencil
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -158,6 +158,11 @@ function TasksList({ tabId }: { tabId: string }) {
   const [newTask, setNewTask] = useState("");
   const [priority, setPriority] = useState<"high"|"medium"|"low">("medium");
 
+  // Editing state
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editText, setEditText] = useState("");
+  const [editPriority, setEditPriority] = useState<"high"|"medium"|"low">("medium");
+
   const addTask = async () => {
     if (!newTask.trim() || !hasWriteAccess) return;
     const res = await fetch("/api/tasks", {
@@ -184,6 +189,29 @@ function TasksList({ tabId }: { tabId: string }) {
   const deleteTask = async (taskId: string) => {
     if (!hasWriteAccess) return;
     await fetch(`/api/tasks?tabId=${tabId}&taskId=${taskId}`, { method: "DELETE" });
+    mutateTasks();
+  };
+
+  const startEditing = (task: any) => {
+    setEditingId(task._id);
+    setEditText(task.text);
+    setEditPriority(task.priority);
+  };
+
+  const cancelEditing = () => {
+    setEditingId(null);
+    setEditText("");
+    setEditPriority("medium");
+  };
+
+  const saveEdit = async (taskId: string) => {
+    if (!editText.trim()) return;
+    await fetch("/api/tasks", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ tabId, taskId, text: editText, priority: editPriority }),
+    });
+    setEditingId(null);
     mutateTasks();
   };
 
@@ -218,23 +246,64 @@ function TasksList({ tabId }: { tabId: string }) {
       <div className="space-y-2">
         {tasks.map((task: any) => (
           <Card key={task._id} className={cn("transition-all", task.completed && "opacity-60")}>
-            <CardContent className="p-4 flex items-center gap-4">
-              <button onClick={() => toggleTask(task._id, task.completed)} disabled={!hasWriteAccess} className="shrink-0">
-                {task.completed ? <CheckCircle2 className="h-6 w-6 text-emerald-500" /> : <Circle className="h-6 w-6 text-muted-foreground/30 hover:text-primary transition-colors" />}
-              </button>
-              <p className={cn("flex-1 font-medium", task.completed && "line-through text-muted-foreground")}>{task.text}</p>
-              
-              <span className={cn(
-                "px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-widest",
-                task.priority === "high" ? "bg-red-500/10 text-red-500" : task.priority === "medium" ? "bg-amber-500/10 text-amber-500" : "bg-emerald-500/10 text-emerald-500"
-              )}>
-                {task.priority}
-              </span>
+            <CardContent className="p-4">
+              {editingId === task._id ? (
+                /* ─── EDIT MODE ─── */
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <Input
+                    value={editText}
+                    onChange={e => setEditText(e.target.value)}
+                    className="h-10 flex-1"
+                    autoFocus
+                    onKeyDown={e => {
+                      if (e.key === 'Enter') saveEdit(task._id);
+                      if (e.key === 'Escape') cancelEditing();
+                    }}
+                  />
+                  <div className="flex items-center gap-2">
+                    <select
+                      value={editPriority}
+                      onChange={(e: any) => setEditPriority(e.target.value)}
+                      className="h-10 px-3 rounded-lg border border-border bg-background text-sm"
+                    >
+                      <option value="high">High</option>
+                      <option value="medium">Medium</option>
+                      <option value="low">Low</option>
+                    </select>
+                    <Button size="sm" onClick={() => saveEdit(task._id)} className="h-10 px-4 gap-1.5">
+                      <Save className="h-3.5 w-3.5" /> Save
+                    </Button>
+                    <Button size="sm" variant="ghost" onClick={cancelEditing} className="h-10 px-3">
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                /* ─── VIEW MODE ─── */
+                <div className="flex items-center gap-4">
+                  <button onClick={() => toggleTask(task._id, task.completed)} disabled={!hasWriteAccess} className="shrink-0">
+                    {task.completed ? <CheckCircle2 className="h-6 w-6 text-emerald-500" /> : <Circle className="h-6 w-6 text-muted-foreground/30 hover:text-primary transition-colors" />}
+                  </button>
+                  <p className={cn("flex-1 font-medium", task.completed && "line-through text-muted-foreground")}>{task.text}</p>
+                  
+                  <span className={cn(
+                    "px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-widest hidden sm:inline-block",
+                    task.priority === "high" ? "bg-red-500/10 text-red-500" : task.priority === "medium" ? "bg-amber-500/10 text-amber-500" : "bg-emerald-500/10 text-emerald-500"
+                  )}>
+                    {task.priority}
+                  </span>
 
-              {hasWriteAccess && (
-                <button onClick={() => deleteTask(task._id)} className="text-muted-foreground hover:text-red-500 opacity-50 hover:opacity-100 transition-all shrink-0">
-                  <Trash2 className="h-4 w-4" />
-                </button>
+                  {hasWriteAccess && (
+                    <div className="flex items-center gap-1">
+                      <button onClick={() => startEditing(task)} className="text-muted-foreground hover:text-primary opacity-50 hover:opacity-100 transition-all shrink-0 p-1">
+                        <Pencil className="h-4 w-4" />
+                      </button>
+                      <button onClick={() => deleteTask(task._id)} className="text-muted-foreground hover:text-red-500 opacity-50 hover:opacity-100 transition-all shrink-0 p-1">
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
+                  )}
+                </div>
               )}
             </CardContent>
           </Card>

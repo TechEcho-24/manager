@@ -77,18 +77,30 @@ export async function PATCH(req: Request) {
 
     await connectDB();
     const data = await req.json();
-    const { taskId, tabId, completed } = data;
+    const { taskId, tabId, completed, text, priority } = data;
 
     if (!taskId || !tabId) return NextResponse.json({ error: "Missing taskId or tabId" }, { status: 400 });
 
     const accessCheck = await verifyTabAccess(tabId, session.user.id, session.user.organizationId, (session.user as any).orgRole, true);
     if (accessCheck.error) return NextResponse.json({ error: accessCheck.error }, { status: accessCheck.status });
 
+    // Build update object dynamically
+    const updateFields: Record<string, any> = {};
+    if (completed !== undefined) updateFields.completed = completed;
+    if (text !== undefined && text.trim()) updateFields.text = text.trim();
+    if (priority !== undefined && ["high", "medium", "low"].includes(priority)) updateFields.priority = priority;
+
+    if (Object.keys(updateFields).length === 0) {
+      return NextResponse.json({ error: "No fields to update" }, { status: 400 });
+    }
+
     const task = await Task.findOneAndUpdate(
       { _id: taskId, tabId },
-      { $set: { completed } },
+      { $set: updateFields },
       { new: true }
     );
+
+    if (!task) return NextResponse.json({ error: "Task not found" }, { status: 404 });
 
     return NextResponse.json({ success: true, task });
   } catch (error: any) {

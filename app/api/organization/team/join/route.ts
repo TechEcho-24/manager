@@ -44,7 +44,7 @@ export async function POST(req: Request) {
     invitation.status = "accepted";
     await invitation.save();
 
-    return NextResponse.json({ success: true, organizationId: invitation.organizationId });
+    return NextResponse.json({ success: true, organizationId: invitation.organizationId, role: invitation.role });
   } catch (error: any) {
     console.error("POST Join API Error:", error);
     return NextResponse.json({ error: "Failed to join team" }, { status: 500 });

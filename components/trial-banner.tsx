@@ -3,11 +3,18 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Zap } from "lucide-react";
+import { useSession } from "next-auth/react";
 
 export function TrialBanner() {
+  const { data: session } = useSession();
   const [data, setData] = useState<{ status: string, daysLeft: number } | null>(null);
 
+  const orgRole = (session?.user as any)?.orgRole || "owner";
+
   useEffect(() => {
+    // Don't fetch subscription status for members
+    if (orgRole === "member") return;
+    
     fetch("/api/subscription/status")
       .then(res => res.json())
       .then(d => {
@@ -16,8 +23,9 @@ export function TrialBanner() {
         }
       })
       .catch(console.error);
-  }, []);
+  }, [orgRole]);
 
+  if (orgRole === "member") return null;
   if (!data || data.status !== "trial" || data.daysLeft <= 0) return null;
 
   return (
@@ -32,3 +40,4 @@ export function TrialBanner() {
     </div>
   );
 }
+
