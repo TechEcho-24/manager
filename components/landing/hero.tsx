@@ -133,10 +133,10 @@ export function Hero() {
             </button>
 
             <Link
-              href='/signup'
+              href='/login'
               className='px-4 py-2.5 rounded-full bg-[#f96e38] font-semibold text-[15px] text-white hover:bg-[#ff7b47] hover:shadow-lg hover:shadow-orange-500/30 transition-all flex items-center justify-center'
             >
-              Get started for free
+              Get started
             </Link>
           </div>
         </div>

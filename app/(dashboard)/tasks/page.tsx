@@ -1,522 +1,381 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import useSWR from "swr";
+import { useRouter } from "next/navigation";
+import useSWR, { mutate } from "swr";
+import { useSession } from "next-auth/react";
 import {
-  CheckSquare,
-  Plus,
-  Trash2,
-  Circle,
-  CheckCircle2,
-  Clock,
-  Flame,
-  CalendarDays,
-  GripVertical,
-  Sparkles,
-  RotateCcw,
-  Users,
-  PhoneCall,
-  Trophy,
-  Target,
-  Mic,
-  Image as ImageIcon,
-  Lock,
+  CheckSquare, Plus, Trash2, Circle, CheckCircle2, Clock, Flame, 
+  Settings, Users, Target, PhoneCall, Trophy, Shield, X, Save, UserPlus, Pencil
 } from "lucide-react";
-import { UpgradePrompt } from "@/components/upgrade-prompt";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
+import { InviteModal } from "@/components/invite-modal";
 
 const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
-// ─── Types ──────────────────────────────────────────────────────────
-type Priority = "high" | "medium" | "low";
-
-interface Task {
-  id: string;
-  text: string;
-  completed: boolean;
-  priority: Priority;
-  createdAt: string; // ISO date string
-}
-
-interface DayData {
-  date: string; // YYYY-MM-DD
-  tasks: Task[];
-}
-
-// ─── Helpers ────────────────────────────────────────────────────────
-const TODAY = () => new Date().toISOString().split("T")[0];
-
-const STORAGE_KEY = "leadpro_tasks";
-
-function loadTasks(): DayData {
-  if (typeof window === "undefined") return { date: TODAY(), tasks: [] };
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return { date: TODAY(), tasks: [] };
-    const parsed: DayData = JSON.parse(raw);
-    // If the stored date is not today, reset tasks (daily refresh)
-    if (parsed.date !== TODAY()) {
-      // Carry over incomplete tasks from yesterday
-      const carryOver = parsed.tasks
-        .filter((t) => !t.completed)
-        .map((t) => ({ ...t, id: crypto.randomUUID() }));
-      return { date: TODAY(), tasks: carryOver };
-    }
-    return parsed;
-  } catch {
-    return { date: TODAY(), tasks: [] };
-  }
-}
-
-function saveTasks(data: DayData) {
-  if (typeof window === "undefined") return;
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-}
-
-// ─── Component ──────────────────────────────────────────────────────
 export default function TasksPage() {
-  const [dayData, setDayData] = useState<DayData>({ date: TODAY(), tasks: [] });
-  const [newTask, setNewTask] = useState("");
-  const [priority, setPriority] = useState<Priority>("medium");
-  const [filter, setFilter] = useState<"all" | "active" | "done">("all");
-  const [taskType, setTaskType] = useState<"text" | "voice" | "image">("text");
-  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
-  const [planConfig, setPlanConfig] = useState<any>(null);
+  const router = useRouter();
+  const { data: session } = useSession();
+  const orgRole = (session?.user as any)?.orgRole || "owner";
 
+  const { data: tabsData, isLoading: tabsLoading } = useSWR("/api/tasks/tabs", fetcher);
+  const tabs = tabsData?.tabs || [];
+
+  const [activeTabId, setActiveTabId] = useState<string | null>(null);
+  const [showCreateTab, setShowCreateTab] = useState(false);
+  const [showInviteModal, setShowInviteModal] = useState(false);
+  const [newTabName, setNewTabName] = useState("");
+
+  const [showAccessModal, setShowAccessModal] = useState<string | null>(null);
+
+  // Auto select first tab
   useEffect(() => {
-    fetch("/api/plan/config").then(r => r.json()).then(data => setPlanConfig(data));
-  }, []);
-
-  // Load from localStorage on mount
-  useEffect(() => {
-    setDayData(loadTasks());
-  }, []);
-
-  const handleTypeChange = (type: "voice" | "image") => {
-    if (type === "voice" && planConfig?.plan === "starter") {
-      setShowUpgradeModal(true);
-      return;
+    if (tabs.length > 0 && !activeTabId) {
+      setActiveTabId(tabs[0]._id);
     }
-    if (type === "image" && planConfig?.plan !== "pro") {
-      setShowUpgradeModal(true);
-      return;
+  }, [tabs, activeTabId]);
+
+  const handleCreateTab = async () => {
+    if (!newTabName.trim()) return;
+    const res = await fetch("/api/tasks/tabs", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: newTabName }),
+    });
+    if (res.ok) {
+      setNewTabName("");
+      setShowCreateTab(false);
+      mutate("/api/tasks/tabs");
     }
-    setTaskType(type);
   };
 
-  // Save whenever tasks change
-  useEffect(() => {
-    if (dayData.tasks.length > 0 || localStorage.getItem(STORAGE_KEY)) {
-      saveTasks(dayData);
-    }
-  }, [dayData]);
-
-  const addTask = useCallback(() => {
-    if (!newTask.trim()) return;
-    const task: Task = {
-      id: crypto.randomUUID(),
-      text: `${taskType === 'voice' ? '🎤 ' : taskType === 'image' ? '📸 ' : ''}${newTask.trim()}`,
-      completed: false,
-      priority,
-      createdAt: new Date().toISOString(),
-    };
-    setDayData((prev) => ({ ...prev, tasks: [task, ...prev.tasks] }));
-    setNewTask("");
-    setTaskType("text");
-  }, [newTask, priority, taskType]);
-
-  const toggleTask = (id: string) => {
-    setDayData((prev) => ({
-      ...prev,
-      tasks: prev.tasks.map((t) =>
-        t.id === id ? { ...t, completed: !t.completed } : t
-      ),
-    }));
-  };
-
-  const deleteTask = (id: string) => {
-    setDayData((prev) => ({
-      ...prev,
-      tasks: prev.tasks.filter((t) => t.id !== id),
-    }));
-  };
-
-  const resetDay = () => {
-    setDayData({ date: TODAY(), tasks: [] });
-  };
-
-  // ── Derived ──
-  const filteredTasks = dayData.tasks.filter((t) => {
-    if (filter === "active") return !t.completed;
-    if (filter === "done") return t.completed;
-    return true;
-  });
-
-  const totalTasks = dayData.tasks.length;
-  const completedTasks = dayData.tasks.filter((t) => t.completed).length;
-  const progressPct = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
-
-  const priorityConfig: Record<Priority, { icon: typeof Flame; label: string; color: string; bg: string; border: string }> = {
-    high: { icon: Flame, label: "Urgent", color: "text-red-500", bg: "bg-red-500/10", border: "border-red-500/20" },
-    medium: { icon: Clock, label: "Normal", color: "text-amber-500", bg: "bg-amber-500/10", border: "border-amber-500/20" },
-    low: { icon: Circle, label: "Low", color: "text-emerald-500", bg: "bg-emerald-500/10", border: "border-emerald-500/20" },
-  };
-
-  // Format today's date nicely
-  const todayFormatted = new Date().toLocaleDateString("en-IN", {
-    weekday: "long",
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  });
+  const activeTab = tabs.find((t: any) => t._id === activeTabId);
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-foreground lg:text-3xl">
-            Today&apos;s Tasks
+            Tasks & Projects
           </h1>
-          <div className="flex items-center gap-2 mt-1">
-            <CalendarDays className="h-3.5 w-3.5 text-primary" />
-            <p className="text-sm text-muted-foreground font-semibold">{todayFormatted}</p>
-          </div>
+          <p className="text-sm text-muted-foreground mt-1">Manage tasks across different boards and teams</p>
         </div>
-        <Button
-          variant="outline"
-          className="gap-2 border-border text-muted-foreground hover:text-red-500 hover:border-red-500/30 rounded-xl h-10"
-          onClick={resetDay}
-        >
-          <RotateCcw className="h-4 w-4" />
-          Clear All
-        </Button>
+        {(orgRole === "owner" || orgRole === "staff") && (
+          <div className="flex items-center gap-2">
+            <Button variant="outline" onClick={() => setShowInviteModal(true)} className="border-border">
+              <UserPlus className="h-4 w-4 mr-2" /> Invite
+            </Button>
+            <Button onClick={() => setShowCreateTab(true)} className="bg-primary text-white">
+              <Plus className="h-4 w-4 mr-2" /> New Tab
+            </Button>
+          </div>
+        )}
       </div>
 
-      {/* Progress Bar */}
-      <Card className="border-border bg-card shadow-sm overflow-hidden">
-        <CardContent className="p-5">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2">
-              <Sparkles className="h-4 w-4 text-primary" />
-              <span className="text-xs font-bold tracking-widest text-muted-foreground">Daily Progress</span>
-            </div>
-            <span className="text-sm font-black text-foreground">{completedTasks}/{totalTasks}</span>
-          </div>
-          <div className="h-3 w-full rounded-full bg-muted/30 overflow-hidden">
-            <div
-              className={cn(
-                "h-full rounded-full transition-all duration-700",
-                progressPct === 100 ? "bg-emerald-500" : "bg-primary"
-              )}
-              style={{ width: `${progressPct}%` }}
+      {showCreateTab && (
+        <Card className="border-border">
+          <CardContent className="p-4 flex gap-3">
+            <Input 
+              placeholder="Tab Name (e.g. Lead: Apple Inc, Project Alpha)" 
+              value={newTabName}
+              onChange={e => setNewTabName(e.target.value)}
+              className="max-w-sm"
             />
-          </div>
-          {progressPct === 100 && totalTasks > 0 && (
-            <p className="text-xs font-bold text-emerald-600 mt-2 flex items-center gap-1">
-              <CheckCircle2 className="h-3.5 w-3.5" /> All tasks completed! Great job today 🎉
-            </p>
-          )}
-        </CardContent>
-      </Card>
+            <Button onClick={handleCreateTab}>Create</Button>
+            <Button variant="ghost" onClick={() => setShowCreateTab(false)}>Cancel</Button>
+          </CardContent>
+        </Card>
+      )}
 
-      {/* CRM Daily Goals */}
-      <CRMGoals />
-
-      {/* Add Task */}
-      <Card className="border-border bg-card shadow-xl rounded-2xl overflow-hidden">
-        {showUpgradeModal && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/60 backdrop-blur-sm">
-            <div className="w-full max-w-md">
-              <UpgradePrompt 
-                type="feature"
-                description="This assignment method is available in higher plans. Upgrade to unlock." 
-                onClose={() => setShowUpgradeModal(false)}
-              />
-            </div>
-          </div>
-        )}
-        <CardContent className="p-5">
-          <div className="flex flex-col gap-4">
-            <div className="flex gap-2 mb-1">
-              {[
-                { type: "text", icon: CheckSquare, label: "Text" },
-                { type: "voice", icon: Mic, label: "Voice", plan: "Growth" },
-                { type: "image", icon: ImageIcon, label: "Image", plan: "Pro" },
-              ].map((t) => (
-                <button
-                  key={t.type}
-                  onClick={() => t.type !== "text" ? handleTypeChange(t.type as any) : setTaskType("text")}
-                  className={cn(
-                    "flex items-center gap-2 px-3 py-1.5 rounded-lg text-[10px] font-black tracking-widest border transition-all",
-                    taskType === t.type 
-                      ? "bg-primary text-white border-primary shadow-lg shadow-primary/20" 
-                      : "bg-muted/30 text-muted-foreground border-border hover:bg-muted/50"
-                  )}
-                >
-                  <t.icon className="h-3 w-3" />
-                  {t.label}
-                  {t.plan && planConfig?.plan === 'starter' && t.type === 'voice' && (
-                    <Lock className="h-2.5 w-2.5 opacity-40" />
-                  )}
-                  {t.plan === 'Pro' && planConfig?.plan !== 'pro' && (
-                    <Lock className="h-2.5 w-2.5 opacity-40" />
-                  )}
-                </button>
-              ))}
-            </div>
-            <div className="flex flex-col sm:flex-row gap-3">
-              <Input
-                placeholder={taskType === 'text' ? "What do you need to do today?" : `Describe the ${taskType} task...`}
-                className="flex-1 h-12 rounded-xl bg-background border-border shadow-sm pl-4 text-sm font-medium"
-                value={newTask}
-                onChange={(e) => setNewTask(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && addTask()}
-              />
-            <div className="flex gap-2">
-              {(["high", "medium", "low"] as Priority[]).map((p) => {
-                const cfg = priorityConfig[p];
-                return (
-                  <button
-                    key={p}
-                    onClick={() => setPriority(p)}
-                    className={cn(
-                      "h-12 px-3 rounded-xl border text-xs font-bold tracking-wider transition-all flex items-center gap-1.5",
-                      priority === p
-                        ? `${cfg.bg} ${cfg.color} ${cfg.border} shadow-sm`
-                        : "border-border text-muted-foreground hover:bg-muted/30"
-                    )}
-                  >
-                    <cfg.icon className="h-3.5 w-3.5" />
-                    <span className="hidden sm:inline">{cfg.label}</span>
-                  </button>
-                );
-              })}
-              <Button
-                className="h-12 px-5 bg-primary text-white rounded-xl font-bold shadow-lg shadow-primary/20"
-                onClick={addTask}
-              >
-                <Plus className="h-4 w-4 sm:mr-2" />
-                <span className="hidden sm:inline">Add</span>
-              </Button>
-            </div>
-          </div>
+      {/* Tabs List */}
+      {tabs.length > 0 ? (
+        <div className="flex gap-2 overflow-x-auto pb-2 custom-scrollbar">
+          {tabs.map((tab: any) => (
+            <button
+              key={tab._id}
+              onClick={() => setActiveTabId(tab._id)}
+              className={cn(
+                "px-5 py-2.5 rounded-xl text-sm font-bold tracking-wide transition-all whitespace-nowrap border flex items-center gap-2",
+                activeTabId === tab._id
+                  ? "bg-primary text-white border-primary shadow-md"
+                  : "bg-card border-border text-muted-foreground hover:bg-muted/50"
+              )}
+            >
+              {tab.name}
+            </button>
+          ))}
         </div>
-      </CardContent>
-    </Card>
+      ) : (
+        <Card className="border-dashed border-2 bg-transparent py-12">
+          <CardContent className="text-center">
+            <Target className="h-12 w-12 text-muted-foreground opacity-30 mx-auto mb-4" />
+            <h3 className="text-lg font-bold">No Task Tabs Found</h3>
+            <p className="text-sm text-muted-foreground mt-1">
+              {orgRole === "member" ? "You haven't been granted access to any task tabs yet." : "Create your first task tab to get started."}
+            </p>
+          </CardContent>
+        </Card>
+      )}
 
-      {/* Filter Tabs */}
-      <div className="flex items-center gap-2">
-        {(
-          [
-            { key: "all", label: "All" },
-            { key: "active", label: "Active" },
-            { key: "done", label: "Completed" },
-          ] as { key: "all" | "active" | "done"; label: string }[]
-        ).map((tab) => (
-          <button
-            key={tab.key}
-            onClick={() => setFilter(tab.key)}
-            className={cn(
-              "px-4 py-2 rounded-xl text-xs font-bold tracking-widest transition-all",
-              filter === tab.key
-                ? "bg-primary text-white shadow-lg shadow-primary/20"
-                : "bg-card border border-border text-muted-foreground hover:bg-muted/30"
+      {/* Active Tab Content */}
+      {activeTabId && (
+        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
+          <div className="flex items-center justify-between border-b pb-4">
+            <h2 className="text-xl font-bold flex items-center gap-2">
+              <CheckSquare className="h-5 w-5 text-primary" /> {activeTab?.name}
+            </h2>
+            {(orgRole === "owner" || orgRole === "staff") && (
+              <Button variant="outline" size="sm" onClick={() => setShowAccessModal(activeTabId)}>
+                <Shield className="h-4 w-4 mr-2" /> Manage Access
+              </Button>
             )}
-          >
-            {tab.label}
-          </button>
-        ))}
-      </div>
+          </div>
 
-      {/* Task List */}
-      <div className="space-y-2">
-        {filteredTasks.length === 0 ? (
-          <Card className="border-2 border-dashed border-border bg-card/50">
-            <CardContent className="py-16 flex flex-col items-center justify-center text-muted-foreground">
-              <CheckSquare className="h-10 w-10 opacity-20 mb-3" />
-              <p className="text-sm font-bold tracking-widest">
-                {filter === "done" ? "No completed tasks yet" : filter === "active" ? "All done! Nothing pending" : "No tasks for today"}
-              </p>
-              <p className="text-xs mt-1">
-                {filter === "all" ? "Add your first task above to get started" : ""}
-              </p>
-            </CardContent>
-          </Card>
-        ) : (
-          filteredTasks.map((task) => {
-            const cfg = priorityConfig[task.priority];
-            return (
-              <Card
-                key={task.id}
-                className={cn(
-                  "border-border bg-card transition-all group hover:shadow-lg",
-                  task.completed && "opacity-60"
-                )}
-              >
-                <CardContent className="p-4 flex items-center gap-4">
-                  {/* Toggle */}
-                  <button
-                    onClick={() => toggleTask(task.id)}
-                    className="shrink-0"
-                  >
-                    {task.completed ? (
-                      <CheckCircle2 className="h-6 w-6 text-emerald-500 transition-all" />
-                    ) : (
-                      <Circle className="h-6 w-6 text-muted-foreground/30 hover:text-primary transition-all" />
-                    )}
-                  </button>
+          <TasksList tabId={activeTabId} />
+        </div>
+      )}
 
-                  {/* Text */}
-                  <div className="flex-1 min-w-0">
-                    <p
-                      className={cn(
-                        "text-sm font-semibold text-foreground transition-all",
-                        task.completed && "line-through text-muted-foreground"
-                      )}
-                    >
-                      {task.text}
-                    </p>
-                    <p className="text-[10px] font-bold text-muted-foreground/50 mt-0.5">
-                      {new Date(task.createdAt).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })}
-                    </p>
-                  </div>
+      {showAccessModal && (
+        <AccessManagerModal tabId={showAccessModal} onClose={() => setShowAccessModal(null)} />
+      )}
 
-                  {/* Priority Badge */}
-                  <div className={cn("px-2.5 py-1 rounded-lg text-[10px] font-bold tracking-widest border", cfg.bg, cfg.color, cfg.border)}>
-                    {cfg.label}
-                  </div>
-
-                  {/* Delete */}
-                  <button
-                    onClick={() => deleteTask(task.id)}
-                    className="shrink-0 opacity-0 group-hover:opacity-100 transition-all text-muted-foreground hover:text-red-500"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
-                </CardContent>
-              </Card>
-            );
-          })
-        )}
-      </div>
-
-      {/* Footer Tip */}
-      <p className="text-[10px] text-center text-muted-foreground/50 font-bold tracking-widest">
-        Tasks are stored locally • Incomplete tasks carry over to the next day automatically
-      </p>
+      {showInviteModal && (
+        <InviteModal onClose={() => setShowInviteModal(false)} />
+      )}
     </div>
   );
 }
 
-// ─── CRM Daily Goals Component ──────────────────────────────────────
-function CRMGoals() {
-  const { data } = useSWR("/api/leads?limit=500", fetcher, { refreshInterval: 30000 });
-  const leads = data?.leads || [];
+// ─── TASKS LIST COMPONENT ───────────────────────────────────────────
+function TasksList({ tabId }: { tabId: string }) {
+  const { data, mutate: mutateTasks } = useSWR(`/api/tasks?tabId=${tabId}`, fetcher);
+  const tasks = data?.tasks || [];
+  const hasWriteAccess = data?.hasWriteAccess;
 
-  const today = new Date().toISOString().split("T")[0];
+  const [newTask, setNewTask] = useState("");
+  const [priority, setPriority] = useState<"high"|"medium"|"low">("medium");
 
-  // Count leads added today
-  const leadsToday = leads.filter((l: any) => l.createdAt?.startsWith(today)).length;
+  // Editing state
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editText, setEditText] = useState("");
+  const [editPriority, setEditPriority] = useState<"high"|"medium"|"low">("medium");
 
-  // Count follow-ups done today (leads with follow-up date = today that are contacted/interested)
-  const followUpsToday = leads.filter((l: any) => {
-    const followDate = l.nextFollowupDate?.split("T")[0];
-    return followDate === today && ["Contacted", "Interested", "Qualified", "Follow-up Required"].includes(l.status);
-  }).length;
+  const addTask = async () => {
+    if (!newTask.trim() || !hasWriteAccess) return;
+    const res = await fetch("/api/tasks", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ tabId, text: newTask, priority }),
+    });
+    if (res.ok) {
+      setNewTask("");
+      mutateTasks();
+    }
+  };
 
-  // Count conversions today
-  const conversionsToday = leads.filter((l: any) => {
-    return l.status === "Converted (Won)" && l.updatedAt?.startsWith(today);
-  }).length;
+  const toggleTask = async (taskId: string, completed: boolean) => {
+    if (!hasWriteAccess) return;
+    await fetch("/api/tasks", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ tabId, taskId, completed: !completed }),
+    });
+    mutateTasks();
+  };
 
-  const goals = [
-    {
-      label: "Leads Added",
-      current: leadsToday,
-      target: 25,
-      icon: Users,
-      color: "#6366f1",
-      bg: "bg-indigo-500/10",
-    },
-    {
-      label: "Follow-ups Done",
-      current: followUpsToday,
-      target: 5,
-      icon: PhoneCall,
-      color: "#f59e0b",
-      bg: "bg-amber-500/10",
-    },
-    {
-      label: "Conversions",
-      current: conversionsToday,
-      target: 2,
-      icon: Trophy,
-      color: "#10b981",
-      bg: "bg-emerald-500/10",
-    },
-  ];
+  const deleteTask = async (taskId: string) => {
+    if (!hasWriteAccess) return;
+    await fetch(`/api/tasks?tabId=${tabId}&taskId=${taskId}`, { method: "DELETE" });
+    mutateTasks();
+  };
+
+  const startEditing = (task: any) => {
+    setEditingId(task._id);
+    setEditText(task.text);
+    setEditPriority(task.priority);
+  };
+
+  const cancelEditing = () => {
+    setEditingId(null);
+    setEditText("");
+    setEditPriority("medium");
+  };
+
+  const saveEdit = async (taskId: string) => {
+    if (!editText.trim()) return;
+    await fetch("/api/tasks", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ tabId, taskId, text: editText, priority: editPriority }),
+    });
+    setEditingId(null);
+    mutateTasks();
+  };
 
   return (
-    <Card className="border-border bg-card shadow-xl overflow-hidden">
-      <CardContent className="p-5">
-        <div className="flex items-center gap-2 mb-5">
-          <Target className="h-4 w-4 text-primary" />
-          <h3 className="text-xs font-bold tracking-widest text-muted-foreground">CRM Daily Goals</h3>
-          <span className="text-[10px] font-bold text-muted-foreground/40 ml-auto">Auto-tracked from leads</span>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          {goals.map((goal) => {
-            const pct = Math.min((goal.current / goal.target) * 100, 100);
-            const isComplete = goal.current >= goal.target;
-            const circumference = 2 * Math.PI * 36;
-            const strokeDashoffset = circumference - (pct / 100) * circumference;
-
-            return (
-              <div
-                key={goal.label}
-                className={cn(
-                  "rounded-2xl border border-border p-5 flex flex-col items-center gap-3 transition-all",
-                  isComplete && "border-emerald-500/30 bg-emerald-500/5"
-                )}
+    <div className="space-y-6">
+      {hasWriteAccess && (
+        <Card className="border-border shadow-sm">
+          <CardContent className="p-4 flex flex-col sm:flex-row gap-3">
+            <Input 
+              value={newTask} 
+              onChange={e => setNewTask(e.target.value)}
+              placeholder="What needs to be done?"
+              className="h-12 flex-1"
+              onKeyDown={e => e.key === 'Enter' && addTask()}
+            />
+            <div className="flex gap-2">
+              <select 
+                value={priority} 
+                onChange={(e: any) => setPriority(e.target.value)}
+                className="h-12 px-3 rounded-lg border border-border bg-background text-sm"
               >
-                {/* SVG Circle Progress */}
-                <div className="relative">
-                  <svg width="88" height="88" className="-rotate-90">
-                    <circle cx="44" cy="44" r="36" fill="none" stroke="currentColor" strokeWidth="6" className="text-muted/20" />
-                    <circle
-                      cx="44" cy="44" r="36" fill="none"
-                      stroke={isComplete ? "#10b981" : goal.color}
-                      strokeWidth="6"
-                      strokeLinecap="round"
-                      strokeDasharray={circumference}
-                      strokeDashoffset={strokeDashoffset}
-                      className="transition-all duration-1000"
-                    />
-                  </svg>
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    {isComplete ? (
-                      <CheckCircle2 className="h-6 w-6 text-emerald-500" />
-                    ) : (
-                      <goal.icon className="h-5 w-5" style={{ color: goal.color }} />
-                    )}
+                <option value="high">High</option>
+                <option value="medium">Medium</option>
+                <option value="low">Low</option>
+              </select>
+              <Button onClick={addTask} className="h-12 px-6">Add</Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      <div className="space-y-2">
+        {tasks.map((task: any) => (
+          <Card key={task._id} className={cn("transition-all", task.completed && "opacity-60")}>
+            <CardContent className="p-4">
+              {editingId === task._id ? (
+                /* ─── EDIT MODE ─── */
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <Input
+                    value={editText}
+                    onChange={e => setEditText(e.target.value)}
+                    className="h-10 flex-1"
+                    autoFocus
+                    onKeyDown={e => {
+                      if (e.key === 'Enter') saveEdit(task._id);
+                      if (e.key === 'Escape') cancelEditing();
+                    }}
+                  />
+                  <div className="flex items-center gap-2">
+                    <select
+                      value={editPriority}
+                      onChange={(e: any) => setEditPriority(e.target.value)}
+                      className="h-10 px-3 rounded-lg border border-border bg-background text-sm"
+                    >
+                      <option value="high">High</option>
+                      <option value="medium">Medium</option>
+                      <option value="low">Low</option>
+                    </select>
+                    <Button size="sm" onClick={() => saveEdit(task._id)} className="h-10 px-4 gap-1.5">
+                      <Save className="h-3.5 w-3.5" /> Save
+                    </Button>
+                    <Button size="sm" variant="ghost" onClick={cancelEditing} className="h-10 px-3">
+                      <X className="h-4 w-4" />
+                    </Button>
                   </div>
                 </div>
+              ) : (
+                /* ─── VIEW MODE ─── */
+                <div className="flex items-center gap-4">
+                  <button onClick={() => toggleTask(task._id, task.completed)} disabled={!hasWriteAccess} className="shrink-0">
+                    {task.completed ? <CheckCircle2 className="h-6 w-6 text-emerald-500" /> : <Circle className="h-6 w-6 text-muted-foreground/30 hover:text-primary transition-colors" />}
+                  </button>
+                  <p className={cn("flex-1 font-medium", task.completed && "line-through text-muted-foreground")}>{task.text}</p>
+                  
+                  <span className={cn(
+                    "px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-widest hidden sm:inline-block",
+                    task.priority === "high" ? "bg-red-500/10 text-red-500" : task.priority === "medium" ? "bg-amber-500/10 text-amber-500" : "bg-emerald-500/10 text-emerald-500"
+                  )}>
+                    {task.priority}
+                  </span>
 
-                <div className="text-center">
-                  <p className="text-2xl font-black text-foreground">
-                    {goal.current}<span className="text-sm font-bold text-muted-foreground">/{goal.target}</span>
-                  </p>
-                  <p className="text-[10px] font-bold tracking-widest text-muted-foreground mt-0.5">{goal.label}</p>
+                  {hasWriteAccess && (
+                    <div className="flex items-center gap-1">
+                      <button onClick={() => startEditing(task)} className="text-muted-foreground hover:text-primary opacity-50 hover:opacity-100 transition-all shrink-0 p-1">
+                        <Pencil className="h-4 w-4" />
+                      </button>
+                      <button onClick={() => deleteTask(task._id)} className="text-muted-foreground hover:text-red-500 opacity-50 hover:opacity-100 transition-all shrink-0 p-1">
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
+                  )}
                 </div>
+              )}
+            </CardContent>
+          </Card>
+        ))}
+        {tasks.length === 0 && (
+          <div className="text-center py-10 text-muted-foreground text-sm">No tasks here yet.</div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ─── ACCESS MANAGER MODAL ──────────────────────────────────────────
+function AccessManagerModal({ tabId, onClose }: { tabId: string, onClose: () => void }) {
+  const router = useRouter();
+  const [showInvite, setShowInvite] = useState(false);
+  const { data: teamData } = useSWR("/api/organization/team", fetcher);
+  const { data: tabsData, mutate: mutateTabs } = useSWR("/api/tasks/tabs", fetcher);
+  
+  const team = teamData?.members || [];
+  const tab = tabsData?.tabs?.find((t: any) => t._id === tabId);
+
+  const handleAccessChange = async (userId: string, permission: string) => {
+    await fetch(`/api/tasks/tabs/${tabId}/access`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId, permission }),
+    });
+    mutateTabs();
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+      <Card className="w-full max-w-lg shadow-2xl">
+        <CardHeader className="flex flex-row items-center justify-between border-b pb-4">
+          <CardTitle>Manage Access: {tab?.name}</CardTitle>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" onClick={() => setShowInvite(true)} className="h-8">
+              <UserPlus className="h-4 w-4 mr-2" /> Invite
+            </Button>
+            <Button variant="ghost" size="icon" onClick={onClose} className="h-8 w-8"><X className="h-4 w-4" /></Button>
+          </div>
+        </CardHeader>
+        <CardContent className="p-6 space-y-4 max-h-[60vh] overflow-y-auto">
+          {team.map((member: any) => {
+            const currentAccess = tab?.accessControl?.find((a: any) => a.userId === member._id)?.permission || "none";
+            return (
+              <div key={member._id} className="flex items-center justify-between p-3 rounded-xl border bg-muted/20">
+                <div>
+                  <p className="font-bold text-sm">{member.name}</p>
+                  <p className="text-xs text-muted-foreground">{member.email} • <span className="uppercase text-[9px] tracking-widest">{member.orgRole}</span></p>
+                </div>
+                {member.orgRole === "owner" ? (
+                  <span className="text-xs font-bold text-primary">Full Access</span>
+                ) : (
+                  <select 
+                    value={currentAccess} 
+                    onChange={e => handleAccessChange(member._id, e.target.value)}
+                    className="h-8 px-2 rounded-md border text-xs"
+                  >
+                    <option value="none">No Access</option>
+                    <option value="read">View Only</option>
+                    <option value="write">Can Edit</option>
+                  </select>
+                )}
               </div>
             );
           })}
-        </div>
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+
+      {showInvite && <InviteModal onClose={() => setShowInvite(false)} />}
+    </div>
   );
 }

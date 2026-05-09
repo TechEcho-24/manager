@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react";
 import useSWR from "swr";
 import { toast } from "sonner";
-import { Settings as SettingsIcon, Upload, Loader2, Save } from "lucide-react";
+import { useSession } from "next-auth/react";
+import { Settings as SettingsIcon, Upload, Loader2, Save, Users, Copy, Check, UserPlus } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -13,6 +14,8 @@ import { cn } from "@/lib/utils";
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 export default function SettingsPage() {
+  const { data: session } = useSession();
+  const orgRole = (session?.user as any)?.orgRole || "owner";
   const { data, isLoading, mutate } = useSWR("/api/organization/branding", fetcher);
 
   const [formData, setFormData] = useState({
@@ -21,15 +24,20 @@ export default function SettingsPage() {
   });
 
   const [isSaving, setIsSaving] = useState(false);
+  const [lastDataString, setLastDataString] = useState("");
 
   useEffect(() => {
     if (data && !data.error) {
-      setFormData({
-        logoUrl: data.logoUrl || "",
-        primaryColor: data.primaryColor || "#7c3aed",
-      });
+      const dataString = JSON.stringify(data);
+      if (dataString !== lastDataString) {
+        setFormData({
+          logoUrl: data.logoUrl || "",
+          primaryColor: data.primaryColor || "#7c3aed",
+        });
+        setLastDataString(dataString);
+      }
     }
-  }, [data]);
+  }, [data, lastDataString]);
 
   const handleSave = async () => {
     setIsSaving(true);
@@ -176,7 +184,106 @@ export default function SettingsPage() {
             )}
           </CardContent>
         </Card>
+
+        {(orgRole === "owner" || orgRole === "staff") && <TeamManagement />}
       </div>
     </div>
+  );
+}
+
+function TeamManagement() {
+  const { data: teamData, isLoading, mutate } = useSWR("/api/organization/team", fetcher);
+  const team = teamData?.members || [];
+  
+  const [inviteLink, setInviteLink] = useState("");
+  const [generating, setGenerating] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const [inviteRole, setInviteRole] = useState("member");
+
+  const generateInvite = async () => {
+    setGenerating(true);
+    try {
+      const res = await fetch("/api/organization/team/invite", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ role: inviteRole })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to generate invite");
+      setInviteLink(data.link);
+      toast.success("Invite link generated");
+    } catch (err: any) {
+      toast.error(err.message);
+    } finally {
+      setGenerating(false);
+    }
+  };
+
+  const copyToClipboard = () => {
+    navigator.clipboard.writeText(inviteLink);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  return (
+    <Card className="border-border bg-card shadow-sm h-fit">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Users className="h-5 w-5 text-primary" />
+          Team Management
+        </CardTitle>
+        <CardDescription>
+          Invite members to your workspace. Roles determine their level of access.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        <div className="space-y-4">
+          <div className="flex flex-col sm:flex-row gap-3">
+            <select
+              value={inviteRole}
+              onChange={e => setInviteRole(e.target.value)}
+              className="h-10 px-3 rounded-md border text-sm"
+            >
+              <option value="member">Task Member</option>
+              <option value="staff">Staff (Full Access)</option>
+            </select>
+            <Button onClick={generateInvite} disabled={generating} className="gap-2">
+              {generating ? <Loader2 className="h-4 w-4 animate-spin" /> : <UserPlus className="h-4 w-4" />}
+              Generate Invite Link
+            </Button>
+          </div>
+
+          {inviteLink && (
+            <div className="flex items-center gap-2 mt-2 p-2 border rounded-lg bg-muted/30">
+              <input type="text" readOnly value={inviteLink} className="flex-1 bg-transparent text-sm outline-none px-2" />
+              <Button size="sm" variant="secondary" onClick={copyToClipboard} className="shrink-0 h-8">
+                {copied ? <Check className="h-4 w-4 text-emerald-500" /> : <Copy className="h-4 w-4" />}
+              </Button>
+            </div>
+          )}
+        </div>
+
+        <div className="pt-4 border-t">
+          <h3 className="text-sm font-bold mb-3">Current Members ({team.length})</h3>
+          {isLoading ? (
+            <div className="flex justify-center p-4"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>
+          ) : (
+            <div className="space-y-2 max-h-60 overflow-y-auto pr-2 custom-scrollbar">
+              {team.map((member: any) => (
+                <div key={member._id} className="flex items-center justify-between p-3 border rounded-xl bg-card">
+                  <div>
+                    <p className="text-sm font-bold">{member.name}</p>
+                    <p className="text-xs text-muted-foreground">{member.email}</p>
+                  </div>
+                  <span className="text-[10px] uppercase font-bold tracking-widest px-2 py-1 bg-primary/10 text-primary rounded-md">
+                    {member.orgRole}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </CardContent>
+    </Card>
   );
 }

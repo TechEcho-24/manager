@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { signIn } from "next-auth/react";
+import { signIn, useSession } from "next-auth/react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -31,8 +31,10 @@ import { plans } from "./landing/constants";
 export default function SignupForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { update: updateSession } = useSession();
   const planParam = searchParams.get("plan");
   const billingParam = searchParams.get("billing");
+  const inviteToken = searchParams.get("invite");
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -118,6 +120,31 @@ export default function SignupForm() {
           throw new Error("Login failed after registration");
       }
 
+      // 🔥 INVITE FLOW: If invite token exists, join the org and go straight to tasks
+      if (inviteToken) {
+        const joinRes = await fetch("/api/organization/team/join", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ token: inviteToken }),
+        });
+        const joinData = await joinRes.json();
+        if (!joinRes.ok) {
+          throw new Error(joinData.error || "Failed to join workspace");
+        }
+        // Update session so middleware sees onboardingCompleted=true
+        await updateSession({
+          onboardingCompleted: true,
+          paymentCompleted: true,
+          organizationId: joinData.organizationId,
+          orgRole: joinData.role,
+        });
+        // Redirect member to tasks, staff to dashboard
+        setIsLoading(false);
+        const redirectTo = joinData.role === "member" ? "/tasks" : "/dashboard";
+        router.push(redirectTo);
+        return;
+      }
+
       localStorage.setItem(
         "onboardingPrefill",
         JSON.stringify({ name: fullName, email, phone }),
@@ -159,6 +186,8 @@ export default function SignupForm() {
               }).then((t) => t.json());
 
               if (verifyData.success) {
+                // Update session so middleware allows onboarding access
+                await updateSession({ paymentCompleted: true });
                 setIsLoading(false);
                 setIsLoadingOverlay(true);
                 setTimeout(() => router.push("/onboarding"), 5000);
@@ -179,10 +208,9 @@ export default function SignupForm() {
         }
       }
 
-      // Free plan or no plan
+      // No plan selected or price is 0 — redirect to pricing to pick a plan
       setIsLoading(false);
-      setIsLoadingOverlay(true);
-      setTimeout(() => router.push("/onboarding"), 5000);
+      router.push("/#pricing");
     } catch (err: any) {
       setError(err.message || "An error occurred.");
       setIsLoading(false);
@@ -326,11 +354,23 @@ export default function SignupForm() {
             </div>
             <h1 className="text-3xl sm:text-4xl font-black text-white mb-2 "
               style={{ fontFamily: "var(--font-manrope)" }}>
-              Phase: Join
+              {inviteToken ? "Join Workspace" : "Phase: Join"}
             </h1>
-            <p className="text-sm text-white/40 ">               Create your account to access the platform.
+            <p className="text-sm text-white/40 ">
+              {inviteToken ? "Create your account to join the team workspace." : "Create your account to access the platform."}
             </p>
-            {planParam && (
+            {inviteToken && (
+              <div className='mt-3 inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20'>
+                <CheckCircle2 className='h-3.5 w-3.5 text-emerald-400' />
+                <span
+                  className='text-xs font-semibold text-emerald-300'
+                  style={{ fontFamily: "var(--font-montserrat)" }}
+                >
+                  Team Invitation
+                </span>
+              </div>
+            )}
+            {!inviteToken && planParam && (
               <div className='mt-3 inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-orange-500/10 border border-orange-500/20'>
                 <CheckCircle2 className='h-3.5 w-3.5 text-orange-400' />
                 <span
@@ -443,9 +483,11 @@ export default function SignupForm() {
               ) : (
                 <div className='flex items-center justify-center gap-3'>
                   <span>
-                    {planParam && getPriceForPlan(planParam) > 0
-                      ? "Pay & Create Account"
-                      : "Create Account"}
+                    {inviteToken
+                      ? "Create Account & Join"
+                      : planParam && getPriceForPlan(planParam) > 0
+                        ? "Pay & Create Account"
+                        : "Create Account"}
                   </span>
                   <ArrowRight className='h-5 w-5 transition-transform group-hover:translate-x-1' />
                 </div>

@@ -6,8 +6,10 @@ export interface IUser extends Document {
   phone: string;
   password?: string;
   role: "client" | "admin";
+  orgRole: "owner" | "staff" | "member";
   organizationId?: string;
   onboardingCompleted: boolean;
+  paymentCompleted: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -19,8 +21,10 @@ const UserSchema = new Schema<IUser>(
     phone: { type: String, required: true },
     password: { type: String },
     role: { type: String, enum: ["client", "admin"], default: "client" },
+    orgRole: { type: String, enum: ["owner", "staff", "member"], default: "owner" },
     organizationId: { type: String, index: true },
     onboardingCompleted: { type: Boolean, default: false },
+    paymentCompleted: { type: Boolean, default: false },
   },
   { timestamps: true }
 );

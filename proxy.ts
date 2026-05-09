@@ -13,6 +13,10 @@ export async function proxy(req: NextRequest) {
 
   const isLoggedIn = !!token;
   const onboardingCompleted = Boolean(token?.onboardingCompleted);
+  const paymentCompleted = Boolean(token?.paymentCompleted);
+  const orgRole = (token?.orgRole as string) || "owner";
+  // Invited users (staff/member) are exempt from payment — their org owner paid
+  const isInvitedUser = orgRole !== "owner";
 
   const isAuthRoute =
     pathname.startsWith("/login") || pathname.startsWith("/signup");
@@ -32,6 +36,10 @@ export async function proxy(req: NextRequest) {
 
   // Logged in user visiting login/signup
   if (isLoggedIn && isAuthRoute) {
+    // If no payment and not an invited user, send to pricing
+    if (!paymentCompleted && !isInvitedUser) {
+      return NextResponse.redirect(new URL("/#pricing", req.url));
+    }
     return NextResponse.redirect(
       new URL(
         onboardingCompleted ? "/dashboard" : "/onboarding",
@@ -43,6 +51,11 @@ export async function proxy(req: NextRequest) {
   // Not logged in accessing dashboard
   if (!isLoggedIn && isDashboardRoute) {
     return NextResponse.redirect(new URL("/login", req.url));
+  }
+
+  // 🔒 PAYMENT GATE: Block onboarding & dashboard if payment not done (owners only)
+  if (isLoggedIn && !paymentCompleted && !isInvitedUser && (isDashboardRoute || isOnboardingRoute)) {
+    return NextResponse.redirect(new URL("/#pricing", req.url));
   }
 
   // Logged in but onboarding not done

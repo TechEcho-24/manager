@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { useSession } from "next-auth/react";
 import {
   Sheet,
   SheetContent,
@@ -22,8 +23,11 @@ import {
   Settings,
   Menu,
   Zap,
+  UserCheck,
 } from "lucide-react";
 import { useState } from "react";
+
+import useSWR from "swr";
 
 const navItems = [
   { title: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
@@ -33,13 +37,25 @@ const navItems = [
   { title: "Contacts", href: "/contacts", icon: Contact },
   { title: "Deals", href: "/deals", icon: Handshake },
   { title: "Tasks", href: "/tasks", icon: CheckSquare },
+  { title: "Team", href: "/team", icon: UserCheck },
   { title: "Reports", href: "/reports", icon: BarChart3 },
   { title: "Settings", href: "/settings", icon: Settings },
 ];
 
+const fetcher = (url: string) => fetch(url).then((res) => res.json());
+
 export function MobileSidebar() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const { data: session } = useSession();
+  const { data: branding } = useSWR("/api/organization/branding", fetcher);
+  
+  const orgRole = (session?.user as any)?.orgRole || "owner";
+  
+  const visibleNavItems = navItems.filter(item => {
+    if (orgRole === "member" && item.href !== "/tasks") return false;
+    return true;
+  });
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
@@ -55,13 +71,17 @@ export function MobileSidebar() {
       >
         <SheetHeader className="border-b border-sidebar-border px-5 py-4">
           <SheetTitle className="flex flex-col items-start">
-            <img src="/assets/logo.png" alt="Pinglly Logo" className="h-8 object-contain" />
+            {branding?.logoUrl ? (
+              <img src={branding.logoUrl} alt="Organization Logo" className="h-8 object-contain object-left max-w-[140px]" />
+            ) : (
+              <img src="/assets/logo.png" alt="Pinglly Logo" className="h-8 object-contain" />
+            )}
             <span className="text-[7px] font-bold tracking-[0.2em] text-[oklch(0.60_0.22_260)]/60">by TechEcho</span>
           </SheetTitle>
         </SheetHeader>
 
         <nav className="space-y-1 p-3">
-          {navItems.map((item) => {
+          {visibleNavItems.map((item) => {
             const isActive = pathname === item.href;
             return (
               <Link

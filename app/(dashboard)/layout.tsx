@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, Suspense, useEffect } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { Sidebar } from "@/components/sidebar";
 import { TopNavbar } from "@/components/top-navbar";
 import { TrialBanner } from "@/components/trial-banner";
@@ -16,12 +18,24 @@ export default function DashboardLayout({
 }) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const { data } = useSWR("/api/organization/branding", fetcher);
+  const { data: session } = useSession();
+  const pathname = usePathname();
+  const router = useRouter();
 
+  const orgRole = (session?.user as any)?.orgRole || "owner";
+  const isMember = orgRole === "member";
+
+  // Redirect members away from non-tasks pages
+  useEffect(() => {
+    if (isMember && !pathname.startsWith("/tasks")) {
+      router.replace("/tasks");
+    }
+  }, [session, pathname, router, isMember]);
+
+  // Apply branding color
   useEffect(() => {
     if (data?.primaryColor) {
       document.documentElement.style.setProperty("--primary", data.primaryColor);
-      // also optionally set primary-foreground to a contrasting color or white
-      // document.documentElement.style.setProperty("--primary-foreground", "#ffffff");
     } else {
       document.documentElement.style.removeProperty("--primary");
     }
@@ -30,21 +44,24 @@ export default function DashboardLayout({
   return (
     <Suspense fallback={<div className="min-h-dvh bg-background" />}>
       <div className="min-h-dvh bg-background">
-        {/* Desktop sidebar */}
-        <Sidebar
-          collapsed={sidebarCollapsed}
-          onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
-        />
+        {/* Desktop sidebar — hidden for members */}
+        {!isMember && (
+          <Sidebar
+            collapsed={sidebarCollapsed}
+            onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
+          />
+        )}
 
         {/* Main content area */}
         <div
           className={cn(
             "flex min-h-dvh flex-col transition-all duration-300",
-            sidebarCollapsed ? "lg:pl-[68px]" : "lg:pl-[240px]"
+            !isMember && (sidebarCollapsed ? "lg:pl-[68px]" : "lg:pl-[240px]")
           )}
         >
-          <TrialBanner />
-          <TopNavbar />
+          {/* Hide trial banner for members */}
+          {!isMember && <TrialBanner />}
+          <TopNavbar isMember={isMember} />
           <main className="flex-1 p-4 lg:p-6">{children}</main>
         </div>
       </div>

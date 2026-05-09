@@ -40,8 +40,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
               name: user?.name || "Super Admin",
               email: email,
               role: "admin",
+              orgRole: "owner",
               organizationId: user?.organizationId,
               onboardingCompleted: true,
+              paymentCompleted: true,
             };
           }
 
@@ -77,8 +79,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                 name: user.name,
                 email: user.email,
                 role: role,
+                orgRole: user.orgRole || "owner",
                 organizationId: user.organizationId,
                 onboardingCompleted: onboardingCompleted,
+                paymentCompleted: isAdminEmail ? true : (user.paymentCompleted || false),
               };
             }
           }
@@ -105,8 +109,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
               name: user.name,
               email: user.email,
               role: user.role || "client",
+              orgRole: user.orgRole || "owner",
               organizationId: user.organizationId,
               onboardingCompleted: user.onboardingCompleted || false,
+              paymentCompleted: user.paymentCompleted || false,
             };
           } catch (e) {
             console.error("Fallback Sync Error:", e);
@@ -125,8 +131,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         const u = user as any;
         token.id = u.id;
         token.role = u.role;
+        token.orgRole = u.orgRole || "owner";
         token.organizationId = u.organizationId;
         token.onboardingCompleted = u.onboardingCompleted || false;
+        token.paymentCompleted = u.paymentCompleted || false;
       }
 
       // 🔥 IMPORTANT: update token after onboarding
@@ -136,6 +144,12 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         }
         if (session?.organizationId !== undefined) {
           token.organizationId = session.organizationId;
+        }
+        if (session?.orgRole !== undefined) {
+          token.orgRole = session.orgRole;
+        }
+        if (session?.paymentCompleted !== undefined) {
+          token.paymentCompleted = session.paymentCompleted;
         }
       }
 
@@ -147,9 +161,13 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         const u = session.user as any;
         u.id = token.id as string;
         u.role = token.role as string;
+        u.orgRole = (token.orgRole as string) || "owner";
         u.organizationId = token.organizationId as string;
         u.onboardingCompleted = Boolean(
           token.onboardingCompleted
+        );
+        u.paymentCompleted = Boolean(
+          token.paymentCompleted
         );
       }
       return session;

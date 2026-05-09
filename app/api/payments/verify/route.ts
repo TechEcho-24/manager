@@ -3,6 +3,7 @@ import crypto from "crypto";
 import connectDB from "@/lib/db";
 import { Payment } from "@/models/payment";
 import { Organization } from "@/models/organization";
+import { User } from "@/models/user";
 import { auth } from "@/auth";
 
 export async function POST(req: Request) {
@@ -58,6 +59,12 @@ export async function POST(req: Request) {
     // If an org already exists for this user, update its subscription
     // (Org may not exist yet at this point — onboarding creates it)
     if (session?.user?.email) {
+      // Mark user as payment completed
+      await User.findOneAndUpdate(
+        { email: session.user.email.toLowerCase().trim() },
+        { $set: { paymentCompleted: true } }
+      );
+
       const org = await Organization.findOne({ ownerId: session.user.email.toLowerCase() });
       if (org) {
         const currentPeriodEnd = new Date();

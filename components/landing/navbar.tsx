@@ -32,7 +32,7 @@ export function Navbar() {
         </nav>
 
         <Link
-          href='/signup'
+          href='/login'
           className='px-5 py-2 bg-linear-to-r from-orange-500 to-orange-600 rounded-full text-[13px] font-bold hover:shadow-lg hover:shadow-orange-500/50 transition-all text-white'
         >
           Get started
