@@ -33,11 +33,13 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Organization no longer exists" }, { status: 404 });
     }
 
-    // Accept invite
+    // Accept invite — mark onboarding as complete so invited users skip it
     const user = await User.findOne({ email: session.user.email });
     if (user) {
       user.organizationId = invitation.organizationId;
       user.orgRole = invitation.role;
+      user.onboardingCompleted = true;
+      user.paymentCompleted = true;
       await user.save();
     }
 

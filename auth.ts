@@ -43,6 +43,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
               orgRole: "owner",
               organizationId: user?.organizationId,
               onboardingCompleted: true,
+              paymentCompleted: true,
             };
           }
 
@@ -81,6 +82,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                 orgRole: user.orgRole || "owner",
                 organizationId: user.organizationId,
                 onboardingCompleted: onboardingCompleted,
+                paymentCompleted: isAdminEmail ? true : (user.paymentCompleted || false),
               };
             }
           }
@@ -110,6 +112,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
               orgRole: user.orgRole || "owner",
               organizationId: user.organizationId,
               onboardingCompleted: user.onboardingCompleted || false,
+              paymentCompleted: user.paymentCompleted || false,
             };
           } catch (e) {
             console.error("Fallback Sync Error:", e);
@@ -131,6 +134,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         token.orgRole = u.orgRole || "owner";
         token.organizationId = u.organizationId;
         token.onboardingCompleted = u.onboardingCompleted || false;
+        token.paymentCompleted = u.paymentCompleted || false;
       }
 
       // 🔥 IMPORTANT: update token after onboarding
@@ -143,6 +147,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         }
         if (session?.orgRole !== undefined) {
           token.orgRole = session.orgRole;
+        }
+        if (session?.paymentCompleted !== undefined) {
+          token.paymentCompleted = session.paymentCompleted;
         }
       }
 
@@ -158,6 +165,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         u.organizationId = token.organizationId as string;
         u.onboardingCompleted = Boolean(
           token.onboardingCompleted
+        );
+        u.paymentCompleted = Boolean(
+          token.paymentCompleted
         );
       }
       return session;

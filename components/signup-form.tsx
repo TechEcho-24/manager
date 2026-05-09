@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { signIn } from "next-auth/react";
+import { signIn, useSession } from "next-auth/react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -31,6 +31,7 @@ import { plans } from "./landing/constants";
 export default function SignupForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { update: updateSession } = useSession();
   const planParam = searchParams.get("plan");
   const billingParam = searchParams.get("billing");
   const inviteToken = searchParams.get("invite");
@@ -130,6 +131,13 @@ export default function SignupForm() {
         if (!joinRes.ok) {
           throw new Error(joinData.error || "Failed to join workspace");
         }
+        // Update session so middleware sees onboardingCompleted=true
+        await updateSession({
+          onboardingCompleted: true,
+          paymentCompleted: true,
+          organizationId: joinData.organizationId,
+          orgRole: joinData.role,
+        });
         // Redirect member to tasks, staff to dashboard
         setIsLoading(false);
         const redirectTo = joinData.role === "member" ? "/tasks" : "/dashboard";
@@ -178,6 +186,8 @@ export default function SignupForm() {
               }).then((t) => t.json());
 
               if (verifyData.success) {
+                // Update session so middleware allows onboarding access
+                await updateSession({ paymentCompleted: true });
                 setIsLoading(false);
                 setIsLoadingOverlay(true);
                 setTimeout(() => router.push("/onboarding"), 5000);
@@ -198,10 +208,9 @@ export default function SignupForm() {
         }
       }
 
-      // Free plan or no plan
+      // No plan selected or price is 0 — redirect to pricing to pick a plan
       setIsLoading(false);
-      setIsLoadingOverlay(true);
-      setTimeout(() => router.push("/onboarding"), 5000);
+      router.push("/#pricing");
     } catch (err: any) {
       setError(err.message || "An error occurred.");
       setIsLoading(false);

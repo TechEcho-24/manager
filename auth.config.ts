@@ -15,6 +15,7 @@ export const authConfig = {
         token.role = user.role;
         token.organizationId = user.organizationId;
         token.onboardingCompleted = user.onboardingCompleted;
+        token.paymentCompleted = user.paymentCompleted;
       }
       return token;
     },
@@ -24,6 +25,7 @@ export const authConfig = {
         session.user.role = token.role;
         session.user.organizationId = token.organizationId;
         session.user.onboardingCompleted = token.onboardingCompleted;
+        session.user.paymentCompleted = token.paymentCompleted;
       }
       return session;
     },
