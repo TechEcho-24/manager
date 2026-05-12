@@ -13,6 +13,20 @@ export interface PlanConfig {
   };
 }
 
+export interface TaskCapabilities {
+  text: boolean;
+  voice: boolean;
+  image: boolean;
+}
+
+export function getTaskCapabilities(plan: PlanType): TaskCapabilities {
+  return {
+    text: true,
+    voice: plan === "growth" || plan === "pro" || plan === "enterprise",
+    image: plan === "pro" || plan === "enterprise",
+  };
+}
+
 export const PLAN_CONFIG: Record<PlanType, PlanConfig> = {
   starter: {
     maxLeads: 500,

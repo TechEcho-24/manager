@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { auth } from "@/auth";
 import { Organization } from "@/models/organization";
-import { PLAN_CONFIG, PlanType } from "@/lib/plan-config";
+import { getTaskCapabilities, PLAN_CONFIG, PlanType } from "@/lib/plan-config";
 import dbConnect from "@/lib/db";
 import { User } from "@/models/user";
 
@@ -48,7 +49,8 @@ export async function GET() {
     
     return NextResponse.json({
       plan,
-      config: PLAN_CONFIG[plan]
+      config: PLAN_CONFIG[plan],
+      taskCapabilities: getTaskCapabilities(plan),
     });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
