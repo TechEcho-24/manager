@@ -12,3 +12,16 @@ export const LEAD_STATUSES = [
 ] as const;
 
 export const LEAD_PRIORITIES = ["Low", "Medium", "High"] as const;
+
+export const TASK_STATUSES = [
+  "Not Started",
+  "To Do",
+  "Pending",
+  "In Progress",
+  "In Review",
+  "Blocked",
+  "Completed",
+  "Cancelled",
+] as const;
+
+export type TaskStatus = typeof TASK_STATUSES[number];
