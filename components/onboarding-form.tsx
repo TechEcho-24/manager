@@ -40,6 +40,13 @@ import {
   LogOut,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -59,6 +66,7 @@ export function OnboardingForm() {
   const [currentStep, setCurrentStep] = useState(1);
   const [isFinished, setIsFinished] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isFillLaterOpen, setIsFillLaterOpen] = useState(false);
   const router = useRouter();
 
   const { data: session, update } = useSession();
@@ -214,6 +222,15 @@ export function OnboardingForm() {
   };
 
   const prevStep = () => setCurrentStep((prev) => Math.max(prev - 1, 1));
+
+  const scheduleCall = () => {
+    setIsFillLaterOpen(false);
+    router.push("/contact");
+  };
+
+  const continueLater = () => {
+    signOut({ callbackUrl: "/" });
+  };
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
@@ -971,9 +988,9 @@ export function OnboardingForm() {
                   </Button>
 
                   <Button
-                    variant='ghost'
-                    onClick={() => signOut({ callbackUrl: "/" })}
-                    className='h-14 px-6 flex items-center gap-2 text-[10px] font-black tracking-widest text-white/30 hover:text-red-400 transition-colors'
+                    variant='outline'
+                    onClick={() => setIsFillLaterOpen(true)}
+                    className='h-14 rounded-2xl border-white/20 bg-white/[0.06] px-6 text-[10px] font-black tracking-widest text-white shadow-[0_10px_30px_rgba(0,0,0,0.25)] hover:border-white/40 hover:bg-white/[0.1] hover:text-white'
                   >
                     <LogOut className="h-3 w-3" />
                     <span>Fill Later</span>
@@ -1037,6 +1054,42 @@ export function OnboardingForm() {
           )}
         </AnimatePresence>
       </div>
+
+      <Dialog
+        open={isFillLaterOpen}
+        onOpenChange={setIsFillLaterOpen}
+        contentClassName='max-w-xl rounded-3xl border-white/10 bg-[#0b0b18] p-8 shadow-[0_30px_90px_rgba(0,0,0,0.55)]'
+      >
+        <DialogHeader className='space-y-4 text-left'>
+          <div className='flex h-12 w-12 items-center justify-center rounded-2xl border border-indigo-400/20 bg-indigo-400/10 text-indigo-200'>
+            <Calendar className='h-5 w-5' />
+          </div>
+          <DialogTitle className='text-3xl font-black italic tracking-tight text-white'>
+            Need help completing your setup?
+          </DialogTitle>
+          <DialogDescription className='text-base leading-7 text-white/60'>
+            You can continue onboarding later anytime. If you are facing any
+            confusion, our team can help you set everything up in a quick call.
+          </DialogDescription>
+        </DialogHeader>
+
+        <DialogFooter className='mt-8 gap-3 sm:justify-start sm:space-x-0'>
+          <Button
+            onClick={scheduleCall}
+            className='h-12 rounded-xl bg-white px-6 font-black tracking-widest text-black hover:scale-[1.02]'
+          >
+            <Calendar className='h-4 w-4' />
+            <span>Schedule a Call</span>
+          </Button>
+          <Button
+            variant='ghost'
+            onClick={continueLater}
+            className='h-12 rounded-xl border border-white/10 px-6 font-black tracking-widest text-white/60 hover:bg-white/[0.06] hover:text-white'
+          >
+            Continue Later
+          </Button>
+        </DialogFooter>
+      </Dialog>
     </div>
   );
 }
