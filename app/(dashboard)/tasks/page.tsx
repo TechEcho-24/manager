@@ -17,6 +17,7 @@ import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { InviteModal } from "@/components/invite-modal";
 import { UpgradePrompt } from "@/components/upgrade-prompt";
+import { TASK_STATUSES, type TaskStatus } from "@/lib/constants";
 
 const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
@@ -176,7 +177,7 @@ function TasksList({ tabId, activeTab }: { tabId: string; activeTab: any }) {
   const { data: teamData } = useSWR("/api/organization/team", fetcher);
   const { data: planData } = useSWR("/api/plan/config", fetcher);
   const { data: session } = useSession();
-  const tasks = data?.tasks || [];
+  const tasks = useMemo(() => data?.tasks || [], [data?.tasks]);
   const hasWriteAccess = data?.hasWriteAccess;
   const taskCapabilities: TaskCapabilities = data?.taskCapabilities || planData?.taskCapabilities || {
     text: true,
@@ -201,6 +202,8 @@ function TasksList({ tabId, activeTab }: { tabId: string; activeTab: any }) {
 
   const [newTask, setNewTask] = useState("");
   const [priority, setPriority] = useState<"high"|"medium"|"low">("medium");
+  const [status, setStatus] = useState<TaskStatus>("To Do");
+  const [statusFilter, setStatusFilter] = useState<TaskStatus | "All">("All");
   const [assignedToUserId, setAssignedToUserId] = useState("");
   const [attachments, setAttachments] = useState<TaskAttachment[]>([]);
   const [mediaError, setMediaError] = useState("");
@@ -220,8 +223,20 @@ function TasksList({ tabId, activeTab }: { tabId: string; activeTab: any }) {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editText, setEditText] = useState("");
   const [editPriority, setEditPriority] = useState<"high"|"medium"|"low">("medium");
+  const [editStatus, setEditStatus] = useState<TaskStatus>("To Do");
   const [editAssignedToUserId, setEditAssignedToUserId] = useState("");
   const canAddTask = newTask.trim().length > 0 || attachments.length > 0;
+  const statusCounts = useMemo(() => {
+    return tasks.reduce((counts: Record<string, number>, task: any) => {
+      const taskStatus = getTaskStatus(task);
+      counts[taskStatus] = (counts[taskStatus] || 0) + 1;
+      return counts;
+    }, {});
+  }, [tasks]);
+  const filteredTasks = useMemo(() => {
+    if (statusFilter === "All") return tasks;
+    return tasks.filter((task: any) => getTaskStatus(task) === statusFilter);
+  }, [statusFilter, tasks]);
 
   useEffect(() => {
     if (!assignedToUserId && defaultAssigneeId) {
@@ -241,12 +256,13 @@ function TasksList({ tabId, activeTab }: { tabId: string; activeTab: any }) {
     const res = await fetch("/api/tasks", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ tabId, text: newTask, priority, assignedToUserId, attachments }),
+      body: JSON.stringify({ tabId, text: newTask, priority, status, assignedToUserId, attachments }),
     });
     const result = await res.json().catch(() => null);
     if (res.ok) {
       setNewTask("");
       setPriority("medium");
+      setStatus("To Do");
       setAssignedToUserId(defaultAssigneeId);
       setAttachments([]);
       setMediaError("");
@@ -276,6 +292,7 @@ function TasksList({ tabId, activeTab }: { tabId: string; activeTab: any }) {
     setEditingId(task._id);
     setEditText(task.text || "");
     setEditPriority(task.priority);
+    setEditStatus(getTaskStatus(task));
     setEditAssignedToUserId(task.assignedToUserId || defaultAssigneeId);
   };
 
@@ -283,6 +300,7 @@ function TasksList({ tabId, activeTab }: { tabId: string; activeTab: any }) {
     setEditingId(null);
     setEditText("");
     setEditPriority("medium");
+    setEditStatus("To Do");
     setEditAssignedToUserId("");
   };
 
@@ -295,6 +313,7 @@ function TasksList({ tabId, activeTab }: { tabId: string; activeTab: any }) {
         taskId,
         text: editText,
         priority: editPriority,
+        status: editStatus,
         assignedToUserId: editAssignedToUserId,
       }),
     });
@@ -406,7 +425,7 @@ function TasksList({ tabId, activeTab }: { tabId: string; activeTab: any }) {
       {hasWriteAccess && (
         <Card className="border-border shadow-sm">
           <CardContent className="p-4 space-y-4">
-            <div className="grid gap-3 lg:grid-cols-[1fr_180px_180px_auto]">
+            <div className="grid gap-3 lg:grid-cols-[1fr_170px_160px_160px_auto]">
               <Input 
                 value={newTask} 
                 onChange={e => setNewTask(e.target.value)}
@@ -431,6 +450,15 @@ function TasksList({ tabId, activeTab }: { tabId: string; activeTab: any }) {
                 <option value="high">High</option>
                 <option value="medium">Medium</option>
                 <option value="low">Low</option>
+              </select>
+              <select 
+                value={status} 
+                onChange={(e) => setStatus(e.target.value as TaskStatus)}
+                className="h-12 rounded-lg border border-border bg-background px-3 text-sm"
+              >
+                {TASK_STATUSES.map((taskStatus) => (
+                  <option key={taskStatus} value={taskStatus}>{taskStatus}</option>
+                ))}
               </select>
               <Button onClick={addTask} disabled={isUploadingVoice || isRecording || !canAddTask} className="h-12 px-6">
                 Add
@@ -490,13 +518,40 @@ function TasksList({ tabId, activeTab }: { tabId: string; activeTab: any }) {
         </Card>
       )}
 
-      <div className="space-y-2">
-        {tasks.map((task: any) => {
+      <div className="space-y-3">
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setStatusFilter("All")}
+            className={cn(
+              "rounded-lg border px-3 py-1.5 text-xs font-bold transition-colors",
+              statusFilter === "All" ? "border-primary bg-primary text-white" : "border-border bg-card text-muted-foreground hover:bg-muted/50"
+            )}
+          >
+            All <span className="ml-1 opacity-75">{tasks.length}</span>
+          </button>
+          {TASK_STATUSES.map((taskStatus) => (
+            <button
+              key={taskStatus}
+              type="button"
+              onClick={() => setStatusFilter(taskStatus)}
+              className={cn(
+                "rounded-lg border px-3 py-1.5 text-xs font-bold transition-colors",
+                statusFilter === taskStatus ? "border-primary bg-primary text-white" : "border-border bg-card text-muted-foreground hover:bg-muted/50"
+              )}
+            >
+              {taskStatus} <span className="ml-1 opacity-75">{statusCounts[taskStatus] || 0}</span>
+            </button>
+          ))}
+        </div>
+
+        {filteredTasks.map((task: any) => {
           const taskAttachments: TaskAttachment[] = task.attachments || [];
           const imageAttachments = taskAttachments.filter((attachment) => attachment.type === "image");
+          const taskStatus = getTaskStatus(task);
 
           return (
-            <Card key={task._id} className={cn("transition-all", task.completed && "opacity-60")}>
+            <Card key={task._id} className={cn("transition-all", taskStatus === "Completed" && "opacity-60")}>
               <CardContent className="p-4">
                 {editingId === task._id ? (
                   <div className="flex flex-col gap-3 lg:flex-row">
@@ -529,6 +584,15 @@ function TasksList({ tabId, activeTab }: { tabId: string; activeTab: any }) {
                         <option value="medium">Medium</option>
                         <option value="low">Low</option>
                       </select>
+                      <select
+                        value={editStatus}
+                        onChange={(e) => setEditStatus(e.target.value as TaskStatus)}
+                        className="h-10 rounded-lg border border-border bg-background px-3 text-sm"
+                      >
+                        {TASK_STATUSES.map((taskStatus) => (
+                          <option key={taskStatus} value={taskStatus}>{taskStatus}</option>
+                        ))}
+                      </select>
                       <Button size="sm" onClick={() => saveEdit(task._id)} className="h-10 px-4 gap-1.5">
                         <Save className="h-3.5 w-3.5" /> Save
                       </Button>
@@ -540,11 +604,11 @@ function TasksList({ tabId, activeTab }: { tabId: string; activeTab: any }) {
                 ) : (
                   <div className="space-y-3">
                     <div className="flex items-start gap-4">
-                      <button onClick={() => toggleTask(task._id, task.completed)} disabled={!hasWriteAccess} className="shrink-0 pt-0.5">
-                        {task.completed ? <CheckCircle2 className="h-6 w-6 text-emerald-500" /> : <Circle className="h-6 w-6 text-muted-foreground/30 hover:text-primary transition-colors" />}
+                      <button onClick={() => toggleTask(task._id, taskStatus === "Completed")} disabled={!hasWriteAccess} className="shrink-0 pt-0.5">
+                        {taskStatus === "Completed" ? <CheckCircle2 className="h-6 w-6 text-emerald-500" /> : <Circle className="h-6 w-6 text-muted-foreground/30 hover:text-primary transition-colors" />}
                       </button>
                       <div className="min-w-0 flex-1 space-y-2">
-                        <p className={cn("font-medium", !task.text?.trim() && "italic text-muted-foreground", task.completed && "line-through text-muted-foreground")}>
+                        <p className={cn("font-medium", !task.text?.trim() && "italic text-muted-foreground", taskStatus === "Completed" && "line-through text-muted-foreground")}>
                           {task.text?.trim() || getMediaOnlyTaskLabel(taskAttachments)}
                         </p>
                         <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
@@ -558,15 +622,32 @@ function TasksList({ tabId, activeTab }: { tabId: string; activeTab: any }) {
                               <Paperclip className="h-3 w-3" /> {taskAttachments.length}
                             </span>
                           )}
+                          <span className={cn("inline-flex rounded-lg px-2 py-1 font-bold sm:hidden", getStatusColor(taskStatus))}>
+                            {taskStatus}
+                          </span>
+                          <span className={cn(
+                            "inline-flex rounded-lg px-2 py-1 font-bold uppercase sm:hidden",
+                            task.priority === "high" ? "bg-red-500/10 text-red-500" : task.priority === "medium" ? "bg-amber-500/10 text-amber-500" : "bg-emerald-500/10 text-emerald-500"
+                          )}>
+                            {task.priority}
+                          </span>
                         </div>
                       </div>
                       
-                      <span className={cn(
-                        "px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-widest hidden sm:inline-block",
-                        task.priority === "high" ? "bg-red-500/10 text-red-500" : task.priority === "medium" ? "bg-amber-500/10 text-amber-500" : "bg-emerald-500/10 text-emerald-500"
-                      )}>
-                        {task.priority}
-                      </span>
+                      <div className="hidden shrink-0 items-center gap-2 sm:flex">
+                        <span className={cn(
+                          "px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-widest",
+                          getStatusColor(taskStatus)
+                        )}>
+                          {taskStatus}
+                        </span>
+                        <span className={cn(
+                          "px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-widest",
+                          task.priority === "high" ? "bg-red-500/10 text-red-500" : task.priority === "medium" ? "bg-amber-500/10 text-amber-500" : "bg-emerald-500/10 text-emerald-500"
+                        )}>
+                          {task.priority}
+                        </span>
+                      </div>
 
                       {hasWriteAccess && (
                         <div className="flex items-center gap-1">
@@ -597,6 +678,9 @@ function TasksList({ tabId, activeTab }: { tabId: string; activeTab: any }) {
         })}
         {tasks.length === 0 && (
           <div className="text-center py-10 text-muted-foreground text-sm">No tasks here yet.</div>
+        )}
+        {tasks.length > 0 && filteredTasks.length === 0 && (
+          <div className="text-center py-10 text-muted-foreground text-sm">No tasks match this status.</div>
         )}
       </div>
 
@@ -652,6 +736,26 @@ function formatSeconds(totalSeconds = 0) {
   const minutes = Math.floor(totalSeconds / 60);
   const seconds = Math.floor(totalSeconds % 60);
   return `${minutes}:${seconds.toString().padStart(2, "0")}`;
+}
+
+function getTaskStatus(task: any): TaskStatus {
+  if (TASK_STATUSES.includes(task?.status as TaskStatus)) return task.status as TaskStatus;
+  return task?.completed ? "Completed" : "To Do";
+}
+
+function getStatusColor(status: TaskStatus) {
+  const map: Record<TaskStatus, string> = {
+    "Not Started": "bg-slate-500/10 text-slate-500",
+    "To Do": "bg-sky-500/10 text-sky-500",
+    "Pending": "bg-amber-500/10 text-amber-500",
+    "In Progress": "bg-blue-500/10 text-blue-500",
+    "In Review": "bg-violet-500/10 text-violet-500",
+    "Blocked": "bg-red-500/10 text-red-500",
+    "Completed": "bg-emerald-500/10 text-emerald-500",
+    "Cancelled": "bg-zinc-500/10 text-zinc-500",
+  };
+
+  return map[status];
 }
 
 function getMediaOnlyTaskLabel(attachments: TaskAttachment[]) {

@@ -7,6 +7,7 @@ import { auth } from "@/auth";
 import { Organization } from "@/models/organization";
 import { User } from "@/models/user";
 import { getTaskCapabilities, PlanType } from "@/lib/plan-config";
+import { TASK_STATUSES, type TaskStatus } from "@/lib/constants";
 
 type TaskAttachmentInput = {
   type: "voice" | "image";
@@ -82,6 +83,11 @@ function validateAttachmentsForPlan(attachments: TaskAttachmentInput[], taskCapa
   return null;
 }
 
+function normalizeTaskStatus(status: unknown): TaskStatus | null {
+  if (typeof status !== "string") return null;
+  return TASK_STATUSES.includes(status as TaskStatus) ? status as TaskStatus : null;
+}
+
 async function resolveAssignee(assignedToUserId: unknown, organizationId: string, tab: any) {
   if (!assignedToUserId || typeof assignedToUserId !== "string") {
     return { assignedToUserId: undefined, assignedToName: undefined };
@@ -138,6 +144,7 @@ export async function POST(req: Request) {
     const { tabId, text, priority, assignedToUserId } = data;
     const attachments = normalizeAttachments(data.attachments);
     const taskText = typeof text === "string" ? text.trim() : "";
+    const status = normalizeTaskStatus(data.status) || "To Do";
 
     if (!tabId || (!taskText && attachments.length === 0)) {
       return NextResponse.json({ error: "Add task text or at least one attachment" }, { status: 400 });
@@ -160,7 +167,8 @@ export async function POST(req: Request) {
       assignedToName: assignee.assignedToName,
       attachments,
       priority: priority || "medium",
-      completed: false
+      status,
+      completed: status === "Completed"
     });
 
     return NextResponse.json({ success: true, task });
@@ -177,7 +185,7 @@ export async function PATCH(req: Request) {
 
     await connectDB();
     const data = await req.json();
-    const { taskId, tabId, completed, text, priority, assignedToUserId } = data;
+    const { taskId, tabId, completed, text, priority, status, assignedToUserId } = data;
 
     if (!taskId || !tabId) return NextResponse.json({ error: "Missing taskId or tabId" }, { status: 400 });
 
@@ -186,9 +194,18 @@ export async function PATCH(req: Request) {
 
     // Build update object dynamically
     const updateFields: Record<string, any> = {};
-    if (completed !== undefined) updateFields.completed = completed;
+    if (completed !== undefined) {
+      updateFields.completed = Boolean(completed);
+      updateFields.status = updateFields.completed ? "Completed" : "To Do";
+    }
     if (typeof text === "string") updateFields.text = text.trim();
     if (priority !== undefined && ["high", "medium", "low"].includes(priority)) updateFields.priority = priority;
+    if (status !== undefined) {
+      const normalizedStatus = normalizeTaskStatus(status);
+      if (!normalizedStatus) return NextResponse.json({ error: "Invalid task status" }, { status: 400 });
+      updateFields.status = normalizedStatus;
+      updateFields.completed = normalizedStatus === "Completed";
+    }
     if (assignedToUserId !== undefined) {
       const assignee = await resolveAssignee(assignedToUserId, session.user.organizationId, accessCheck.tab);
       if (assignee.error) return NextResponse.json({ error: assignee.error }, { status: assignee.status });

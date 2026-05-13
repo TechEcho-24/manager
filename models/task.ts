@@ -1,4 +1,5 @@
 import mongoose, { Schema, Document, Model } from "mongoose";
+import { TASK_STATUSES, type TaskStatus } from "@/lib/constants";
 
 export interface ITaskAttachment {
   type: "voice" | "image";
@@ -20,6 +21,7 @@ export interface ITask extends Document {
   assignedToName?: string;
   attachments: ITaskAttachment[];
   completed: boolean;
+  status: TaskStatus;
   priority: "high" | "medium" | "low";
   createdAt: Date;
   updatedAt: Date;
@@ -46,6 +48,7 @@ const TaskSchema = new Schema<ITask>(
       },
     ],
     completed: { type: Boolean, default: false },
+    status: { type: String, enum: TASK_STATUSES, default: "To Do", index: true },
     priority: { type: String, enum: ["high", "medium", "low"], default: "medium" },
   },
   { timestamps: true }
