@@ -26,6 +26,13 @@ export interface ILead extends Document {
   state?: string;
   address?: string;
   
+  // Real Estate specific fields
+  leadType?: string;
+  propertyType?: string;
+  purpose?: string;
+  bhkRequirement?: string;
+  preferredLocation?: string;
+  
   status: typeof LEAD_STATUSES[number];
   priority: typeof LEAD_PRIORITIES[number];
   assignedTo?: string;
@@ -89,6 +96,13 @@ const LeadSchema = new Schema<ILead>(
     city: { type: String },
     state: { type: String },
     address: { type: String },
+
+    // Real Estate specific fields
+    leadType: { type: String },
+    propertyType: { type: String },
+    purpose: { type: String },
+    bhkRequirement: { type: String },
+    preferredLocation: { type: String },
 
     status: {
       type: String,

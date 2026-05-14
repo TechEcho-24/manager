@@ -4,10 +4,13 @@ export const LEAD_STATUSES = [
   "Interested",
   "Not Interested",
   "Follow-up Required",
+  "Follow-up",
+  "Site Visit",
   "Qualified",
   "Proposal Sent",
   "Negotiation",
   "Converted (Won)",
+  "Closed",
   "Lost",
 ] as const;
 
