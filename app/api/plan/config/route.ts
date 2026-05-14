@@ -51,6 +51,7 @@ export async function GET() {
       plan,
       config: PLAN_CONFIG[plan],
       taskCapabilities: getTaskCapabilities(plan),
+      logoUrl: org?.logoUrl || null,
     });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });

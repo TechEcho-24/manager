@@ -27,14 +27,43 @@ export async function POST(req: Request) {
     const companyName = data.companyName || "My Organization";
 
     let org = await Organization.findOne({ ownerId: email });
+    const updateFields = {
+      name: companyName,
+      email: email,
+      phone: data.phone || "000",
+      logoUrl: data.logoUrl,
+      primaryColor: data.primaryColor,
+      designation: data.designation,
+      recoveryEmail: data.recoveryEmail,
+      website: data.website,
+      preferredCommunicationChannel: data.preferredCommunicationChannel,
+      entityType: data.entityType,
+      industry: data.industry,
+      companySize: data.companySize,
+      operatingRegion: data.operatingRegion,
+      foundingYear: data.foundingYear,
+      primaryBusinessModel: data.primaryBusinessModel,
+      toolsUsed: data.toolsUsed,
+      crmUsersCount: data.crmUsersCount,
+      leadSources: data.leadSources,
+      averageMonthlyLeads: data.averageMonthlyLeads,
+      hasExistingLeads: data.hasExistingLeads,
+      revenueRange: data.revenueRange,
+      gstRegistered: data.gstRegistered,
+      gstNumber: data.gstNumber,
+      targetAudience: data.targetAudience,
+      businessPriority: data.businessPriority,
+      themePreference: data.themePreference,
+      notificationPreferences: data.notificationPreferences,
+      defaultCurrency: data.defaultCurrency,
+      botName: data.botName,
+      welcomeMessage: data.welcomeMessage,
+    };
+
     if (!org) {
       org = await Organization.create({
-        name: companyName,
-        email: email,
-        phone: data.phone || "000",
+        ...updateFields,
         ownerId: email,
-        logoUrl: data.logoUrl,
-        primaryColor: data.primaryColor,
         plan: payment ? "pro" : "free", // simplified plan logic
         subscription: { 
           status: payment ? "active" : "trial",
@@ -47,9 +76,7 @@ export async function POST(req: Request) {
         await payment.save();
       }
     } else {
-      org.name = companyName;
-      if (data.logoUrl) org.logoUrl = data.logoUrl;
-      if (data.primaryColor) org.primaryColor = data.primaryColor;
+      Object.assign(org, updateFields);
       if (payment) {
         org.plan = "pro";
         org.subscription.status = "active";
