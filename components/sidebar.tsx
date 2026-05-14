@@ -157,11 +157,7 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
           </div>
           {!collapsed && (
             <div className="flex flex-col">
-              {branding?.logoUrl ? (
-                <img src={branding.logoUrl} alt="Organization Logo" className="h-8 object-contain object-left max-w-[140px]" />
-              ) : (
-                <img src="/assets/logo.png" alt="Pinglly Logo" className="h-8 object-contain object-left max-w-[140px]" />
-              )}
+              <img src="/assets/logo.png" alt="Pinglly Logo" className="h-8 object-contain object-left max-w-[140px]" />
               <span className="text-[7px] font-black tracking-[0.2em] text-muted-foreground/40 mt-1">
                 by TechEcho • {role === "admin" ? "SaaS Master" : "Enterprise Hub"}
               </span>

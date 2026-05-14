@@ -7,7 +7,7 @@ import { useDebounce } from "use-debounce";
 import { MobileSidebar } from "@/components/mobile-sidebar";
 import { Bell, Search, Zap, Loader2, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { signOut, useSession } from "next-auth/react";
 
@@ -29,9 +29,13 @@ export function TopNavbar({ isMember = false }: { isMember?: boolean }) {
   const [debouncedQuery] = useDebounce(searchQuery, 300);
   const searchRef = useRef<HTMLDivElement>(null);
   const [plan, setPlan] = useState<string>("");
+  const [logoUrl, setLogoUrl] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch("/api/plan/config").then(r => r.json()).then(data => setPlan(data.plan));
+    fetch("/api/plan/config").then(r => r.json()).then(data => {
+      setPlan(data.plan);
+      setLogoUrl(data.logoUrl);
+    });
   }, []);
 
   const { data, isLoading } = useSWR(
@@ -193,6 +197,9 @@ export function TopNavbar({ isMember = false }: { isMember?: boolean }) {
         >
           <div className="relative">
             <Avatar className="h-8 w-8 ring-2 ring-primary/20 group-hover:ring-destructive/30 transition-all">
+              {logoUrl ? (
+                <AvatarImage src={logoUrl} alt={userName} className="bg-white/5 p-1 object-contain" />
+              ) : null}
               <AvatarFallback className="bg-gradient-to-br from-primary to-primary/80 text-[10px] font-bold text-primary-foreground">
                 {userInitials}
               </AvatarFallback>

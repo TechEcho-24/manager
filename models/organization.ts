@@ -15,6 +15,42 @@ export interface IOrganization extends Document {
   };
   logoUrl?: string;
   primaryColor?: string;
+  
+  // STEP 1
+  designation?: string;
+  recoveryEmail?: string;
+  website?: string;
+  preferredCommunicationChannel?: string[];
+
+  // STEP 2
+  entityType?: string;
+  industry?: string;
+  companySize?: string;
+  operatingRegion?: string[];
+  foundingYear?: string;
+  primaryBusinessModel?: string[];
+
+  // STEP 3
+  toolsUsed?: string[];
+  crmUsersCount?: string;
+  leadSources?: string[];
+  averageMonthlyLeads?: string;
+  hasExistingLeads?: boolean;
+
+  // STEP 4
+  revenueRange?: string;
+  gstRegistered?: boolean;
+  gstNumber?: string;
+  targetAudience?: string[];
+  businessPriority?: string[];
+
+  // STEP 5 (Branding & Workspace Setup + Bot Interface)
+  themePreference?: string;
+  notificationPreferences?: string[];
+  defaultCurrency?: string;
+  botName?: string;
+  welcomeMessage?: string;
+
   createdAt: Date;
   updatedAt: Date;
 }
@@ -43,6 +79,41 @@ const OrganizationSchema = new Schema<IOrganization>(
     },
     logoUrl: { type: String },
     primaryColor: { type: String },
+
+    // STEP 1
+    designation: { type: String },
+    recoveryEmail: { type: String },
+    website: { type: String },
+    preferredCommunicationChannel: [{ type: String }],
+
+    // STEP 2
+    entityType: { type: String },
+    industry: { type: String },
+    companySize: { type: String },
+    operatingRegion: [{ type: String }],
+    foundingYear: { type: String },
+    primaryBusinessModel: [{ type: String }],
+
+    // STEP 3
+    toolsUsed: [{ type: String }],
+    crmUsersCount: { type: String },
+    leadSources: [{ type: String }],
+    averageMonthlyLeads: { type: String },
+    hasExistingLeads: { type: Boolean, default: false },
+
+    // STEP 4
+    revenueRange: { type: String },
+    gstRegistered: { type: Boolean, default: false },
+    gstNumber: { type: String },
+    targetAudience: [{ type: String }],
+    businessPriority: [{ type: String }],
+
+    // STEP 5
+    themePreference: { type: String },
+    notificationPreferences: [{ type: String }],
+    defaultCurrency: { type: String },
+    botName: { type: String },
+    welcomeMessage: { type: String },
   },
   { timestamps: true }
 );
