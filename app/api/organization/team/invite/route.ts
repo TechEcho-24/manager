@@ -25,7 +25,7 @@ export async function POST(req: Request) {
 
     await connectDB();
     const data = await req.json();
-    const role = data.role === "staff" ? "staff" : "member";
+    const role = data.role === "staff" ? "staff" : data.role === "client" ? "client" : "member";
 
     const org = await Organization.findById(orgId);
     if (!org) {

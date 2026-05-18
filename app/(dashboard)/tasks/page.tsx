@@ -9,7 +9,8 @@ import { CldUploadWidget } from "next-cloudinary";
 import {
   CheckSquare, Plus, Trash2, Circle, CheckCircle2, Target, Shield, X, Save, UserPlus, Pencil,
   Mic, ImageIcon, Lock, Paperclip, User, Play, Pause, ZoomIn, ZoomOut, RotateCcw, Loader2,
-  Square
+  Square, FileText, ExternalLink, AlertTriangle, IndianRupee, Calendar, CreditCard, TrendingUp,
+  RefreshCw
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -96,6 +97,9 @@ export default function TasksPage() {
           </div>
         )}
       </div>
+
+      {/* Client Portal Section */}
+      {orgRole === "client" && <ClientPortalSection />}
 
       {showCreateTab && (
         <Card className="border-border">
@@ -226,6 +230,17 @@ function TasksList({ tabId, activeTab }: { tabId: string; activeTab: any }) {
   const [editStatus, setEditStatus] = useState<TaskStatus>("To Do");
   const [editAssignedToUserId, setEditAssignedToUserId] = useState("");
   const canAddTask = newTask.trim().length > 0 || attachments.length > 0;
+
+  // Recurring task state
+  const [isRecurring, setIsRecurring] = useState(false);
+  const [recurringDays, setRecurringDays] = useState<number[]>([]);
+  const DAY_LABELS = ["S", "M", "T", "W", "T", "F", "S"];
+  const DAY_FULL_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+  const toggleRecurringDay = (day: number) => {
+    setRecurringDays(prev => prev.includes(day) ? prev.filter(d => d !== day) : [...prev, day].sort());
+  };
+
   const statusCounts = useMemo(() => {
     return tasks.reduce((counts: Record<string, number>, task: any) => {
       const taskStatus = getTaskStatus(task);
@@ -256,7 +271,11 @@ function TasksList({ tabId, activeTab }: { tabId: string; activeTab: any }) {
     const res = await fetch("/api/tasks", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ tabId, text: newTask, priority, status, assignedToUserId, attachments }),
+      body: JSON.stringify({
+        tabId, text: newTask, priority, status, assignedToUserId, attachments,
+        isRecurring,
+        recurringDays: isRecurring ? recurringDays : [],
+      }),
     });
     const result = await res.json().catch(() => null);
     if (res.ok) {
@@ -266,6 +285,8 @@ function TasksList({ tabId, activeTab }: { tabId: string; activeTab: any }) {
       setAssignedToUserId(defaultAssigneeId);
       setAttachments([]);
       setMediaError("");
+      setIsRecurring(false);
+      setRecurringDays([]);
       mutateTasks();
     } else {
       setMediaError(result?.error || "Failed to create task.");
@@ -503,7 +524,47 @@ function TasksList({ tabId, activeTab }: { tabId: string; activeTab: any }) {
               <span className="text-xs text-muted-foreground">
                 {planData?.plan ? `${String(planData.plan).toUpperCase()} plan` : "Task media"}
               </span>
+              <div className="ml-auto">
+                <Button
+                  type="button"
+                  variant={isRecurring ? "default" : "outline"}
+                  onClick={() => { setIsRecurring(!isRecurring); if (isRecurring) setRecurringDays([]); }}
+                  className={cn("h-9 gap-2", isRecurring && "bg-indigo-600 hover:bg-indigo-700 text-white")}
+                >
+                  <RefreshCw className="h-4 w-4" /> Weekly
+                </Button>
+              </div>
             </div>
+
+            {/* Recurring Day Picker */}
+            {isRecurring && (
+              <div className="flex items-center gap-2 rounded-xl border border-indigo-500/20 bg-indigo-500/5 px-4 py-3">
+                <RefreshCw className="h-3.5 w-3.5 text-indigo-500 shrink-0" />
+                <span className="text-xs font-bold text-indigo-600 mr-1">Repeat on:</span>
+                <div className="flex gap-1.5">
+                  {DAY_LABELS.map((label, idx) => (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => toggleRecurringDay(idx)}
+                      className={cn(
+                        "h-8 w-8 rounded-lg text-xs font-black transition-all",
+                        recurringDays.includes(idx)
+                          ? "bg-indigo-600 text-white shadow-md"
+                          : "bg-muted/30 text-muted-foreground hover:bg-muted/50"
+                      )}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+                {recurringDays.length > 0 && (
+                  <span className="text-[10px] text-indigo-500 ml-2">
+                    {recurringDays.map(d => DAY_FULL_LABELS[d]).join(", ")}
+                  </span>
+                )}
+              </div>
+            )}
 
             {attachments.length > 0 && (
               <AttachmentPreviewStrip attachments={attachments} onRemove={removeAttachment} />
@@ -620,6 +681,18 @@ function TasksList({ tabId, activeTab }: { tabId: string; activeTab: any }) {
                           {taskAttachments.length > 0 && (
                             <span className="inline-flex items-center gap-1 rounded-lg bg-muted px-2 py-1 font-semibold">
                               <Paperclip className="h-3 w-3" /> {taskAttachments.length}
+                            </span>
+                          )}
+                          {task.isRecurring && (
+                            <span className="inline-flex items-center gap-1 rounded-lg bg-indigo-500/10 text-indigo-500 px-2 py-1 font-bold">
+                              <RefreshCw className="h-3 w-3" /> 
+                              {task.recurringDays?.map((d: number) => ["S","M","T","W","T","F","S"][d]).join(",")}
+                            </span>
+                          )}
+                          {task.completedByName && task.completedAt && (
+                            <span className="inline-flex items-center gap-1 rounded-lg bg-emerald-500/10 text-emerald-600 px-2 py-1 font-semibold">
+                              <CheckCircle2 className="h-3 w-3" />
+                              {task.completedByName} • {new Date(task.completedAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
                             </span>
                           )}
                           <span className={cn("inline-flex rounded-lg px-2 py-1 font-bold sm:hidden", getStatusColor(taskStatus))}>
@@ -1021,4 +1094,227 @@ function AccessManagerModal({ tabId, onClose }: { tabId: string, onClose: () => 
       {showInvite && <InviteModal onClose={() => setShowInvite(false)} />}
     </div>
   );
+}
+
+// ─── CLIENT PORTAL SECTION ──────────────────────────────────────────
+function ClientPortalSection() {
+  const { data, isLoading } = useSWR("/api/client-portal", fetcher);
+
+  if (isLoading) {
+    return (
+      <Card className="border-border">
+        <CardContent className="p-6 flex items-center justify-center">
+          <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+          <span className="ml-2 text-sm text-muted-foreground">Loading your portal...</span>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (!data?.found) return null;
+
+  const { payment, alerts, contractDocument, leadName, company } = data;
+  const progressPercent = payment.totalValue > 0
+    ? Math.min(100, Math.round((payment.receivedAmount / payment.totalValue) * 100))
+    : 0;
+
+  return (
+    <div className="space-y-4 animate-in fade-in slide-in-from-bottom-3 duration-500">
+      {/* Payment Alerts */}
+      {alerts && alerts.length > 0 && (
+        <div className="space-y-2">
+          {alerts.map((alert: any, idx: number) => (
+            <div
+              key={idx}
+              className={cn(
+                "flex items-center gap-3 rounded-xl border px-4 py-3 text-sm font-medium",
+                alert.type === "danger"
+                  ? "border-red-500/20 bg-red-500/5 text-red-600"
+                  : alert.type === "warning"
+                    ? "border-amber-500/20 bg-amber-500/5 text-amber-600"
+                    : "border-sky-500/20 bg-sky-500/5 text-sky-600"
+              )}
+            >
+              <AlertTriangle className={cn(
+                "h-4 w-4 shrink-0",
+                alert.type === "danger" ? "text-red-500" : alert.type === "warning" ? "text-amber-500" : "text-sky-500"
+              )} />
+              {alert.message}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Payment Overview */}
+      <Card className="border-border overflow-hidden">
+        <CardHeader className="pb-3 bg-gradient-to-r from-primary/5 via-transparent to-indigo-500/5">
+          <CardTitle className="text-base font-bold flex items-center gap-2">
+            <CreditCard className="h-4.5 w-4.5 text-primary" />
+            Payment Overview
+            {leadName && (
+              <span className="text-xs font-normal text-muted-foreground ml-auto">
+                {company ? `${company} • ` : ""}{leadName}
+              </span>
+            )}
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-4 space-y-4">
+          {/* Stats Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div className="rounded-xl border border-primary/10 bg-primary/5 p-4">
+              <div className="flex items-center gap-2 text-[10px] font-bold tracking-wider text-muted-foreground uppercase">
+                <IndianRupee className="h-3 w-3" />
+                Total Deal Value
+              </div>
+              <div className="mt-2 text-xl font-black text-primary">
+                ₹{payment.totalValue.toLocaleString("en-IN")}
+              </div>
+            </div>
+            <div className="rounded-xl border border-emerald-500/10 bg-emerald-500/5 p-4">
+              <div className="flex items-center gap-2 text-[10px] font-bold tracking-wider text-muted-foreground uppercase">
+                <TrendingUp className="h-3 w-3" />
+                Amount Paid
+              </div>
+              <div className="mt-2 text-xl font-black text-emerald-600">
+                ₹{payment.receivedAmount.toLocaleString("en-IN")}
+              </div>
+            </div>
+            <div className="rounded-xl border border-amber-500/10 bg-amber-500/5 p-4">
+              <div className="flex items-center gap-2 text-[10px] font-bold tracking-wider text-muted-foreground uppercase">
+                <IndianRupee className="h-3 w-3" />
+                Balance Due
+              </div>
+              <div className="mt-2 text-xl font-black text-amber-600">
+                ₹{payment.balanceRemaining.toLocaleString("en-IN")}
+              </div>
+            </div>
+          </div>
+
+          {/* Progress Bar */}
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between text-xs">
+              <span className="font-bold text-muted-foreground">Payment Progress</span>
+              <span className="font-black text-foreground">{progressPercent}%</span>
+            </div>
+            <div className="h-2.5 rounded-full bg-muted/30 overflow-hidden">
+              <div
+                className="h-full rounded-full bg-gradient-to-r from-primary to-emerald-500 transition-all duration-700"
+                style={{ width: `${progressPercent}%` }}
+              />
+            </div>
+          </div>
+
+          {/* Payment Plan Details */}
+          {payment.paymentPlan === "monthly" && payment.monthlyPaymentDate && (
+            <div className="flex items-center gap-2 rounded-xl border border-sky-500/10 bg-sky-500/5 px-4 py-3">
+              <Calendar className="h-4 w-4 text-sky-500" />
+              <span className="text-sm font-medium text-sky-700">
+                Monthly payment due on the <span className="font-black">{payment.monthlyPaymentDate}{getOrdinalSuffix(payment.monthlyPaymentDate)}</span> of every month
+              </span>
+            </div>
+          )}
+
+          {/* Installments / Milestones */}
+          {payment.paymentPlan === "milestones" && payment.installments.length > 0 && (
+            <div className="space-y-2">
+              <h4 className="text-xs font-bold tracking-wider text-muted-foreground uppercase">
+                Payment Milestones
+              </h4>
+              <div className="space-y-2">
+                {payment.installments.map((inst: any, idx: number) => {
+                  const dueDate = new Date(inst.dueDate);
+                  const isPaid = inst.status === "paid";
+                  const isOverdue = !isPaid && dueDate < new Date();
+
+                  return (
+                    <div
+                      key={idx}
+                      className={cn(
+                        "flex items-center justify-between rounded-xl border px-4 py-3",
+                        isPaid
+                          ? "border-emerald-500/20 bg-emerald-500/5"
+                          : isOverdue
+                            ? "border-red-500/20 bg-red-500/5"
+                            : "border-border bg-muted/10"
+                      )}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className={cn(
+                          "h-2.5 w-2.5 rounded-full",
+                          isPaid ? "bg-emerald-500" : isOverdue ? "bg-red-500 animate-pulse" : "bg-amber-500"
+                        )} />
+                        <div>
+                          <div className="text-sm font-bold">
+                            ₹{inst.amount.toLocaleString("en-IN")}
+                          </div>
+                          <div className="text-[10px] text-muted-foreground">
+                            Due: {dueDate.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
+                          </div>
+                        </div>
+                      </div>
+                      <span className={cn(
+                        "text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded-lg",
+                        isPaid
+                          ? "text-emerald-600 bg-emerald-500/10"
+                          : isOverdue
+                            ? "text-red-600 bg-red-500/10"
+                            : "text-amber-600 bg-amber-500/10"
+                      )}>
+                        {isPaid ? "Paid" : isOverdue ? "Overdue" : "Pending"}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Contract Document */}
+      <Card className="border-border">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base font-bold flex items-center gap-2">
+            <FileText className="h-4.5 w-4.5 text-indigo-500" />
+            Contract Document
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-4">
+          {contractDocument?.url ? (
+            <a
+              href={contractDocument.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-3 rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-4 hover:bg-emerald-500/10 transition-colors group"
+            >
+              <div className="h-10 w-10 rounded-lg bg-emerald-500/10 flex items-center justify-center shrink-0">
+                <FileText className="h-5 w-5 text-emerald-600" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-bold truncate">{contractDocument.fileName || "Contract Document"}</p>
+                <p className="text-[10px] text-muted-foreground">
+                  {contractDocument.uploadedAt
+                    ? `Uploaded ${new Date(contractDocument.uploadedAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}`
+                    : "Click to view"}
+                </p>
+              </div>
+              <ExternalLink className="h-4 w-4 text-muted-foreground group-hover:text-emerald-600 transition-colors shrink-0" />
+            </a>
+          ) : (
+            <div className="rounded-xl border-2 border-dashed border-border p-6 text-center">
+              <FileText className="h-8 w-8 text-muted-foreground/30 mx-auto" />
+              <p className="text-sm font-bold text-muted-foreground mt-2">No contract uploaded yet</p>
+              <p className="text-[10px] text-muted-foreground/60 mt-1">Your organization will upload the contract document.</p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+function getOrdinalSuffix(n: number): string {
+  const s = ["th", "st", "nd", "rd"];
+  const v = n % 100;
+  return s[(v - 20) % 10] || s[v] || s[0];
 }

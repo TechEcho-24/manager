@@ -7,6 +7,7 @@ import * as z from "zod";
 import { format } from "date-fns";
 import useSWR from "swr";
 import { toast } from "sonner";
+import { CldUploadWidget } from "next-cloudinary";
 import {
   X,
   Loader2,
@@ -17,6 +18,12 @@ import {
   Zap,
   Mail,
   Trash2,
+  Copy,
+  Link2,
+  FileText,
+  AlertTriangle,
+  Upload,
+  ExternalLink,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -111,6 +118,11 @@ export function LeadFormPanel({
   const [noteInput, setNoteInput] = useState("");
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [showDealModal, setShowDealModal] = useState(false);
+  const [showClientOnboarding, setShowClientOnboarding] = useState(false);
+  const [clientInviteLink, setClientInviteLink] = useState("");
+  const [inviteCopied, setInviteCopied] = useState(false);
+  const [contractDoc, setContractDoc] = useState<{ url: string; publicId?: string; fileName?: string; uploadedAt?: string } | null>(null);
+  const [uploadingContract, setUploadingContract] = useState(false);
   const [planConfig, setPlanConfig] = useState<any>(null);
 
   useEffect(() => {
@@ -281,6 +293,68 @@ export function LeadFormPanel({
     }
   };
 
+  // Load contract doc and invite link when editing a converted lead
+  useEffect(() => {
+    if (leadData && !isLoading) {
+      if (leadData.contractDocument?.url) {
+        setContractDoc(leadData.contractDocument);
+      } else {
+        setContractDoc(null);
+      }
+      if (leadData.clientInviteLink) {
+        setClientInviteLink(leadData.clientInviteLink);
+      }
+    }
+  }, [leadData, isLoading]);
+
+  const copyInviteLink = () => {
+    navigator.clipboard.writeText(clientInviteLink);
+    setInviteCopied(true);
+    toast.success("Invite link copied!");
+    setTimeout(() => setInviteCopied(false), 2000);
+  };
+
+  const handleContractUpload = async (result: any) => {
+    const info = result?.info;
+    if (!info?.secure_url || !leadId) return;
+    setUploadingContract(true);
+    try {
+      const res = await fetch(`/api/leads/${leadId}/contract`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          url: info.secure_url,
+          publicId: info.public_id,
+          fileName: info.original_filename || "Contract",
+        }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setContractDoc(data.contractDocument);
+        toast.success("Contract uploaded successfully!");
+        mutate();
+      }
+    } catch {
+      toast.error("Failed to upload contract");
+    } finally {
+      setUploadingContract(false);
+    }
+  };
+
+  const handleDeleteContract = async () => {
+    if (!leadId) return;
+    try {
+      const res = await fetch(`/api/leads/${leadId}/contract`, { method: "DELETE" });
+      if (res.ok) {
+        setContractDoc(null);
+        toast.success("Contract removed");
+        mutate();
+      }
+    } catch {
+      toast.error("Failed to remove contract");
+    }
+  };
+
   const onSubmit = async (values: LeadFormValues) => {
     setIsSubmitting(true);
     try {
@@ -314,10 +388,20 @@ export function LeadFormPanel({
         throw new Error(errorData.error || "Failed to save lead");
       }
 
+      const resData = await res.json();
+
+      // Show client onboarding popup when newly converted
+      if (values.status === "Converted (Won)" && resData.clientInviteLink) {
+        setClientInviteLink(resData.clientInviteLink);
+        setShowClientOnboarding(true);
+      }
+
       toast.success(
         isEditMode ? "Lead updated successfully" : "Lead created successfully",
       );
-      onOpenChange(false);
+      if (!resData.clientInviteLink) {
+        onOpenChange(false);
+      }
       if (onSuccess) onSuccess();
     } catch (error: any) {
       toast.error(error.message || "Failed to save lead");
@@ -1167,15 +1251,108 @@ export function LeadFormPanel({
                 />
               </div>
               {showDealTracking && (
-                <Button
-                  type='button'
-                  variant='outline'
-                  className='w-full text-xs justify-center border-primary/20 bg-primary/5 text-primary hover:bg-primary/10'
-                  onClick={() => setShowDealModal(true)}
-                >
-                  <Zap className='mr-2 h-4 w-4' />
-                  Open Deal & Payment Tracking
-                </Button>
+                <>
+                  <Button
+                    type='button'
+                    variant='outline'
+                    className='w-full text-xs justify-center border-primary/20 bg-primary/5 text-primary hover:bg-primary/10'
+                    onClick={() => setShowDealModal(true)}
+                  >
+                    <Zap className='mr-2 h-4 w-4' />
+                    Open Deal & Payment Tracking
+                  </Button>
+
+                  {/* Client Invite Link */}
+                  {clientInviteLink && (
+                    <div className='rounded-xl border border-sky-500/20 bg-sky-500/5 p-3 space-y-2'>
+                      <div className='flex items-center gap-2 text-xs font-bold text-sky-600'>
+                        <Link2 className='h-3.5 w-3.5' />
+                        Client Invite Link
+                      </div>
+                      <div className='flex items-center gap-2'>
+                        <input
+                          type='text'
+                          readOnly
+                          value={clientInviteLink}
+                          className='flex-1 bg-transparent text-[10px] outline-none text-muted-foreground truncate'
+                        />
+                        <Button
+                          type='button'
+                          size='sm'
+                          variant='secondary'
+                          onClick={copyInviteLink}
+                          className='h-7 px-2 shrink-0'
+                        >
+                          {inviteCopied ? <Check className='h-3 w-3 text-emerald-500' /> : <Copy className='h-3 w-3' />}
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Contract Document Status */}
+                  {isEditMode && (
+                    <div className={cn(
+                      'rounded-xl border p-3 space-y-2',
+                      contractDoc
+                        ? 'border-emerald-500/20 bg-emerald-500/5'
+                        : 'border-amber-500/20 bg-amber-500/5'
+                    )}>
+                      <div className={cn(
+                        'flex items-center gap-2 text-xs font-bold',
+                        contractDoc ? 'text-emerald-600' : 'text-amber-600'
+                      )}>
+                        {contractDoc ? <FileText className='h-3.5 w-3.5' /> : <AlertTriangle className='h-3.5 w-3.5' />}
+                        {contractDoc ? 'Contract Uploaded' : 'Contract Missing'}
+                      </div>
+                      {contractDoc ? (
+                        <div className='flex items-center gap-2'>
+                          <a
+                            href={contractDoc.url}
+                            target='_blank'
+                            rel='noopener noreferrer'
+                            className='text-[10px] text-emerald-600 hover:underline flex items-center gap-1 truncate flex-1'
+                          >
+                            <ExternalLink className='h-3 w-3 shrink-0' />
+                            {contractDoc.fileName || 'View Document'}
+                          </a>
+                          <Button
+                            type='button'
+                            size='sm'
+                            variant='ghost'
+                            onClick={handleDeleteContract}
+                            className='h-6 w-6 p-0 text-rose-500 hover:bg-rose-500/10'
+                          >
+                            <Trash2 className='h-3 w-3' />
+                          </Button>
+                        </div>
+                      ) : (
+                        <CldUploadWidget
+                          uploadPreset={process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET}
+                          options={{
+                            clientAllowedFormats: ['pdf', 'png', 'jpeg', 'jpg', 'webp'],
+                            maxFiles: 1,
+                            multiple: false,
+                          }}
+                          onSuccess={handleContractUpload}
+                        >
+                          {({ open }) => (
+                            <Button
+                              type='button'
+                              size='sm'
+                              variant='outline'
+                              onClick={() => open()}
+                              disabled={uploadingContract}
+                              className='w-full h-7 text-[10px] font-bold border-amber-500/20 text-amber-600 hover:bg-amber-500/10'
+                            >
+                              {uploadingContract ? <Loader2 className='h-3 w-3 mr-1 animate-spin' /> : <Upload className='h-3 w-3 mr-1' />}
+                              Upload Contract
+                            </Button>
+                          )}
+                        </CldUploadWidget>
+                      )}
+                    </div>
+                  )}
+                </>
               )}
 
               {/* Read Only Meta */}
@@ -1295,6 +1472,114 @@ export function LeadFormPanel({
             contentClassName="w-full max-w-3xl max-h-[88vh] overflow-y-auto bg-card border border-border rounded-2xl p-6 shadow-2xl"
           >
             {dealTrackingContent}
+          </Dialog>
+
+          {/* Client Onboarding Popup */}
+          <Dialog
+            open={showClientOnboarding}
+            onOpenChange={setShowClientOnboarding}
+            contentClassName="w-full max-w-lg bg-card border border-border rounded-2xl p-0 shadow-2xl overflow-hidden"
+          >
+            <div className="bg-gradient-to-r from-sky-500/10 via-indigo-500/10 to-sky-500/10 border-b border-border px-6 py-5">
+              <h3 className="text-lg font-bold text-foreground flex items-center gap-2">
+                <Check className="h-5 w-5 text-emerald-500" />
+                Lead Converted Successfully!
+              </h3>
+              <p className="text-sm text-muted-foreground mt-1">
+                Share the invite link with your client and upload the contract document.
+              </p>
+            </div>
+            <div className="p-6 space-y-5">
+              {/* Invite Link */}
+              <div className="space-y-2">
+                <label className="text-xs font-bold tracking-wider text-muted-foreground flex items-center gap-1.5">
+                  <Link2 className="h-3.5 w-3.5 text-sky-500" />
+                  CLIENT INVITE LINK
+                </label>
+                <div className="flex items-center gap-2 p-2.5 border rounded-xl bg-muted/20">
+                  <input
+                    type="text"
+                    readOnly
+                    value={clientInviteLink}
+                    className="flex-1 bg-transparent text-sm outline-none text-foreground truncate"
+                  />
+                  <Button
+                    type="button"
+                    size="sm"
+                    onClick={copyInviteLink}
+                    className="shrink-0 h-8 gap-1.5"
+                  >
+                    {inviteCopied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+                    {inviteCopied ? 'Copied' : 'Copy'}
+                  </Button>
+                </div>
+                <p className="text-[10px] text-muted-foreground">
+                  Share this link with your client. They can create an account to access their portal.
+                </p>
+              </div>
+
+              {/* Contract Upload */}
+              <div className="space-y-2">
+                <label className="text-xs font-bold tracking-wider text-muted-foreground flex items-center gap-1.5">
+                  <FileText className="h-3.5 w-3.5 text-indigo-500" />
+                  CONTRACT DOCUMENT
+                </label>
+                {contractDoc ? (
+                  <div className="flex items-center gap-3 p-3 border rounded-xl bg-emerald-500/5 border-emerald-500/20">
+                    <FileText className="h-5 w-5 text-emerald-500 shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">{contractDoc.fileName || 'Contract'}</p>
+                      <p className="text-[10px] text-muted-foreground">Uploaded successfully</p>
+                    </div>
+                    <a href={contractDoc.url} target="_blank" rel="noopener noreferrer" className="text-emerald-600 hover:text-emerald-500">
+                      <ExternalLink className="h-4 w-4" />
+                    </a>
+                  </div>
+                ) : (
+                  <CldUploadWidget
+                    uploadPreset={process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET}
+                    options={{
+                      clientAllowedFormats: ['pdf', 'png', 'jpeg', 'jpg', 'webp'],
+                      maxFiles: 1,
+                      multiple: false,
+                    }}
+                    onSuccess={handleContractUpload}
+                  >
+                    {({ open }) => (
+                      <button
+                        type="button"
+                        onClick={() => open()}
+                        disabled={uploadingContract}
+                        className="w-full p-6 border-2 border-dashed border-border rounded-xl hover:border-primary/30 hover:bg-primary/5 transition-all text-center group"
+                      >
+                        {uploadingContract ? (
+                          <Loader2 className="h-8 w-8 mx-auto text-muted-foreground animate-spin" />
+                        ) : (
+                          <Upload className="h-8 w-8 mx-auto text-muted-foreground/40 group-hover:text-primary/60 transition-colors" />
+                        )}
+                        <p className="text-sm font-bold text-muted-foreground mt-2">
+                          {uploadingContract ? 'Uploading...' : 'Click to upload contract'}
+                        </p>
+                        <p className="text-[10px] text-muted-foreground/60 mt-1">PDF, PNG, JPG supported</p>
+                      </button>
+                    )}
+                  </CldUploadWidget>
+                )}
+              </div>
+            </div>
+            <div className="flex items-center justify-end gap-3 p-5 border-t border-border bg-muted/20">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  setShowClientOnboarding(false);
+                  onOpenChange(false);
+                }}
+                className="border-border"
+              >
+                {contractDoc ? 'Done' : 'Skip for now'}
+              </Button>
+            </div>
           </Dialog>
         </Form>
       )}

@@ -23,6 +23,15 @@ export interface ITask extends Document {
   completed: boolean;
   status: TaskStatus;
   priority: "high" | "medium" | "low";
+  // Completion tracking
+  completedAt?: Date;
+  completedByUserId?: string;
+  completedByName?: string;
+  // Weekly recurring
+  isRecurring?: boolean;
+  recurringDays?: number[]; // 0=Sun, 1=Mon, ..., 6=Sat
+  recurringGroupId?: string;
+  expiresAt?: Date;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -50,6 +59,15 @@ const TaskSchema = new Schema<ITask>(
     completed: { type: Boolean, default: false },
     status: { type: String, enum: TASK_STATUSES, default: "To Do", index: true },
     priority: { type: String, enum: ["high", "medium", "low"], default: "medium" },
+    // Completion tracking
+    completedAt: { type: Date },
+    completedByUserId: { type: String },
+    completedByName: { type: String },
+    // Weekly recurring
+    isRecurring: { type: Boolean, default: false },
+    recurringDays: [{ type: Number }],
+    recurringGroupId: { type: String, index: true },
+    expiresAt: { type: Date, index: true },
   },
   { timestamps: true }
 );
@@ -60,3 +78,4 @@ if (process.env.NODE_ENV === 'development') {
 
 export const Task: Model<ITask> =
   mongoose.models.Task || mongoose.model<ITask>("Task", TaskSchema);
+

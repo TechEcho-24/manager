@@ -69,6 +69,19 @@ export async function POST(req: Request) {
     invitation.status = "accepted";
     await invitation.save();
 
+    // If client role, link this user to the lead that generated the invite
+    if (invitation.role === "client" && user) {
+      try {
+        const { Lead } = await import("@/models/lead");
+        await Lead.updateOne(
+          { clientInviteToken: token, organizationId: invitation.organizationId },
+          { $set: { clientUserId: user._id.toString() } }
+        );
+      } catch (linkErr) {
+        console.error("Failed to link client user to lead:", linkErr);
+      }
+    }
+
     return NextResponse.json({ success: true, organizationId: invitation.organizationId, role: invitation.role });
   } catch (error: any) {
     console.error("POST Join API Error:", error);

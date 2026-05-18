@@ -53,7 +53,7 @@ export function MobileSidebar() {
   const orgRole = (session?.user as any)?.orgRole || "owner";
 
   const visibleNavItems = navItems.filter(item => {
-    if (orgRole === "member" && item.href !== "/tasks") return false;
+    if ((orgRole === "member" || orgRole === "client") && item.href !== "/tasks") return false;
     return true;
   });
 

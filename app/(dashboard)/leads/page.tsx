@@ -5,16 +5,21 @@ import { useSearchParams } from "next/navigation";
 import useSWR from "swr";
 import { useDebounce } from "use-debounce";
 import { format } from "date-fns";
+import { toast } from "sonner";
 import {
   Search,
   Plus,
   Trash2,
   Edit2,
-  Eye,
+  Link2,
+  Copy,
+  Check,
+  Loader2,
   MoreHorizontal,
   ChevronLeft,
   ChevronRight,
   ArrowUpDown,
+  AlertTriangle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -57,6 +62,8 @@ type Lead = {
   leadSource?: string;
   nextFollowupDate?: string;
   createdAt: string;
+  contractDocument?: { url: string };
+  clientInviteToken?: string;
 };
 
 // Fetcher for SWR
@@ -126,6 +133,13 @@ function LeadsPageContent() {
   // Delete Dialog state
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [leadToDelete, setLeadToDelete] = useState<string | null>(null);
+
+  // Invite link state
+  const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
+  const [inviteLink, setInviteLink] = useState("");
+  const [inviteLeadName, setInviteLeadName] = useState("");
+  const [inviteCopied, setInviteCopied] = useState(false);
+  const [generatingInvite, setGeneratingInvite] = useState<string | null>(null);
 
   // Build query string
   const queryParams = new URLSearchParams({
@@ -206,6 +220,62 @@ function LeadsPageContent() {
     } catch (err) {
       console.error("Failed to update status", err);
     }
+  };
+
+  const handleGenerateInvite = async (lead: Lead) => {
+    // If lead already has an invite token, just show the link
+    if (lead.clientInviteToken) {
+      const baseUrl = window.location.origin;
+      setInviteLink(`${baseUrl}/invite/${lead.clientInviteToken}`);
+      setInviteLeadName(lead.fullName);
+      setInviteDialogOpen(true);
+      return;
+    }
+
+    setGeneratingInvite(lead.id);
+    try {
+      // First ensure the lead is Converted (Won) to generate the invite
+      const res = await fetch(`/api/leads/${lead.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: lead.status }),
+      });
+      const data = await res.json();
+
+      if (data.clientInviteLink) {
+        setInviteLink(data.clientInviteLink);
+        setInviteLeadName(lead.fullName);
+        setInviteDialogOpen(true);
+        mutate();
+      } else {
+        // Generate a fresh invite via the dedicated endpoint
+        const inviteRes = await fetch("/api/leads", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ids: [lead.id], status: "Converted (Won)" }),
+        });
+        const inviteData = await inviteRes.json();
+        if (inviteData.inviteLinks?.[lead.id]) {
+          setInviteLink(inviteData.inviteLinks[lead.id]);
+          setInviteLeadName(lead.fullName);
+          setInviteDialogOpen(true);
+          mutate();
+        } else {
+          toast.error("Could not generate invite. Mark the lead as 'Converted (Won)' first.");
+        }
+      }
+    } catch {
+      toast.error("Failed to generate invite link.");
+    } finally {
+      setGeneratingInvite(null);
+    }
+  };
+
+  const copyInviteLink = () => {
+    navigator.clipboard.writeText(inviteLink);
+    setInviteCopied(true);
+    toast.success("Invite link copied!");
+    setTimeout(() => setInviteCopied(false), 2000);
   };
 
   return (
@@ -453,9 +523,16 @@ function LeadsPageContent() {
                     <Popover>
                       <PopoverTrigger asChild>
                         <button className='focus:outline-none focus:ring-2 focus:ring-[oklch(0.60_0.22_260)] focus:ring-offset-2 rounded-full ring-offset-background'>
-                          <Badge className={getStatusColor(lead.status)}>
-                            {lead.status}
-                          </Badge>
+                          <div className='flex items-center gap-1.5'>
+                            <Badge className={getStatusColor(lead.status)}>
+                              {lead.status}
+                            </Badge>
+                            {lead.status === 'Converted (Won)' && !lead.contractDocument?.url && (
+                              <span className='inline-flex items-center' title='Contract document missing'>
+                                <AlertTriangle className='h-3.5 w-3.5 text-amber-500' />
+                              </span>
+                            )}
+                          </div>
                         </button>
                       </PopoverTrigger>
                       <PopoverContent align='center' className='w-[200px] p-2'>
@@ -502,9 +579,18 @@ function LeadsPageContent() {
                       <Button
                         variant='outline'
                         size='icon'
-                        className='h-8 w-8 border-border bg-background hover:bg-muted text-muted-foreground hover:text-foreground transition-colors'
+                        className='h-8 w-8 border-sky-500/20 bg-sky-500/5 hover:bg-sky-500/15 text-sky-600 hover:text-sky-500 transition-colors'
+                        onClick={() => handleGenerateInvite(lead)}
+                        disabled={generatingInvite === lead.id}
+                        title='Generate client invite link'
                       >
-                        <Eye className='h-4 w-4' />
+                        {generatingInvite === lead.id ? (
+                          <Loader2 className='h-4 w-4 animate-spin' />
+                        ) : lead.clientInviteToken ? (
+                          <Check className='h-4 w-4' />
+                        ) : (
+                          <Link2 className='h-4 w-4' />
+                        )}
                       </Button>
                       <Button
                         variant='outline'
@@ -601,9 +687,18 @@ function LeadsPageContent() {
                 <Button
                   variant='outline'
                   size='sm'
-                  className='flex-1 border-white/10 bg-transparent hover:bg-white/10'
+                  className='flex-1 border-sky-500/20 bg-sky-500/5 hover:bg-sky-500/15 text-sky-600'
+                  onClick={() => handleGenerateInvite(lead)}
+                  disabled={generatingInvite === lead.id}
                 >
-                  <Eye className='mr-2 h-3 w-3' /> View
+                  {generatingInvite === lead.id ? (
+                    <Loader2 className='mr-2 h-3 w-3 animate-spin' />
+                  ) : lead.clientInviteToken ? (
+                    <Check className='mr-2 h-3 w-3' />
+                  ) : (
+                    <Link2 className='mr-2 h-3 w-3' />
+                  )}
+                  {lead.clientInviteToken ? 'Invited' : 'Invite'}
                 </Button>
                 <Button
                   variant='outline'
@@ -715,6 +810,49 @@ function LeadsPageContent() {
             className='bg-red-500 hover:bg-red-600 text-foreground'
           >
             Delete
+          </Button>
+        </DialogFooter>
+      </Dialog>
+
+      {/* Invite Link Dialog */}
+      <Dialog open={inviteDialogOpen} onOpenChange={setInviteDialogOpen}>
+        <DialogHeader>
+          <DialogTitle className='flex items-center gap-2'>
+            <Link2 className='h-5 w-5 text-sky-500' />
+            Client Invite Link
+          </DialogTitle>
+          <DialogDescription>
+            Share this link with <span className='font-bold text-foreground'>{inviteLeadName}</span>. They'll be able to view their contract document and payment details only.
+          </DialogDescription>
+        </DialogHeader>
+        <div className='px-6 pb-2'>
+          <div className='flex items-center gap-2 rounded-xl border border-sky-500/20 bg-sky-500/5 p-3'>
+            <input
+              type='text'
+              readOnly
+              value={inviteLink}
+              className='flex-1 bg-transparent text-sm outline-none text-foreground truncate'
+            />
+            <Button
+              size='sm'
+              onClick={copyInviteLink}
+              className='shrink-0 h-8 gap-1.5 bg-sky-600 hover:bg-sky-700 text-white'
+            >
+              {inviteCopied ? <Check className='h-3.5 w-3.5' /> : <Copy className='h-3.5 w-3.5' />}
+              {inviteCopied ? 'Copied!' : 'Copy'}
+            </Button>
+          </div>
+          <p className='text-[10px] text-muted-foreground mt-2'>
+            The client can create an account using this link. They will only have access to view their legal contract and payment details — no other data.
+          </p>
+        </div>
+        <DialogFooter>
+          <Button
+            variant='outline'
+            onClick={() => setInviteDialogOpen(false)}
+            className='border-border'
+          >
+            Done
           </Button>
         </DialogFooter>
       </Dialog>

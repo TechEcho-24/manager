@@ -128,14 +128,14 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
     : pathname;
 
   const navItems = allNavItems.filter(item => {
-    if (orgRole === "member" && item.href !== "/tasks") return false;
+    if ((orgRole === "member" || orgRole === "client") && item.href !== "/tasks") return false;
     if (role === "admin" && item.role === "client") return false;
     if (role === "client" && item.role === "admin") return false;
     return true;
   });
 
   const bottomItems = bottomNavItems.filter(item => {
-    if (orgRole === "member") return false;
+    if (orgRole === "member" || orgRole === "client") return false;
     return true;
   });
 

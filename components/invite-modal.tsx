@@ -57,6 +57,7 @@ export function InviteModal({ onClose }: { onClose: () => void }) {
               >
                 <option value="member">Task Member</option>
                 <option value="staff">Staff (Full Access)</option>
+                <option value="client">Client</option>
               </select>
               <Button onClick={generateInvite} disabled={generating} className="gap-2">
                 {generating ? <Loader2 className="h-4 w-4 animate-spin" /> : <UserPlus className="h-4 w-4" />}

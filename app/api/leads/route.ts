@@ -257,6 +257,7 @@ export async function PATCH(request: Request) {
 
     const { ids, status } = await request.json();
     const userId = (session.user as any).id;
+    const organizationId = (session.user as any).organizationId;
 
     await Lead.updateMany(
       { _id: { $in: ids }, userId: userId }, // UPDATE ONLY USER DATA
@@ -266,7 +267,37 @@ export async function PATCH(request: Request) {
       }
     );
 
-    return NextResponse.json({ message: "Leads updated successfully" });
+    // Auto-generate client invite when lead is converted
+    let inviteLinks: Record<string, string> = {};
+    if (status === "Converted (Won)" && organizationId) {
+      const { Invitation } = await import("@/models/invitation");
+      const crypto = await import("crypto");
+      const leads = await Lead.find({ _id: { $in: ids }, userId: userId, clientInviteToken: { $exists: false } });
+      
+      for (const lead of leads) {
+        const token = crypto.randomBytes(32).toString("hex");
+        const expiresAt = new Date();
+        expiresAt.setDate(expiresAt.getDate() + 30); // 30 days for client invites
+
+        await Invitation.create({
+          organizationId,
+          token,
+          role: "client",
+          expiresAt,
+        });
+
+        lead.clientInviteToken = token;
+        await lead.save();
+
+        const baseUrl = process.env.AUTH_URL || "http://localhost:3000";
+        inviteLinks[lead._id.toString()] = `${baseUrl}/invite/${token}`;
+      }
+    }
+
+    return NextResponse.json({ 
+      message: "Leads updated successfully",
+      inviteLinks: Object.keys(inviteLinks).length > 0 ? inviteLinks : undefined,
+    });
   } catch (error) {
     return NextResponse.json({ error: "Failed to update leads" }, { status: 500 });
   }

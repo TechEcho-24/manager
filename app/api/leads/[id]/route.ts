@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import dbConnect from "@/lib/db";
 import { Lead } from "@/models/lead";
+import { auth } from "@/auth";
 
 export const dynamic = "force-dynamic";
 
@@ -23,7 +24,14 @@ export async function GET(
       return NextResponse.json({ error: "Lead not found" }, { status: 404 });
     }
 
-    return NextResponse.json({ ...lead, id: lead._id.toString(), _id: undefined });
+    // Include invite link if token exists
+    let clientInviteLink: string | undefined;
+    if (lead.clientInviteToken) {
+      const baseUrl = process.env.AUTH_URL || "http://localhost:3000";
+      clientInviteLink = `${baseUrl}/invite/${lead.clientInviteToken}`;
+    }
+
+    return NextResponse.json({ ...lead, id: lead._id.toString(), _id: undefined, clientInviteLink });
   } catch (error) {
     console.error("Fetch Lead Error:", error);
     return NextResponse.json(
@@ -39,6 +47,8 @@ export async function PATCH(
 ) {
   try {
     await dbConnect();
+    const session = await auth();
+    const organizationId = (session?.user as any)?.organizationId;
     const { id } = await params;
     const data = await request.json();
 
@@ -67,6 +77,7 @@ export async function PATCH(
 
     // Determine what changed for the timeline
     const changes: string[] = [];
+    const isNewlyConverted = data.status === "Converted (Won)" && lead.status !== "Converted (Won)";
     if (data.status && data.status !== lead.status) {
       changes.push(`Status changed to ${data.status}`);
       if (data.status === "Converted (Won)") changes.push("Deal closed! Financial tracking enabled.");
@@ -89,19 +100,48 @@ export async function PATCH(
       lead.markModified('dealDetails');
     }
     
+    // Auto-generate client invite when status changes to Converted (Won)
+    let clientInviteLink: string | undefined;
+    if (isNewlyConverted && organizationId && !lead.clientInviteToken) {
+      const { Invitation } = await import("@/models/invitation");
+      const crypto = await import("crypto");
+      const token = crypto.randomBytes(32).toString("hex");
+      const expiresAt = new Date();
+      expiresAt.setDate(expiresAt.getDate() + 30);
+
+      await Invitation.create({
+        organizationId,
+        token,
+        role: "client",
+        expiresAt,
+      });
+
+      lead.clientInviteToken = token;
+      const baseUrl = process.env.AUTH_URL || "http://localhost:3000";
+      clientInviteLink = `${baseUrl}/invite/${token}`;
+      changes.push("Client invite link generated");
+    } else if (lead.clientInviteToken) {
+      const baseUrl = process.env.AUTH_URL || "http://localhost:3000";
+      clientInviteLink = `${baseUrl}/invite/${lead.clientInviteToken}`;
+    }
+
     // Add activity if requested or if something meaningful changed
     if (changes.length > 0 || data.forceActivityLog) {
       lead.activityTimeline.push({
         action: "Lead updated",
         description: data.activityDescription || description,
         createdAt: new Date(),
-        createdBy: "System",
+        createdBy: session?.user?.name || "System",
       });
     }
 
     await lead.save();
 
-    return NextResponse.json({ message: "Lead updated successfully", lead: { ...lead.toObject(), id: lead._id.toString() } });
+    return NextResponse.json({ 
+      message: "Lead updated successfully", 
+      lead: { ...lead.toObject(), id: lead._id.toString() },
+      clientInviteLink,
+    });
   } catch (error) {
     console.error("Update Lead Error:", error);
     return NextResponse.json(
@@ -110,3 +150,4 @@ export async function PATCH(
     );
   }
 }
+

@@ -3,7 +3,7 @@ import mongoose, { Schema, Document, Model } from "mongoose";
 export interface IInvitation extends Document {
   organizationId: string;
   token: string;
-  role: "staff" | "member";
+  role: "staff" | "member" | "client";
   status: "pending" | "accepted";
   expiresAt: Date;
   createdAt: Date;
@@ -14,7 +14,7 @@ const InvitationSchema = new Schema<IInvitation>(
   {
     organizationId: { type: String, required: true, index: true },
     token: { type: String, required: true, unique: true },
-    role: { type: String, enum: ["staff", "member"], default: "member" },
+    role: { type: String, enum: ["staff", "member", "client"], default: "member" },
     status: { type: String, enum: ["pending", "accepted"], default: "pending" },
     expiresAt: { type: Date, required: true },
   },

@@ -69,6 +69,16 @@ export interface ILead extends Document {
     }[];
   };
 
+  // Client Portal fields
+  clientInviteToken?: string;
+  clientUserId?: string;
+  contractDocument?: {
+    url: string;
+    publicId?: string;
+    uploadedAt: Date;
+    fileName?: string;
+  };
+
   createdAt: Date;
   updatedAt: Date;
 }
@@ -161,6 +171,15 @@ const LeadSchema = new Schema<ILead>(
           reminderSentAt: { type: Date },
         },
       ],
+    },
+    // Client Portal fields
+    clientInviteToken: { type: String },
+    clientUserId: { type: String },
+    contractDocument: {
+      url: { type: String },
+      publicId: { type: String },
+      uploadedAt: { type: Date },
+      fileName: { type: String },
     },
   },
   {

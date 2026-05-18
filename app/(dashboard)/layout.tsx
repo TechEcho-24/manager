@@ -23,7 +23,7 @@ export default function DashboardLayout({
   const router = useRouter();
 
   const orgRole = (session?.user as any)?.orgRole || "owner";
-  const isMember = orgRole === "member";
+  const isMember = orgRole === "member" || orgRole === "client";
 
   // Redirect members away from non-tasks pages
   useEffect(() => {
