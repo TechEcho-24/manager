@@ -18,6 +18,7 @@ import {
   Zap,
   DollarSign,
   UserCheck,
+  Building2,
 } from "lucide-react";
 import {
   Tooltip,
@@ -41,6 +42,7 @@ const allNavItems = [
   { title: "Team", href: "/team", icon: UserCheck, role: "client" },
   { title: "Subscribers", href: "/dashboard?tab=users", icon: UserCheck, role: "admin" },
   { title: "Revenue", href: "/dashboard?tab=revenue", icon: DollarSign, role: "admin" },
+  { title: "Clients", href: "/clients", icon: Building2, role: "admin" },
   { title: "Insights", href: "/reports", icon: BarChart3 },
 ];
 

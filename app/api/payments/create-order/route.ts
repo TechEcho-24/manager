@@ -16,7 +16,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { amount, planName, organizationId } = await req.json();
+    const { amount, planName, organizationId, autoRenew } = await req.json();
 
     if (!amount) {
       return NextResponse.json({ error: "Missing amount" }, { status: 400 });
@@ -40,6 +40,7 @@ export async function POST(req: Request) {
       currency: "INR",
       razorpayOrderId: order.id,
       status: "created",
+      autoRenew: autoRenew === true,
     });
 
     return NextResponse.json({ orderId: order.id, amount: order.amount });

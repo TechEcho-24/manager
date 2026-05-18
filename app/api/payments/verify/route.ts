@@ -73,6 +73,7 @@ export async function POST(req: Request) {
         org.plan = planName?.toLowerCase().includes("enterprise") ? "enterprise" : "pro";
         org.subscription.status = "active";
         org.subscription.currentPeriodEnd = currentPeriodEnd;
+        org.subscription.autoRenew = payment.autoRenew === true;
         // Link payment to org
         payment.organizationId = org._id.toString();
         await Promise.all([org.save(), payment.save()]);
