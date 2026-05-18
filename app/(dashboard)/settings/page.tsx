@@ -4,12 +4,13 @@ import { useEffect, useState } from "react";
 import useSWR from "swr";
 import { toast } from "sonner";
 import { useSession } from "next-auth/react";
-import { Settings as SettingsIcon, Upload, Loader2, Save, Users, Copy, Check, UserPlus } from "lucide-react";
+import { Settings as SettingsIcon, Upload, Loader2, Save, Users, Copy, Check, UserPlus, RefreshCw, Calendar, ShieldCheck, AlertTriangle, Zap, X } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { CldUploadWidget } from "next-cloudinary";
 import { cn } from "@/lib/utils";
+import { plans } from "@/components/landing/constants";
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
@@ -187,6 +188,9 @@ export default function SettingsPage() {
 
         {(orgRole === "owner" || orgRole === "staff") && <TeamManagement />}
       </div>
+
+      {/* Subscription Card */}
+      {(orgRole === "owner") && <SubscriptionManager />}
     </div>
   );
 }
@@ -285,5 +289,260 @@ function TeamManagement() {
         </div>
       </CardContent>
     </Card>
+  );
+}
+
+// ─── Subscription Manager ─────────────────────────────────────────────────────
+function SubscriptionManager() {
+  const { data: subData, mutate } = useSWR("/api/subscription/status", fetcher);
+  const [showModal, setShowModal] = useState(false);
+  const [step, setStep] = useState<"idle" | "verifying" | "subscribing" | "done">("idle");
+  const [statusMsg, setStatusMsg] = useState("");
+
+  const plan = subData?.plan || "starter";
+  const autoRenew = subData?.autoRenew || false;
+  const status = subData?.status || "trial";
+  const currentPeriodEnd = subData?.currentPeriodEnd;
+  const daysUntilExpiry = subData?.daysUntilExpiry ?? null;
+
+  // Derive price from landing page constants (USD * 83 = INR)
+  const planConfig = plans.find((p) => p.name.toLowerCase() === plan.toLowerCase());
+  const planPrice = planConfig ? Math.round((planConfig.price as number) * 83) : 0;
+
+  const loadRazorpay = () =>
+    new Promise<boolean>((resolve) => {
+      if ((window as any).Razorpay) return resolve(true);
+      const s = document.createElement("script");
+      s.src = "https://checkout.razorpay.com/v1/checkout.js";
+      s.onload = () => resolve(true);
+      s.onerror = () => resolve(false);
+      document.body.appendChild(s);
+    });
+
+  const handleSwitchToAutoPay = async () => {
+    setShowModal(false);
+    setStep("verifying");
+    setStatusMsg("Opening ₹1 verification payment…");
+
+    try {
+      const loaded = await loadRazorpay();
+      if (!loaded) throw new Error("Razorpay SDK failed to load");
+
+      // Step 1 — ₹1 verification order
+      const orderRes = await fetch("/api/payments/create-order", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ amount: 1, planName: `${plan}-autopay-verify`, autoRenew: false }),
+      });
+      const orderData = await orderRes.json();
+      if (orderData.error) throw new Error(orderData.error);
+
+      await new Promise<void>((resolve, reject) => {
+        const options = {
+          key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+          amount: orderData.amount,
+          currency: "INR",
+          name: "Pinglly CRM",
+          description: "AutoPay Verification (₹1)",
+          order_id: orderData.orderId,
+          handler: async () => {
+            resolve();
+          },
+          modal: { ondismiss: () => reject(new Error("Verification cancelled")) },
+          theme: { color: "#6366f1" },
+        };
+        const rzp = new (window as any).Razorpay(options);
+        rzp.open();
+      });
+
+      // Step 2 — Activate AutoPay in DB & Razorpay
+      setStep("subscribing");
+      setStatusMsg("Setting up recurring billing…");
+
+      const activateRes = await fetch("/api/payments/activate-autopay", { method: "POST" });
+      const activateData = await activateRes.json();
+      if (activateData.error) throw new Error(activateData.error);
+
+      setStep("done");
+      
+      let nextPaymentMsg = "";
+      if (activateData.nextBillingDate) {
+        const dateStr = new Date(activateData.nextBillingDate).toLocaleDateString("en-IN", {
+          day: "numeric", month: "short", year: "numeric"
+        });
+        nextPaymentMsg = ` Aapki next payment ₹${planPrice} ki ${dateStr} ko kategi.`;
+      }
+
+      toast.success("AutoPay enabled!" + nextPaymentMsg, { duration: 6000 });
+      mutate();
+    } catch (err: any) {
+      setStep("idle");
+      if (err.message !== "Verification cancelled") {
+        toast.error(err.message || "Failed to enable AutoPay");
+      }
+    }
+  };
+
+  const PLAN_COLORS: Record<string, string> = {
+    pro: "text-indigo-400 bg-indigo-500/10 border-indigo-500/20",
+    growth: "text-emerald-400 bg-emerald-500/10 border-emerald-500/20",
+    starter: "text-blue-400 bg-blue-500/10 border-blue-500/20",
+    enterprise: "text-purple-400 bg-purple-500/10 border-purple-500/20",
+  };
+
+  return (
+    <>
+      <Card className="border-border bg-card shadow-sm">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <ShieldCheck className="h-5 w-5 text-primary" />
+            Subscription & Billing
+          </CardTitle>
+          <CardDescription>
+            Manage your plan, billing mode, and payment settings.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {!subData ? (
+            <div className="flex justify-center p-6"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>
+          ) : (
+            <div className="space-y-5">
+              {/* Plan + Status */}
+              <div className="flex flex-wrap gap-4 items-center p-4 rounded-xl bg-muted/30 border border-border">
+                <div className="flex-1 space-y-1">
+                  <p className="text-xs text-muted-foreground font-medium">Current Plan</p>
+                  <div className="flex items-center gap-2">
+                    <span className={cn("text-[10px] font-black border px-2.5 py-1 rounded-full uppercase tracking-widest", PLAN_COLORS[plan] || PLAN_COLORS.starter)}>
+                      {plan}
+                    </span>
+                    <span className={cn(
+                      "text-[10px] font-black px-2 py-0.5 rounded-full uppercase",
+                      status === "active" ? "bg-emerald-500/10 text-emerald-500" :
+                      status === "trial" ? "bg-blue-500/10 text-blue-400" :
+                      "bg-red-500/10 text-red-400"
+                    )}>
+                      {status.replace("_", " ")}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex-1 space-y-1">
+                  <p className="text-xs text-muted-foreground font-medium">Billing Mode</p>
+                  <div className="flex items-center gap-1.5">
+                    {autoRenew
+                      ? <><RefreshCw className="h-3.5 w-3.5 text-emerald-500" /><span className="text-sm font-bold text-emerald-500">AutoPay</span></>
+                      : <><Calendar className="h-3.5 w-3.5 text-amber-500" /><span className="text-sm font-bold text-amber-500">Manual Renewal</span></>
+                    }
+                  </div>
+                </div>
+
+                {currentPeriodEnd && (
+                  <div className="flex-1 space-y-1">
+                    <p className="text-xs text-muted-foreground font-medium">
+                      {autoRenew ? "Next Billing" : "Expires On"}
+                    </p>
+                    <p className="text-sm font-bold text-foreground">
+                      {new Date(currentPeriodEnd).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
+                      {daysUntilExpiry !== null && (
+                        <span className={cn("ml-2 text-[10px] font-black", daysUntilExpiry <= 5 ? "text-red-400" : "text-muted-foreground/50")}>
+                          ({daysUntilExpiry}d)
+                        </span>
+                      )}
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* Switch to AutoPay */}
+              {!autoRenew && plan !== "starter" && (
+                <div className="p-4 rounded-xl border border-indigo-500/20 bg-indigo-500/5 space-y-3">
+                  <div className="flex items-start gap-3">
+                    <div className="h-9 w-9 rounded-xl bg-indigo-500/15 flex items-center justify-center shrink-0">
+                      <RefreshCw className="h-4 w-4 text-indigo-400" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-black text-foreground">Enable AutoPay</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        Razorpay will auto-charge <strong className="text-foreground/80">₹{planPrice}/month</strong>. No more manual renewals. Cancel anytime from Razorpay.
+                      </p>
+                    </div>
+                  </div>
+                  <Button
+                    onClick={() => setShowModal(true)}
+                    disabled={step !== "idle"}
+                    className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-black tracking-widest text-xs gap-2"
+                  >
+                    {step === "verifying" && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+                    {step === "subscribing" && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+                    {step === "idle" && <RefreshCw className="h-3.5 w-3.5" />}
+                    {step === "idle" ? "Switch to AutoPay" : statusMsg}
+                  </Button>
+                </div>
+              )}
+
+              {/* Already on AutoPay */}
+              {autoRenew && (
+                <div className="flex items-center gap-3 p-4 rounded-xl border border-emerald-500/20 bg-emerald-500/5">
+                  <ShieldCheck className="h-5 w-5 text-emerald-400 shrink-0" />
+                  <div>
+                    <p className="text-sm font-black text-emerald-400">AutoPay is Active</p>
+                    <p className="text-xs text-muted-foreground">Razorpay will automatically renew your plan. To cancel, visit your Razorpay payment history.</p>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Confirmation Modal */}
+      {showModal && (
+        <div className="fixed inset-0 z-[300] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
+          <div className="relative w-full max-w-sm rounded-3xl border border-indigo-500/30 bg-card p-8 shadow-2xl">
+            <button onClick={() => setShowModal(false)} className="absolute top-4 right-4 h-8 w-8 flex items-center justify-center rounded-xl text-muted-foreground hover:text-foreground transition-all">
+              <X className="h-4 w-4" />
+            </button>
+
+            <div className="h-12 w-12 rounded-2xl bg-indigo-500/10 flex items-center justify-center mb-5">
+              <RefreshCw className="h-6 w-6 text-indigo-400" />
+            </div>
+
+            <h3 className="text-lg font-black text-foreground mb-2">Enable AutoPay?</h3>
+            <p className="text-sm text-muted-foreground mb-4">
+              Secure setup:
+            </p>
+
+            <div className="space-y-3 mb-6">
+              <div className="flex items-center gap-3 p-3 rounded-xl bg-muted/30 border border-border">
+                <span className="h-6 w-6 rounded-full bg-indigo-500/20 text-indigo-400 text-[10px] font-black flex items-center justify-center shrink-0">1</span>
+                <div>
+                  <p className="text-xs font-black text-foreground">₹1 Verification</p>
+                  <p className="text-[11px] text-muted-foreground">Confirms your payment method</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3 p-3 rounded-xl bg-muted/30 border border-border">
+                <span className="h-6 w-6 rounded-full bg-emerald-500/20 text-emerald-500 text-[10px] font-black flex items-center justify-center shrink-0">
+                  <Check className="h-3 w-3" />
+                </span>
+                <div>
+                  <p className="text-xs font-black text-foreground">AutoPay Activated</p>
+                  <p className="text-[11px] text-muted-foreground">Next billing starts when your plan expires</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex gap-3">
+              <Button variant="outline" onClick={() => setShowModal(false)} className="flex-1 font-bold">
+                Cancel
+              </Button>
+              <Button onClick={handleSwitchToAutoPay} className="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white font-black gap-2">
+                <Zap className="h-3.5 w-3.5" />
+                Proceed
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 }

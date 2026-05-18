@@ -150,10 +150,11 @@ export function TrialBanner() {
     if (!data?.plan) return;
     setRenewLoading(true);
 
+    // Plan pricing (USD base * 83 = INR)
     const planPrices: Record<string, number> = {
-      pro: 4150,
-      growth: 2490,
-      starter: 0,
+      pro: Math.round(14.9 * 83),       // ₹1,237
+      growth: Math.round(6.9 * 83),     // ₹573
+      starter: Math.round(2.9 * 83),    // ₹241
     };
 
     const amount = planPrices[data.plan] || 4150;

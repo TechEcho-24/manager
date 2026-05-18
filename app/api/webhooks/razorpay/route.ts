@@ -1,86 +1,94 @@
 import { NextResponse } from "next/server";
 import crypto from "crypto";
 import connectDB from "@/lib/db";
-import { Payment } from "@/models/payment";
 import { Organization } from "@/models/organization";
+
+export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
   try {
-    const body = await req.text();
-    const signature = req.headers.get("x-razorpay-signature");
-    const secret = process.env.RAZORPAY_WEBHOOK_SECRET || "mock_webhook_secret";
+    const rawBody = await req.text();
+    const signature = req.headers.get("x-razorpay-signature") || "";
+    const secret = process.env.RAZORPAY_WEBHOOK_SECRET || "";
 
-    if (!signature) {
-      return NextResponse.json({ error: "No signature found" }, { status: 400 });
+    // Verify webhook signature
+    if (secret && secret !== "your_webhook_secret_here") {
+      const expectedSig = crypto
+        .createHmac("sha256", secret)
+        .update(rawBody)
+        .digest("hex");
+
+      if (expectedSig !== signature) {
+        console.error("[Webhook] Invalid signature");
+        return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
+      }
     }
 
-    const expectedSignature = crypto
-      .createHmac("sha256", secret)
-      .update(body)
-      .digest("hex");
+    const event = JSON.parse(rawBody);
+    const eventType = event.event as string;
+    const subPayload = event.payload?.subscription?.entity;
 
-    if (expectedSignature !== signature) {
-      return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
+    if (!subPayload) {
+      return NextResponse.json({ received: true });
     }
 
-    const event = JSON.parse(body);
     await connectDB();
 
-    switch (event.event) {
-      case "payment.captured": {
-        const paymentData = event.payload.payment.entity;
-        const orderId = paymentData.order_id;
-        
-        const payment = await Payment.findOne({ razorpayOrderId: orderId });
-        if (payment && payment.status !== "paid") {
-          payment.status = "paid";
-          payment.razorpayPaymentId = paymentData.id;
-          await payment.save();
-          
-          const org = await Organization.findById(payment.organizationId);
-          if (org) {
-            org.subscription.status = "active";
-            const newEnd = new Date();
-            newEnd.setMonth(newEnd.getMonth() + 1);
-            org.subscription.currentPeriodEnd = newEnd;
-            await org.save();
-          }
-        }
-        break;
-      }
-      
-      case "payment.failed": {
-        const paymentData = event.payload.payment.entity;
-        const payment = await Payment.findOne({ razorpayOrderId: paymentData.order_id });
-        if (payment) {
-          payment.status = "failed";
-          await payment.save();
-        }
-        break;
-      }
-      
-      case "refund.processed": {
-        const refundData = event.payload.refund.entity;
-        const paymentId = refundData.payment_id;
-        const payment = await Payment.findOne({ razorpayPaymentId: paymentId });
-        if (payment) {
-          payment.status = "refunded";
-          await payment.save();
-          
-          const org = await Organization.findById(payment.organizationId);
-          if (org) {
-            org.subscription.status = "cancelled";
-            org.plan = "starter";
-            await org.save();
-          }
-        }
-        break;
-      }
+    const subscriptionId = subPayload.id as string;
+    let org = await Organization.findOne({
+      "subscription.razorpaySubscriptionId": subscriptionId,
+    });
+
+    if (!org) {
+      const orgId = subPayload.notes?.organizationId;
+      if (orgId) org = await Organization.findById(orgId);
     }
 
-    return NextResponse.json({ status: "ok" });
+    if (!org) {
+      console.warn(`[Webhook] No org found for subscription: ${subscriptionId}`);
+      return NextResponse.json({ received: true });
+    }
+
+    switch (eventType) {
+      case "subscription.charged": {
+        const nextPeriodEnd = new Date();
+        nextPeriodEnd.setDate(nextPeriodEnd.getDate() + 30);
+        org.subscription.status = "active";
+        org.subscription.currentPeriodEnd = nextPeriodEnd;
+        org.subscription.razorpaySubscriptionId = subscriptionId;
+        org.subscription.autoRenew = true;
+        await org.save();
+        console.log(`[Webhook] subscription.charged → Org ${org._id} renewed`);
+        break;
+      }
+      case "subscription.cancelled": {
+        org.subscription.autoRenew = false;
+        org.subscription.razorpaySubscriptionId = undefined;
+        await org.save();
+        console.log(`[Webhook] subscription.cancelled → Org ${org._id}`);
+        break;
+      }
+      case "subscription.halted": {
+        org.subscription.status = "past_due";
+        org.subscription.autoRenew = false;
+        await org.save();
+        console.log(`[Webhook] subscription.halted → Org ${org._id} past_due`);
+        break;
+      }
+      case "subscription.completed": {
+        org.subscription.status = "expired";
+        org.subscription.autoRenew = false;
+        await org.save();
+        console.log(`[Webhook] subscription.completed → Org ${org._id}`);
+        break;
+      }
+      default:
+        console.log(`[Webhook] Unhandled event: ${eventType}`);
+    }
+
+    return NextResponse.json({ received: true });
   } catch (error: any) {
-    console.error("Webhook Error:", error);
-    return NextResponse.json({ error: "Webhook Error" }, { status: 500 });
+    console.error("[Razorpay Webhook] Error:", error);
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }

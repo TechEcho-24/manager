@@ -1,18 +1,237 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import useSWR from "swr";
 import { useDebounce } from "use-debounce";
 import { MobileSidebar } from "@/components/mobile-sidebar";
-import { Bell, Search, Zap, Loader2, LogOut } from "lucide-react";
+import { Bell, Search, Zap, Loader2, LogOut, PhoneCall, Check, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { signOut, useSession } from "next-auth/react";
+import { motion, AnimatePresence } from "framer-motion";
+import { formatDistanceToNow } from "date-fns";
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
+interface Notification {
+  _id: string;
+  type: string;
+  title: string;
+  message: string;
+  leadId?: string;
+  leadName?: string;
+  isRead: boolean;
+  displayAfter: string;
+  createdAt: string;
+}
+
+// ─── Notification Bell ───────────────────────────────────────────────────────
+function NotificationBell({ isMember }: { isMember: boolean }) {
+  const router = useRouter();
+  const { data: session } = useSession();
+  const [open, setOpen] = useState(false);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [markingAll, setMarkingAll] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  const orgRole = (session?.user as any)?.orgRole || "owner";
+
+  // Fetch visible notifications
+  const fetchNotifications = useCallback(async () => {
+    if (isMember || orgRole === "member") return;
+    try {
+      const res = await fetch("/api/notifications");
+      const data = await res.json();
+      if (data.notifications) setNotifications(data.notifications);
+    } catch { /* silent */ }
+  }, [isMember, orgRole]);
+
+  // 8 AM trigger: generate today's follow-up notifications once per day
+  useEffect(() => {
+    if (isMember || orgRole === "member") return;
+    const now = new Date();
+    const todayKey = now.toISOString().slice(0, 10); // "2024-05-18"
+    const storedDate = localStorage.getItem("followup_notif_date");
+    const hour = now.getHours();
+
+    // Trigger after 8 AM if not already generated today
+    if (hour >= 8 && storedDate !== todayKey) {
+      fetch("/api/notifications/generate", { method: "POST" })
+        .then((r) => r.json())
+        .then((d) => {
+          if (d.created > 0 || d.message?.includes("Already")) {
+            localStorage.setItem("followup_notif_date", todayKey);
+            fetchNotifications();
+          }
+        })
+        .catch(() => {});
+      localStorage.setItem("followup_notif_date", todayKey);
+    }
+  }, [isMember, orgRole, fetchNotifications]);
+
+  // Poll every 60 seconds to pick up newly displayable notifications
+  useEffect(() => {
+    fetchNotifications();
+    const interval = setInterval(fetchNotifications, 60 * 1000);
+    return () => clearInterval(interval);
+  }, [fetchNotifications]);
+
+  // Close on outside click
+  useEffect(() => {
+    function handler(e: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  const markSingleRead = async (id: string) => {
+    setNotifications((prev) => prev.filter((n) => n._id !== id));
+    await fetch(`/api/notifications/${id}/read`, { method: "PATCH" });
+  };
+
+  const markAllRead = async () => {
+    setMarkingAll(true);
+    await fetch("/api/notifications", { method: "PATCH" });
+    setNotifications([]);
+    setMarkingAll(false);
+    setOpen(false);
+  };
+
+  const handleNotifClick = async (notif: Notification) => {
+    await markSingleRead(notif._id);
+    setOpen(false);
+    if (notif.leadId) router.push(`/leads?edit=${notif.leadId}`);
+  };
+
+  const unreadCount = notifications.length;
+
+  if (isMember) return null;
+
+  return (
+    <div className="sm:relative" ref={dropdownRef}>
+      <button
+        onClick={() => setOpen(!open)}
+        className="relative inline-flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-white/[0.06] hover:text-foreground"
+        aria-label="Notifications"
+      >
+        <Bell className={cn("h-5 w-5", unreadCount > 0 && "text-foreground")} />
+        <AnimatePresence>
+          {unreadCount > 0 && (
+            <motion.span
+              key="badge"
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              exit={{ scale: 0 }}
+              className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-orange-500 text-[9px] font-black text-white ring-2 ring-background"
+            >
+              {unreadCount > 9 ? "9+" : unreadCount}
+            </motion.span>
+          )}
+        </AnimatePresence>
+      </button>
+
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            initial={{ opacity: 0, y: 8, scale: 0.96 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 8, scale: 0.96 }}
+            transition={{ duration: 0.15 }}
+            className="absolute top-0 left-0 w-full h-[100dvh] flex flex-col sm:top-full sm:left-1/2 sm:-translate-x-1/2 sm:mt-2 sm:w-[360px] sm:h-auto sm:rounded-3xl sm:border border-border/60 bg-background sm:bg-card/95 backdrop-blur-xl sm:shadow-2xl overflow-hidden z-[100]"
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between px-4 py-4 sm:py-3 border-b border-border/40 bg-background sm:bg-transparent">
+              <div className="flex items-center gap-2">
+                <button 
+                  onClick={() => setOpen(false)} 
+                  className="sm:hidden mr-1 h-8 w-8 flex items-center justify-center rounded-lg hover:bg-muted transition-colors"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+                <Bell className="h-5 w-5 sm:h-4 sm:w-4 text-primary" />
+                <span className="text-base sm:text-sm font-black text-foreground">Notifications</span>
+                {unreadCount > 0 && (
+                  <span className="text-[9px] font-black bg-orange-500/10 text-orange-500 border border-orange-500/20 px-1.5 py-0.5 rounded-full">
+                    {unreadCount} new
+                  </span>
+                )}
+              </div>
+              {unreadCount > 0 && (
+                <button
+                  onClick={markAllRead}
+                  disabled={markingAll}
+                  className="text-[10px] font-black text-primary hover:text-primary/80 transition-all flex items-center gap-1"
+                >
+                  {markingAll ? <Loader2 className="h-3 w-3 animate-spin" /> : <Check className="h-3 w-3" />}
+                  Mark all read
+                </button>
+              )}
+            </div>
+
+            {/* List */}
+            <div className="flex-1 overflow-y-auto sm:max-h-[400px]">
+              {notifications.length === 0 ? (
+                <div className="flex h-full min-h-[50vh] flex-col items-center justify-center py-10 gap-2 text-muted-foreground/40">
+                  <Bell className="h-8 w-8" />
+                  <p className="text-xs font-bold">All caught up!</p>
+                  <p className="text-[10px]">No new notifications</p>
+                </div>
+              ) : (
+                notifications.map((notif) => (
+                  <div
+                    key={notif._id}
+                    className="group flex items-start gap-3 px-4 py-3 border-b border-border/20 hover:bg-muted/30 transition-colors cursor-pointer"
+                    onClick={() => handleNotifClick(notif)}
+                  >
+                    {/* Icon */}
+                    <div className="h-8 w-8 rounded-xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center shrink-0 mt-0.5">
+                      <PhoneCall className="h-4 w-4 text-orange-400" />
+                    </div>
+
+                    {/* Content */}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-black text-foreground truncate">{notif.title}</p>
+                      <p className="text-[11px] text-muted-foreground/70 mt-0.5 leading-relaxed line-clamp-2">
+                        {notif.message}
+                      </p>
+                      <p className="text-[9px] text-muted-foreground/40 mt-1 font-medium">
+                        {formatDistanceToNow(new Date(notif.createdAt), { addSuffix: true })}
+                      </p>
+                    </div>
+
+                    {/* Dismiss */}
+                    <button
+                      onClick={(e) => { e.stopPropagation(); markSingleRead(notif._id); }}
+                      className="opacity-0 group-hover:opacity-100 h-5 w-5 flex items-center justify-center rounded-md text-muted-foreground/40 hover:text-foreground hover:bg-muted transition-all shrink-0"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </div>
+                ))
+              )}
+            </div>
+
+            {/* Footer */}
+            {notifications.length > 0 && (
+              <div className="px-4 py-2.5 border-t border-border/30 bg-muted/20">
+                <p className="text-[9px] text-center text-muted-foreground/40 font-medium">
+                  Follow-ups show every 5 minutes · Click to open lead
+                </p>
+              </div>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+// ─── Main TopNavbar ───────────────────────────────────────────────────────────
 export function TopNavbar({ isMember = false }: { isMember?: boolean }) {
   const router = useRouter();
   const { data: session } = useSession();
@@ -43,7 +262,6 @@ export function TopNavbar({ isMember = false }: { isMember?: boolean }) {
     fetcher
   );
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
@@ -158,16 +376,14 @@ export function TopNavbar({ isMember = false }: { isMember?: boolean }) {
       </div>
       )}
 
-      {/* Right side: search icon (mobile), notifications, avatar */}
+      {/* Right side */}
       <div className="ml-auto flex items-center gap-1.5">
-        {/* Mobile search button — hidden for members */}
+        {/* Mobile search button */}
         {!isMember && (
         <button
           className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-white/[0.06] hover:text-foreground sm:hidden"
           aria-label="Search"
-          onClick={() => {
-            router.push('/leads');
-          }}
+          onClick={() => { router.push('/leads'); }}
         >
           <Search className="h-5 w-5" />
         </button>
@@ -176,16 +392,8 @@ export function TopNavbar({ isMember = false }: { isMember?: boolean }) {
         {/* Theme Toggle */}
         <ThemeToggle />
 
-        {/* Notifications — hidden for members */}
-        {!isMember && (
-        <button
-          className="relative inline-flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-white/[0.06] hover:text-foreground"
-          aria-label="Notifications"
-        >
-          <Bell className="h-5 w-5" />
-          <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-[oklch(0.65_0.25_30)] ring-2 ring-[oklch(0.11_0.01_260)]" />
-        </button>
-        )}
+        {/* Notification Bell */}
+        <NotificationBell isMember={isMember} />
 
         <div className="h-8 w-[1px] bg-border/40 mx-1 hidden sm:block" />
 
