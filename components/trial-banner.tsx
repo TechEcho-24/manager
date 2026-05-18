@@ -125,7 +125,7 @@ export function TrialBanner() {
   const orgRole = (session?.user as any)?.orgRole || "owner";
 
   const fetchStatus = useCallback(() => {
-    if (orgRole === "member") return;
+    if (orgRole === "member" || orgRole === "client") return;
     fetch("/api/subscription/status")
       .then((res) => res.json())
       .then((d) => { if (!d.error) setData(d); })
@@ -210,7 +210,7 @@ export function TrialBanner() {
     }
   };
 
-  if (orgRole === "member" || !data || dismissed) return null;
+  if (orgRole === "member" || orgRole === "client" || !data || dismissed) return null;
 
   // PAID TRIAL or FREE TRIAL banner
   if (data.status === "trial" && data.daysLeft > 0) {

@@ -6,11 +6,11 @@ export interface IUser extends Document {
   phone: string;
   password?: string;
   role: "client" | "admin";
-  orgRole: "owner" | "staff" | "member";
+  orgRole: "owner" | "staff" | "member" | "client";
   organizationId?: string;
   organizations?: Array<{
     organizationId: string;
-    orgRole: "owner" | "staff" | "member";
+    orgRole: "owner" | "staff" | "member" | "client";
     joinedAt: Date;
   }>;
   onboardingCompleted: boolean;
@@ -33,11 +33,11 @@ const UserSchema = new Schema<IUser>(
     phone: { type: String, required: true },
     password: { type: String },
     role: { type: String, enum: ["client", "admin"], default: "client" },
-    orgRole: { type: String, enum: ["owner", "staff", "member"], default: "owner" },
+    orgRole: { type: String, enum: ["owner", "staff", "member", "client"], default: "owner" },
     organizationId: { type: String, index: true },
     organizations: [{
       organizationId: { type: String, required: true },
-      orgRole: { type: String, enum: ["owner", "staff", "member"], required: true },
+      orgRole: { type: String, enum: ["owner", "staff", "member", "client"], required: true },
       joinedAt: { type: Date, default: Date.now }
     }],
     onboardingCompleted: { type: Boolean, default: false },
