@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import mongoose from "mongoose";
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import connectDB from "@/lib/db";
 import { Task } from "@/models/task";
@@ -125,6 +126,48 @@ export async function GET(req: Request) {
     const accessCheck = await verifyTabAccess(tabId, session.user.id, session.user.organizationId, (session.user as any).orgRole);
     if (accessCheck.error) return NextResponse.json({ error: accessCheck.error }, { status: accessCheck.status });
 
+    const now = new Date();
+
+    // Delete expired recurring tasks
+    await Task.deleteMany({ tabId, expiresAt: { $lt: now, $exists: true } });
+
+    // Generate today's recurring tasks if missing
+    const todayDow = now.getDay(); // 0=Sun..6=Sat
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+    // Find all recurring "template" groups for this tab that include today
+    const recurringGroups = await Task.aggregate([
+      { $match: { tabId, isRecurring: true, recurringDays: todayDow } },
+      { $group: { _id: "$recurringGroupId", latest: { $max: "$createdAt" }, sample: { $first: "$$ROOT" } } },
+    ]);
+
+    for (const group of recurringGroups) {
+      // Check if a task for today already exists in this group
+      const existsToday = await Task.findOne({
+        recurringGroupId: group._id,
+        createdAt: { $gte: todayStart },
+      });
+      if (!existsToday && group.sample) {
+        const s = group.sample;
+        const expiresAt = new Date();
+        expiresAt.setDate(expiresAt.getDate() + 7);
+        await Task.create({
+          tabId: s.tabId,
+          text: s.text,
+          assignedToUserId: s.assignedToUserId,
+          assignedToName: s.assignedToName,
+          attachments: s.attachments || [],
+          priority: s.priority,
+          status: "To Do",
+          completed: false,
+          isRecurring: true,
+          recurringDays: s.recurringDays,
+          recurringGroupId: group._id,
+          expiresAt,
+        });
+      }
+    }
+
     const tasks = await Task.find({ tabId }).sort({ createdAt: -1 });
     const { plan, taskCapabilities } = await getTaskCapabilitiesForOrg(session.user.organizationId);
     return NextResponse.json({ tasks, hasWriteAccess: accessCheck.hasWrite, plan, taskCapabilities });
@@ -168,7 +211,12 @@ export async function POST(req: Request) {
       attachments,
       priority: priority || "medium",
       status,
-      completed: status === "Completed"
+      completed: status === "Completed",
+      // Recurring fields
+      isRecurring: Boolean(data.isRecurring),
+      recurringDays: data.isRecurring && Array.isArray(data.recurringDays) ? data.recurringDays.filter((d: any) => typeof d === "number" && d >= 0 && d <= 6) : [],
+      recurringGroupId: data.isRecurring ? new mongoose.Types.ObjectId().toString() : undefined,
+      expiresAt: data.isRecurring ? new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) : undefined,
     });
 
     // Send notification to other teammates
@@ -232,6 +280,16 @@ export async function PATCH(req: Request) {
     if (completed !== undefined) {
       updateFields.completed = Boolean(completed);
       updateFields.status = updateFields.completed ? "Completed" : "To Do";
+      // Track who completed it
+      if (updateFields.completed) {
+        updateFields.completedAt = new Date();
+        updateFields.completedByUserId = session.user.id;
+        updateFields.completedByName = session.user.name || "Unknown";
+      } else {
+        updateFields.completedAt = null;
+        updateFields.completedByUserId = null;
+        updateFields.completedByName = null;
+      }
     }
     if (typeof text === "string") updateFields.text = text.trim();
     if (priority !== undefined && ["high", "medium", "low"].includes(priority)) updateFields.priority = priority;
@@ -240,6 +298,16 @@ export async function PATCH(req: Request) {
       if (!normalizedStatus) return NextResponse.json({ error: "Invalid task status" }, { status: 400 });
       updateFields.status = normalizedStatus;
       updateFields.completed = normalizedStatus === "Completed";
+      // Track completion when status is set to Completed
+      if (normalizedStatus === "Completed") {
+        updateFields.completedAt = new Date();
+        updateFields.completedByUserId = session.user.id;
+        updateFields.completedByName = session.user.name || "Unknown";
+      } else {
+        updateFields.completedAt = null;
+        updateFields.completedByUserId = null;
+        updateFields.completedByName = null;
+      }
     }
     if (assignedToUserId !== undefined) {
       const assignee = await resolveAssignee(assignedToUserId, session.user.organizationId, accessCheck.tab);
