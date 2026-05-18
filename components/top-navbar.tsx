@@ -113,7 +113,7 @@ function NotificationBell({ isMember }: { isMember: boolean }) {
   if (isMember) return null;
 
   return (
-    <div className="relative" ref={dropdownRef}>
+    <div className="sm:relative" ref={dropdownRef}>
       <button
         onClick={() => setOpen(!open)}
         className="relative inline-flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-white/[0.06] hover:text-foreground"
@@ -142,13 +142,19 @@ function NotificationBell({ isMember }: { isMember: boolean }) {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 8, scale: 0.96 }}
             transition={{ duration: 0.15 }}
-            className="absolute right-0 top-full mt-2 w-80 rounded-2xl border border-border/60 bg-card/95 backdrop-blur-xl shadow-2xl overflow-hidden z-50"
+            className="absolute top-0 left-0 w-full h-[100dvh] flex flex-col sm:top-full sm:left-1/2 sm:-translate-x-1/2 sm:mt-2 sm:w-[360px] sm:h-auto sm:rounded-3xl sm:border border-border/60 bg-background sm:bg-card/95 backdrop-blur-xl sm:shadow-2xl overflow-hidden z-[100]"
           >
             {/* Header */}
-            <div className="flex items-center justify-between px-4 py-3 border-b border-border/40">
+            <div className="flex items-center justify-between px-4 py-4 sm:py-3 border-b border-border/40 bg-background sm:bg-transparent">
               <div className="flex items-center gap-2">
-                <Bell className="h-4 w-4 text-primary" />
-                <span className="text-sm font-black text-foreground">Notifications</span>
+                <button 
+                  onClick={() => setOpen(false)} 
+                  className="sm:hidden mr-1 h-8 w-8 flex items-center justify-center rounded-lg hover:bg-muted transition-colors"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+                <Bell className="h-5 w-5 sm:h-4 sm:w-4 text-primary" />
+                <span className="text-base sm:text-sm font-black text-foreground">Notifications</span>
                 {unreadCount > 0 && (
                   <span className="text-[9px] font-black bg-orange-500/10 text-orange-500 border border-orange-500/20 px-1.5 py-0.5 rounded-full">
                     {unreadCount} new
@@ -168,9 +174,9 @@ function NotificationBell({ isMember }: { isMember: boolean }) {
             </div>
 
             {/* List */}
-            <div className="max-h-80 overflow-y-auto">
+            <div className="flex-1 overflow-y-auto sm:max-h-[400px]">
               {notifications.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-10 gap-2 text-muted-foreground/40">
+                <div className="flex h-full min-h-[50vh] flex-col items-center justify-center py-10 gap-2 text-muted-foreground/40">
                   <Bell className="h-8 w-8" />
                   <p className="text-xs font-bold">All caught up!</p>
                   <p className="text-[10px]">No new notifications</p>
