@@ -355,50 +355,29 @@ function SubscriptionManager() {
         rzp.open();
       });
 
-      // Step 2 — Create Razorpay Subscription
+      // Step 2 — Activate AutoPay in DB & Razorpay
       setStep("subscribing");
       setStatusMsg("Setting up recurring billing…");
 
-      const subRes = await fetch("/api/payments/create-subscription", { method: "POST" });
-      const subData = await subRes.json();
-      if (subData.error) throw new Error(subData.error);
-
-      const { subscriptionId } = subData;
-
-      // Step 3 — Authorize subscription in Razorpay checkout
-      await new Promise<void>((resolve, reject) => {
-        const options = {
-          key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
-          subscription_id: subscriptionId,
-          name: "Pinglly CRM",
-          description: `${plan.toUpperCase()} Plan — ₹${planPrice}/month`,
-          handler: async (response: any) => {
-            const verifyRes = await fetch("/api/payments/verify-subscription", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                razorpay_payment_id: response.razorpay_payment_id,
-                razorpay_subscription_id: response.razorpay_subscription_id,
-                razorpay_signature: response.razorpay_signature,
-              }),
-            });
-            const verify = await verifyRes.json();
-            if (verify.success) resolve();
-            else reject(new Error(verify.error || "Verification failed"));
-          },
-          modal: { ondismiss: () => reject(new Error("Subscription authorization cancelled")) },
-          theme: { color: "#6366f1" },
-        };
-        const rzp = new (window as any).Razorpay(options);
-        rzp.open();
-      });
+      const activateRes = await fetch("/api/payments/activate-autopay", { method: "POST" });
+      const activateData = await activateRes.json();
+      if (activateData.error) throw new Error(activateData.error);
 
       setStep("done");
-      toast.success("AutoPay enabled! Razorpay will charge ₹" + planPrice + " monthly.");
+      
+      let nextPaymentMsg = "";
+      if (activateData.nextBillingDate) {
+        const dateStr = new Date(activateData.nextBillingDate).toLocaleDateString("en-IN", {
+          day: "numeric", month: "short", year: "numeric"
+        });
+        nextPaymentMsg = ` Aapki next payment ₹${planPrice} ki ${dateStr} ko kategi.`;
+      }
+
+      toast.success("AutoPay enabled!" + nextPaymentMsg, { duration: 6000 });
       mutate();
     } catch (err: any) {
       setStep("idle");
-      if (err.message !== "Verification cancelled" && err.message !== "Subscription authorization cancelled") {
+      if (err.message !== "Verification cancelled") {
         toast.error(err.message || "Failed to enable AutoPay");
       }
     }
@@ -530,7 +509,7 @@ function SubscriptionManager() {
 
             <h3 className="text-lg font-black text-foreground mb-2">Enable AutoPay?</h3>
             <p className="text-sm text-muted-foreground mb-4">
-              Two quick steps:
+              Secure setup:
             </p>
 
             <div className="space-y-3 mb-6">
@@ -538,14 +517,16 @@ function SubscriptionManager() {
                 <span className="h-6 w-6 rounded-full bg-indigo-500/20 text-indigo-400 text-[10px] font-black flex items-center justify-center shrink-0">1</span>
                 <div>
                   <p className="text-xs font-black text-foreground">₹1 Verification</p>
-                  <p className="text-[11px] text-muted-foreground">Confirms your payment method is valid</p>
+                  <p className="text-[11px] text-muted-foreground">Confirms your payment method</p>
                 </div>
               </div>
               <div className="flex items-center gap-3 p-3 rounded-xl bg-muted/30 border border-border">
-                <span className="h-6 w-6 rounded-full bg-indigo-500/20 text-indigo-400 text-[10px] font-black flex items-center justify-center shrink-0">2</span>
+                <span className="h-6 w-6 rounded-full bg-emerald-500/20 text-emerald-500 text-[10px] font-black flex items-center justify-center shrink-0">
+                  <Check className="h-3 w-3" />
+                </span>
                 <div>
-                  <p className="text-xs font-black text-foreground">Authorize ₹{planPrice}/month</p>
-                  <p className="text-[11px] text-muted-foreground">Razorpay sets up the recurring charge</p>
+                  <p className="text-xs font-black text-foreground">AutoPay Activated</p>
+                  <p className="text-[11px] text-muted-foreground">Next billing starts when your plan expires</p>
                 </div>
               </div>
             </div>
