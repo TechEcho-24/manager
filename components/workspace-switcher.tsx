@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import useSWR from "swr";
-import { ChevronsUpDown, Check, Loader2, Building2 } from "lucide-react";
+import { ChevronsUpDown, Check, Loader2, Building2, PlusCircle } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
@@ -20,7 +20,7 @@ interface Workspace {
   isActive: boolean;
 }
 
-export function WorkspaceSwitcher({ collapsed }: { collapsed?: boolean }) {
+export function WorkspaceSwitcher({ collapsed, inNavbar }: { collapsed?: boolean; inNavbar?: boolean }) {
   const router = useRouter();
   const { data: session, update } = useSession();
   const [open, setOpen] = useState(false);
@@ -35,7 +35,8 @@ export function WorkspaceSwitcher({ collapsed }: { collapsed?: boolean }) {
   if (isLoading || !activeWorkspace) {
     return (
       <div className={cn(
-        "flex h-16 items-center border-b border-sidebar-border/50 px-4",
+        "flex items-center px-4",
+        inNavbar ? "h-10 rounded-lg bg-muted/50" : "h-20 border-b border-sidebar-border/50",
         collapsed ? "justify-center" : "gap-3"
       )}>
         <div className="h-8 w-8 animate-pulse rounded-lg bg-sidebar-accent/50" />
@@ -88,7 +89,10 @@ export function WorkspaceSwitcher({ collapsed }: { collapsed?: boolean }) {
       <PopoverTrigger asChild>
         <button
           className={cn(
-            "flex h-20 w-full items-center border-b border-sidebar-border/50 px-5 transition-all hover:bg-sidebar-accent/50 focus:outline-none",
+            "flex w-full items-center transition-all focus:outline-none",
+            inNavbar 
+              ? "h-10 rounded-xl bg-white/5 border border-border/40 px-3 hover:bg-white/10"
+              : "h-20 border-b border-sidebar-border/50 px-5 hover:bg-sidebar-accent/50",
             collapsed ? "justify-center" : "justify-between gap-3"
           )}
           disabled={isSwitching}
@@ -164,6 +168,19 @@ export function WorkspaceSwitcher({ collapsed }: { collapsed?: boolean }) {
               </button>
             ))}
           </div>
+          
+          {/* Create Workspace Button for Members */}
+          {!workspaces.some(w => w.role === "owner") && (
+            <div className="mt-2 pt-2 border-t border-sidebar-border/50">
+              <button
+                onClick={() => { setOpen(false); router.push("/create-workspace"); }}
+                className="flex w-full items-center gap-2 rounded-md px-2 py-2 text-sm transition-colors hover:bg-muted focus:outline-none text-sidebar-foreground/80 hover:text-primary"
+              >
+                <PlusCircle className="h-4 w-4" />
+                <span className="font-semibold">Create Workspace</span>
+              </button>
+            </div>
+          )}
         </PopoverContent>
       )}
     </Popover>

@@ -6,7 +6,15 @@ import { Check, X, ShoppingCart } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { plans, comparisonData } from "./constants";
 
-export function Pricing({ selectedPlan, setSelectedPlan }: { selectedPlan: string, setSelectedPlan: (val: string) => void }) {
+export function Pricing({ 
+  selectedPlan, 
+  setSelectedPlan,
+  onPlanSelect 
+}: { 
+  selectedPlan: string;
+  setSelectedPlan: (val: string) => void;
+  onPlanSelect?: (planName: string, isYearly: boolean) => void;
+}) {
   const [isYearly, setIsYearly] = React.useState(false);
   const [currency, setCurrency] = React.useState<"USD" | "INR">("USD");
 
@@ -148,14 +156,24 @@ export function Pricing({ selectedPlan, setSelectedPlan }: { selectedPlan: strin
 
                   {/* CTA — Buy Now when active, select when not */}
                   {isActive ? (
-                    <Link
-                      href={`/signup?plan=${encodeURIComponent(p.name)}&billing=${isYearly ? "yearly" : "monthly"}`}
-                      onClick={(e) => e.stopPropagation()}
-                      className="flex items-center justify-center gap-3 w-full py-4 rounded-2xl font-black text-[11px] tracking-[0.25em] text-center transition-all btn-cyber-filled text-white"
-                    >
-                      <ShoppingCart className="h-4 w-4" />
-                      Buy {p.name} — {getCurrencySymbol()}{getPrice(p.price as number)}/{isYearly ? "yr" : "mo"}
-                    </Link>
+                    onPlanSelect ? (
+                      <button
+                        onClick={(e) => { e.stopPropagation(); onPlanSelect(p.name, isYearly); }}
+                        className="flex items-center justify-center gap-3 w-full py-4 rounded-2xl font-black text-[11px] tracking-[0.25em] text-center transition-all btn-cyber-filled text-white"
+                      >
+                        <ShoppingCart className="h-4 w-4" />
+                        Buy {p.name} — {getCurrencySymbol()}{getPrice(p.price as number)}/{isYearly ? "yr" : "mo"}
+                      </button>
+                    ) : (
+                      <Link
+                        href={`/signup?plan=${encodeURIComponent(p.name)}&billing=${isYearly ? "yearly" : "monthly"}`}
+                        onClick={(e) => e.stopPropagation()}
+                        className="flex items-center justify-center gap-3 w-full py-4 rounded-2xl font-black text-[11px] tracking-[0.25em] text-center transition-all btn-cyber-filled text-white"
+                      >
+                        <ShoppingCart className="h-4 w-4" />
+                        Buy {p.name} — {getCurrencySymbol()}{getPrice(p.price as number)}/{isYearly ? "yr" : "mo"}
+                      </Link>
+                    )
                   ) : (
                     <button
                       className="block w-full py-3.5 rounded-2xl font-black text-[10px] tracking-[0.25em] text-center transition-all bg-white/5 border border-white/8 text-white/30 hover:text-white/60 hover:border-white/15"
@@ -219,17 +237,31 @@ export function Pricing({ selectedPlan, setSelectedPlan }: { selectedPlan: strin
               const isActive = selectedPlan === p.name;
               return (
                 <div key={i} className="flex justify-center">
-                  <Link
-                    href={`/signup?plan=${encodeURIComponent(p.name)}&billing=${isYearly ? "yearly" : "monthly"}`}
-                    className={cn(
-                      "px-4 py-2.5 rounded-xl font-black text-[9px] tracking-[0.15em] transition-all text-center whitespace-nowrap",
-                      isActive
-                        ? "bg-linear-to-r from-orange-600 to-orange-400 text-white shadow-[0_0_20px_rgba(255,107,53,0.3)] scale-105"
-                        : "bg-white/5 border border-white/8 text-white/30 hover:text-white/60"
-                    )}
-                  >
-                    {isActive ? `Buy ${p.name}` : p.buttonText}
-                  </Link>
+                  {onPlanSelect ? (
+                    <button
+                      onClick={(e) => { e.stopPropagation(); onPlanSelect(p.name, isYearly); }}
+                      className={cn(
+                        "px-4 py-2.5 rounded-xl font-black text-[9px] tracking-[0.15em] transition-all text-center whitespace-nowrap",
+                        isActive
+                          ? "bg-linear-to-r from-orange-600 to-orange-400 text-white shadow-[0_0_20px_rgba(255,107,53,0.3)] scale-105"
+                          : "bg-white/5 border border-white/8 text-white/30 hover:text-white/60"
+                      )}
+                    >
+                      {isActive ? `Buy ${p.name}` : p.buttonText}
+                    </button>
+                  ) : (
+                    <Link
+                      href={`/signup?plan=${encodeURIComponent(p.name)}&billing=${isYearly ? "yearly" : "monthly"}`}
+                      className={cn(
+                        "px-4 py-2.5 rounded-xl font-black text-[9px] tracking-[0.15em] transition-all text-center whitespace-nowrap",
+                        isActive
+                          ? "bg-linear-to-r from-orange-600 to-orange-400 text-white shadow-[0_0_20px_rgba(255,107,53,0.3)] scale-105"
+                          : "bg-white/5 border border-white/8 text-white/30 hover:text-white/60"
+                      )}
+                    >
+                      {isActive ? `Buy ${p.name}` : p.buttonText}
+                    </Link>
+                  )}
                 </div>
               );
             })}

@@ -85,18 +85,42 @@ export async function POST(req: Request) {
     }
 
     // Mark user onboarding complete and link organization
-    const updateData = { 
-      onboardingCompleted: true,
-      organizationId: String(org._id)
-    };
-
     const targetEmail = session?.user?.email || email;
+    const userToUpdate = await User.findOne({ email: targetEmail.toLowerCase().trim() });
     
-    await User.findOneAndUpdate(
-      { email: targetEmail.toLowerCase().trim() },
-      { $set: updateData },
-      { upsert: true, new: true }
-    );
+    if (userToUpdate) {
+      userToUpdate.onboardingCompleted = true;
+      userToUpdate.organizationId = String(org._id);
+      userToUpdate.orgRole = "owner";
+      
+      if (!userToUpdate.organizations) {
+        userToUpdate.organizations = [];
+      }
+      
+      const exists = userToUpdate.organizations.find((o: any) => o.organizationId === String(org._id));
+      if (!exists) {
+        userToUpdate.organizations.push({
+          organizationId: String(org._id),
+          orgRole: "owner",
+          joinedAt: new Date()
+        });
+      }
+      
+      await userToUpdate.save();
+    } else {
+      // Fallback if user somehow doesn't exist yet
+      await User.create({
+        email: targetEmail.toLowerCase().trim(),
+        onboardingCompleted: true,
+        organizationId: String(org._id),
+        orgRole: "owner",
+        organizations: [{
+          organizationId: String(org._id),
+          orgRole: "owner",
+          joinedAt: new Date()
+        }]
+      });
+    }
 
     return NextResponse.json({ success: true, organizationId: org._id });
   } catch (error: any) {
