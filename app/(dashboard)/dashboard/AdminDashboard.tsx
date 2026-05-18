@@ -297,8 +297,9 @@ export function AdminDashboard() {
                   {(data?.recentPurchases || []).map((p: any) => (
                     <div key={p.id} className="flex justify-between items-center bg-muted/30 p-4 rounded-2xl border border-border/50">
                       <div className="flex flex-col">
-                        <span className="text-xs font-black text-foreground">{p.email?.split('@')[0] || 'Unknown'}</span>
-                        <span className="text-[9px] font-bold text-indigo-400 uppercase tracking-widest mt-1">{p.plan}</span>
+                        <span className="text-sm font-black text-foreground">{p.name || 'Unknown'}</span>
+                        <span className="text-[10px] font-medium text-muted-foreground/60 mt-0.5">{p.email}</span>
+                        <span className="text-[9px] font-bold text-indigo-400 uppercase tracking-widest mt-1.5">{p.plan}</span>
                       </div>
                       <div className="text-right">
                          <span className="text-sm font-black text-emerald-600 dark:text-emerald-400">₹{p.amount}</span>

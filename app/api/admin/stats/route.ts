@@ -20,8 +20,9 @@ export async function GET() {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Fetch all Clients
-    const clients = await User.find({ role: "client" });
+    // Fetch all Users to map names globally
+    const allUsers = await User.find({});
+    const clients = allUsers.filter(u => u.role === "client");
     const totalUsersCount = clients.length;
     
     // Filter valid 24-char IDs to prevent Mongoose crashes
@@ -123,13 +124,18 @@ export async function GET() {
     const recentPurchases = payments
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
       .slice(0, 5)
-      .map(p => ({
-        id: p._id,
-        email: p.userId,
-        plan: p.planName,
-        amount: p.amount,
-        date: p.createdAt
-      }));
+      .map(p => {
+        const pUser = allUsers.find(c => c._id.toString() === p.userId || c.email === p.userId);
+        return {
+          id: p._id,
+          userId: p.userId,
+          name: pUser?.name || pUser?.email?.split('@')[0] || 'Unknown User',
+          email: pUser?.email || p.userId,
+          plan: p.planName,
+          amount: p.amount,
+          date: p.createdAt
+        };
+      });
 
     return NextResponse.json({
       stats: {
