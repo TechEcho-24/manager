@@ -61,10 +61,26 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
               });
               
               user.organizationId = newOrg._id.toString();
+              user.orgRole = "owner";
+              user.organizations = [{
+                organizationId: newOrg._id.toString(),
+                orgRole: "owner",
+                joinedAt: new Date()
+              }];
               await user.save();
             } catch (orgError) {
               console.error("Auto-Org Creation Failed:", orgError);
             }
+          }
+
+          // 2.5 Migration logic for multi-workspace
+          if (user && user.organizationId && (!user.organizations || user.organizations.length === 0)) {
+            user.organizations = [{
+              organizationId: user.organizationId,
+              orgRole: user.orgRole || "owner",
+              joinedAt: new Date()
+            }];
+            await user.save();
           }
 
           // 3. Normal Login with Admin Enforcement
