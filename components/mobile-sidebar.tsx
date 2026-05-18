@@ -26,8 +26,8 @@ import {
   UserCheck,
 } from "lucide-react";
 import { useState } from "react";
-
 import useSWR from "swr";
+import { WorkspaceSwitcher } from "./workspace-switcher";
 
 const navItems = [
   { title: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
@@ -69,12 +69,8 @@ export function MobileSidebar() {
         side="left"
         className="w-[280px] border-sidebar-border bg-sidebar p-0"
       >
-        <SheetHeader className="border-b border-sidebar-border px-5 py-4">
-          <SheetTitle className="flex flex-col items-start">
-            <img src="/assets/logo.png" alt="Pinglly Logo" className="hidden dark:block h-8 object-contain" />
-            <img src="/assets/lightlogo.png" alt="Pinglly Logo" className="block dark:hidden h-[35px] object-contain" />
-            <span className="text-[7px] font-bold tracking-[0.2em] text-[oklch(0.60_0.22_260)]/60">by TechEcho</span>
-          </SheetTitle>
+        <SheetHeader className="border-b border-sidebar-border p-0">
+          <WorkspaceSwitcher collapsed={false} />
         </SheetHeader>
 
         <nav className="space-y-1 p-3">

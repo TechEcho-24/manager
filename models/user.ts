@@ -8,6 +8,11 @@ export interface IUser extends Document {
   role: "client" | "admin";
   orgRole: "owner" | "staff" | "member";
   organizationId?: string;
+  organizations?: Array<{
+    organizationId: string;
+    orgRole: "owner" | "staff" | "member";
+    joinedAt: Date;
+  }>;
   onboardingCompleted: boolean;
   paymentCompleted: boolean;
   pushSubscriptions?: Array<{
@@ -30,6 +35,11 @@ const UserSchema = new Schema<IUser>(
     role: { type: String, enum: ["client", "admin"], default: "client" },
     orgRole: { type: String, enum: ["owner", "staff", "member"], default: "owner" },
     organizationId: { type: String, index: true },
+    organizations: [{
+      organizationId: { type: String, required: true },
+      orgRole: { type: String, enum: ["owner", "staff", "member"], required: true },
+      joinedAt: { type: Date, default: Date.now }
+    }],
     onboardingCompleted: { type: Boolean, default: false },
     paymentCompleted: { type: Boolean, default: false },
     pushSubscriptions: [{

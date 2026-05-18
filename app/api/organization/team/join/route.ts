@@ -36,6 +36,29 @@ export async function POST(req: Request) {
     // Accept invite — mark onboarding as complete so invited users skip it
     const user = await User.findOne({ email: session.user.email });
     if (user) {
+      // Migrate to multi-workspace array if needed
+      if (user.organizationId && (!user.organizations || user.organizations.length === 0)) {
+        user.organizations = [{
+          organizationId: user.organizationId,
+          orgRole: user.orgRole || "owner",
+          joinedAt: new Date()
+        }];
+      }
+
+      // Add new organization to array if not already present
+      if (!user.organizations) user.organizations = [];
+      const existingOrgIndex = user.organizations.findIndex(org => org.organizationId === invitation.organizationId);
+      if (existingOrgIndex === -1) {
+        user.organizations.push({
+          organizationId: invitation.organizationId,
+          orgRole: invitation.role,
+          joinedAt: new Date()
+        });
+      } else {
+        user.organizations[existingOrgIndex].orgRole = invitation.role;
+      }
+
+      // Set as active
       user.organizationId = invitation.organizationId;
       user.orgRole = invitation.role;
       user.onboardingCompleted = true;

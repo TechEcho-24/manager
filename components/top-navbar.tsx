@@ -12,6 +12,7 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { signOut, useSession } from "next-auth/react";
 import { motion, AnimatePresence } from "framer-motion";
 import { formatDistanceToNow } from "date-fns";
+import { WorkspaceSwitcher } from "@/components/workspace-switcher";
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
@@ -294,6 +295,13 @@ export function TopNavbar({ isMember = false }: { isMember?: boolean }) {
           by TechEcho
         </span>
       </div>
+
+      {/* Workspace Switcher for Members on Desktop */}
+      {isMember && (
+        <div className="hidden lg:block ml-4 w-[240px]">
+          <WorkspaceSwitcher inNavbar={true} collapsed={false} />
+        </div>
+      )}
 
       {/* Search bar — hidden for members */}
       {!isMember && (
