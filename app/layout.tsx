@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+
 import { Manrope, Inter } from "next/font/google";
 import { Providers } from "@/components/providers";
 import { ChatWidget } from "@/components/chat-widget";
@@ -14,6 +14,12 @@ const inter = Inter({
   variable: "--font-inter",
 });
 
+import type { Metadata, Viewport } from "next";
+
+export const viewport: Viewport = {
+  themeColor: "#ff6b35",
+};
+
 export const metadata: Metadata = {
   title: "Pinglly | Cyber Edition",
   description: "Futuristic B2B Sales Infrastructure",
@@ -22,7 +28,14 @@ export const metadata: Metadata = {
     shortcut: "/assets/favicon.png",
     apple: "/assets/favicon.png",
   },
+  manifest: "/manifest.webmanifest",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Pinglly",
+  },
 };
+import { InstallPWABanner } from "@/components/install-pwa-banner";
 
 export default function RootLayout({
   children,
@@ -41,6 +54,7 @@ export default function RootLayout({
         <Providers>
           {children}
           <ChatWidget />
+          <InstallPWABanner />
         </Providers>
       </body>
     </html>
