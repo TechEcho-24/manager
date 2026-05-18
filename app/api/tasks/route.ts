@@ -177,22 +177,30 @@ export async function POST(req: Request) {
       const teammates = await User.find({
         organizationId: session.user.organizationId,
         _id: { $ne: session.user.id }
-      }).select("_id");
+      }).select("_id orgRole");
 
       if (teammates.length > 0) {
-        const currentUserName = session.user.name || "A team member";
-        const taskPreview = taskText ? `"${taskText.length > 30 ? taskText.slice(0, 30) + "..." : taskText}"` : "a new task with attachments";
-        
-        const notifications = teammates.map(member => ({
-          userId: member._id.toString(),
-          organizationId: session.user.organizationId,
-          type: "general",
-          title: "New Task Added",
-          message: `${currentUserName} added ${taskPreview}`,
-          isRead: false,
-        }));
-        
-        await Notification.insertMany(notifications);
+        // Filter teammates who have access to this tab
+        const allowedTeammates = teammates.filter(member => {
+          if (member.orgRole === "owner" || member.orgRole === "staff") return true;
+          return accessCheck.tab.accessControl.some((ac: any) => ac.userId === member._id.toString());
+        });
+
+        if (allowedTeammates.length > 0) {
+          const currentUserName = session.user.name || "A team member";
+          const taskPreview = taskText ? `"${taskText.length > 30 ? taskText.slice(0, 30) + "..." : taskText}"` : "a new task with attachments";
+          
+          const notifications = allowedTeammates.map(member => ({
+            userId: member._id.toString(),
+            organizationId: session.user.organizationId,
+            type: "general",
+            title: "New Task Added",
+            message: `${currentUserName} added ${taskPreview} in ${accessCheck.tab.name || "a tab"}`,
+            isRead: false,
+          }));
+          
+          await Notification.insertMany(notifications);
+        }
       }
     } catch (notifErr) {
       console.error("Failed to send task notifications:", notifErr);

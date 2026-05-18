@@ -16,17 +16,13 @@ export async function POST() {
 
     await connectDB();
 
-    // Find user's organization
-    const org = await Organization.findOne({
-      ownerId: session.user.email.toLowerCase(),
-    }).lean();
-
-    if (!org) {
+    const orgId = (session.user as any).organizationId;
+    if (!orgId) {
       return NextResponse.json({ created: 0, message: "No org found" });
     }
 
-    const orgId = (org as any)._id.toString();
     const userId = session.user.id || session.user.email;
+    const userRole = (session.user as any).orgRole || "owner";
 
     // Today's date range (IST-aware: midnight to midnight)
     const now = new Date();
@@ -48,15 +44,34 @@ export async function POST() {
     }
 
     // Find all leads with nextFollowupDate = today
-    const leadsToday = await Lead.find({
+    const followupQuery: any = {
       organizationId: orgId,
       nextFollowupDate: { $gte: todayStart, $lte: todayEnd },
-    })
+    };
+    if (userRole === "member") followupQuery.userId = userId;
+
+    const leadsToday = await Lead.find(followupQuery)
       .select("_id fullName phone status")
       .lean();
 
-    if (leadsToday.length === 0) {
-      return NextResponse.json({ created: 0, message: "No follow-ups today" });
+    // Find all leads with payments due today
+    const paymentQuery: any = {
+      organizationId: orgId,
+      "dealDetails.installments": {
+        $elemMatch: {
+          dueDate: { $gte: todayStart, $lte: todayEnd },
+          status: "pending"
+        }
+      }
+    };
+    if (userRole === "member") paymentQuery.userId = userId;
+
+    const paymentLeadsToday = await Lead.find(paymentQuery)
+      .select("_id fullName dealDetails")
+      .lean();
+
+    if (leadsToday.length === 0 && paymentLeadsToday.length === 0) {
+      return NextResponse.json({ created: 0, message: "No follow-ups or payments due today" });
     }
 
     // Stagger: first at 8 AM today, then +5 min per lead
@@ -64,7 +79,10 @@ export async function POST() {
     eightAM.setHours(8, 0, 0, 0);
     const baseTime = now > eightAM ? now : eightAM;
 
-    const notifs = leadsToday.map((lead: any, idx: number) => ({
+    let notifs: any[] = [];
+    
+    // Followup Notifications
+    notifs = notifs.concat(leadsToday.map((lead: any, idx: number) => ({
       userId,
       organizationId: orgId,
       type: "followup",
@@ -74,13 +92,28 @@ export async function POST() {
       leadName: lead.fullName,
       isRead: false,
       displayAfter: new Date(baseTime.getTime() + idx * 5 * 60 * 1000), // +5min each
-    }));
+    })));
 
-    await Notification.insertMany(notifs);
+    // Payment Notifications
+    notifs = notifs.concat(paymentLeadsToday.map((lead: any, idx: number) => ({
+      userId,
+      organizationId: orgId,
+      type: "payment",
+      title: `💰 Payment Due: ${lead.fullName}`,
+      message: `Aaj ${lead.fullName} ki payment (installment) due hai.`,
+      leadId: lead._id.toString(),
+      leadName: lead.fullName,
+      isRead: false,
+      displayAfter: new Date(baseTime.getTime() + (leadsToday.length + idx) * 5 * 60 * 1000),
+    })));
+
+    if (notifs.length > 0) {
+      await Notification.insertMany(notifs);
+    }
 
     return NextResponse.json({
       created: notifs.length,
-      message: `${notifs.length} follow-up notifications generated`,
+      message: `${notifs.length} notifications generated`,
     });
   } catch (err: any) {
     console.error("Generate Notifications Error:", err);

@@ -3,7 +3,7 @@ import mongoose, { Schema, Document, Model } from "mongoose";
 export interface INotification extends Document {
   userId: string;
   organizationId: string;
-  type: "followup" | "renewal" | "general";
+  type: "followup" | "renewal" | "general" | "payment";
   title: string;
   message: string;
   leadId?: string;
@@ -18,7 +18,7 @@ const NotificationSchema = new Schema<INotification>(
   {
     userId: { type: String, required: true, index: true },
     organizationId: { type: String, required: true, index: true },
-    type: { type: String, enum: ["followup", "renewal", "general"], default: "followup" },
+    type: { type: String, enum: ["followup", "renewal", "general", "payment"], default: "followup" },
     title: { type: String, required: true },
     message: { type: String, required: true },
     leadId: { type: String },

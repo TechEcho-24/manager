@@ -49,7 +49,6 @@ function NotificationBell({ isMember }: { isMember: boolean }) {
 
   // 8 AM trigger: generate today's follow-up notifications once per day
   useEffect(() => {
-    if (isMember || orgRole === "member") return;
     const now = new Date();
     const todayKey = now.toISOString().slice(0, 10); // "2024-05-18"
     const storedDate = localStorage.getItem("followup_notif_date");
