@@ -14,19 +14,41 @@ export async function GET(req: Request) {
     await connectDB();
     const now = new Date();
 
-    const result = await Organization.updateMany(
-      { 
+    // 1. Activate paid trials whose 14-day trial has ended (they paid, so move to active)
+    const activated = await Organization.updateMany(
+      {
         "subscription.status": "trial",
-        "subscription.trialEndsAt": { $lt: now } 
+        "subscription.trialEndsAt": { $lt: now },
+        "subscription.currentPeriodEnd": { $exists: true, $ne: null }, // has a paid period set
       },
-      { 
-        $set: { "subscription.status": "expired" } 
+      {
+        $set: { "subscription.status": "active" },
       }
     );
 
-    return NextResponse.json({ success: true, updatedCount: result.modifiedCount });
+    // 2. Expire free trials (no payment made — no currentPeriodEnd)
+    const expired = await Organization.updateMany(
+      {
+        "subscription.status": "trial",
+        "subscription.trialEndsAt": { $lt: now },
+        $or: [
+          { "subscription.currentPeriodEnd": { $exists: false } },
+          { "subscription.currentPeriodEnd": null },
+        ],
+      },
+      {
+        $set: { "subscription.status": "expired" },
+      }
+    );
+
+    return NextResponse.json({
+      success: true,
+      activated: activated.modifiedCount,
+      expired: expired.modifiedCount,
+    });
   } catch (error: any) {
     console.error("Cron Check Trials Error:", error);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }
+
