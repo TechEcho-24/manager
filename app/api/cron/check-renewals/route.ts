@@ -17,7 +17,8 @@ export async function GET(req: Request) {
     const result = await Organization.updateMany(
       { 
         "subscription.status": "active",
-        "subscription.currentPeriodEnd": { $lt: now } 
+        "subscription.currentPeriodEnd": { $lt: now },
+        "subscription.autoRenew": { $ne: true }, // Skip auto-renew orgs
       },
       { 
         $set: { "subscription.status": "past_due" } 

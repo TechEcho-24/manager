@@ -12,6 +12,7 @@ export interface IOrganization extends Document {
     currentPeriodEnd?: Date;
     razorpayCustomerId?: string;
     razorpaySubscriptionId?: string;
+    autoRenew?: boolean;
   };
   logoUrl?: string;
   primaryColor?: string;
@@ -53,6 +54,7 @@ export interface IOrganization extends Document {
 
   createdAt: Date;
   updatedAt: Date;
+  lastReminderSent?: Date;
 }
 
 const OrganizationSchema = new Schema<IOrganization>(
@@ -76,6 +78,7 @@ const OrganizationSchema = new Schema<IOrganization>(
       currentPeriodEnd: { type: Date },
       razorpayCustomerId: { type: String },
       razorpaySubscriptionId: { type: String },
+      autoRenew: { type: Boolean, default: false },
     },
     logoUrl: { type: String },
     primaryColor: { type: String },
@@ -114,6 +117,7 @@ const OrganizationSchema = new Schema<IOrganization>(
     defaultCurrency: { type: String },
     botName: { type: String },
     welcomeMessage: { type: String },
+    lastReminderSent: { type: Date },
   },
   { timestamps: true }
 );

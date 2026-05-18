@@ -37,7 +37,7 @@ export function Pricing({ selectedPlan, setSelectedPlan }: { selectedPlan: strin
           <div className="max-w-2xl">
             <p className="text-[10px] font-black tracking-[0.4em] text-orange-400/70 mb-4">PRICING PLANS</p>
             <h2 className="text-3xl md:text-5xl font-black tracking-tighter mb-4 text-white italic">Simple, Transparent<br />Pricing.</h2>
-            <p className="text-sm text-white/40 font-medium">Click a plan to select it, then buy. Upgrade or downgrade anytime.</p>
+            <p className="text-sm text-white/40 font-medium">Click a plan to select it, then buy. Upgrade or downgrade anytime. <span className="text-emerald-400 font-bold">All plans include a 14-day free trial.</span></p>
           </div>
           <div className="flex flex-col sm:flex-row md:flex-col gap-3 items-start md:items-end shrink-0">
             <div className="flex gap-1 p-1 bg-white/5 border border-white/10 rounded-full">
@@ -69,6 +69,17 @@ export function Pricing({ selectedPlan, setSelectedPlan }: { selectedPlan: strin
                 )}
                 style={{ animationDelay: `${i * 100}ms` }}
               >
+                {/* 14-Day Trial Badge — top right, shifted down */}
+                <div className={cn(
+                  "absolute top-[120px] right-3 flex items-center gap-1 px-2.5 py-1 rounded-full text-[8px] font-black tracking-widest border z-10",
+                  isActive
+                    ? "bg-emerald-500/20 text-emerald-400 border-emerald-500/30"
+                    : "bg-white/5 text-white/25 border-white/10"
+                )}>
+                  <span className={cn("h-1.5 w-1.5 rounded-full", isActive ? "bg-emerald-400" : "bg-white/20")} />
+                  14-DAY FREE TRIAL
+                </div>
+
                 {/* Most Popular Badge */}
                 {p.badge && (
                   <div className={cn(

@@ -10,6 +10,7 @@ export interface IPayment extends Document {
   razorpayPaymentId?: string;
   razorpaySignature?: string;
   status: "created" | "paid" | "failed" | "refunded";
+  autoRenew?: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -28,6 +29,7 @@ const PaymentSchema = new Schema<IPayment>(
     razorpayOrderId: { type: String, required: true, unique: true },
     razorpayPaymentId: { type: String },
     razorpaySignature: { type: String },
+    autoRenew: { type: Boolean, default: false },
     status: {
       type: String,
       enum: ["created", "paid", "failed", "refunded"],

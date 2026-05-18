@@ -24,6 +24,10 @@ import {
   Mail,
   User,
   Lock,
+  RefreshCw,
+  Calendar,
+  X,
+  ShieldCheck,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { plans } from "./landing/constants";
@@ -45,6 +49,10 @@ export default function SignupForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoadingOverlay, setIsLoadingOverlay] = useState(false);
   const [loadingTextIndex, setLoadingTextIndex] = useState(0);
+  const [showBillingModal, setShowBillingModal] = useState(false);
+  const [pendingPaymentData, setPendingPaymentData] = useState<{ finalPrice: number; planName: string } | null>(null);
+  const [autoRenew, setAutoRenew] = useState<boolean | null>(null);
+  const [billingLoading, setBillingLoading] = useState(false);
 
   const loadingMessages = [
     "Initializing your AI-driven sales engine...",
@@ -154,55 +162,9 @@ export default function SignupForm() {
       if (planParam) {
         const finalPrice = getPriceForPlan(planParam);
         if (finalPrice > 0) {
-          const isLoaded = await loadRazorpay();
-          if (!isLoaded) throw new Error("Razorpay SDK failed to load.");
-
-          const orderRes = await fetch("/api/payments/create-order", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ amount: finalPrice, planName: planParam }),
-          });
-          const orderData = await orderRes.json();
-          if (orderData.error) throw new Error(orderData.error);
-
-          const options = {
-            key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
-            amount: orderData.amount,
-            currency: "INR",
-            name: "Pinglly CRM",
-            description: `Upgrade to ${planParam}`,
-            order_id: orderData.orderId,
-            prefill: { name: fullName, email, contact: phone },
-            handler: async (response: any) => {
-              const verifyData = await fetch("/api/payments/verify", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                  razorpay_order_id: response.razorpay_order_id,
-                  razorpay_payment_id: response.razorpay_payment_id,
-                  razorpay_signature: response.razorpay_signature,
-                  planName: planParam,
-                }),
-              }).then((t) => t.json());
-
-              if (verifyData.success) {
-                // Update session so middleware allows onboarding access
-                await updateSession({ paymentCompleted: true });
-                setIsLoading(false);
-                setIsLoadingOverlay(true);
-                setTimeout(() => router.push("/onboarding"), 5000);
-              } else {
-                setError(
-                  "Payment verification failed. Please contact support.",
-                );
-                setIsLoading(false);
-              }
-            },
-            theme: { color: "#6366f1" },
-          };
-
-          const rzp = new (window as any).Razorpay(options);
-          rzp.open();
+          // Show billing method selection modal
+          setPendingPaymentData({ finalPrice, planName: planParam });
+          setShowBillingModal(true);
           setIsLoading(false);
           return;
         }
@@ -214,6 +176,71 @@ export default function SignupForm() {
     } catch (err: any) {
       setError(err.message || "An error occurred.");
       setIsLoading(false);
+    }
+  };
+
+  // Triggered after user selects billing method
+  const proceedWithPayment = async (selectedAutoRenew: boolean) => {
+    if (!pendingPaymentData) return;
+    setBillingLoading(true);
+    setAutoRenew(selectedAutoRenew);
+    const { finalPrice, planName } = pendingPaymentData;
+
+    try {
+      const isLoaded = await loadRazorpay();
+      if (!isLoaded) throw new Error("Razorpay SDK failed to load.");
+
+      const orderRes = await fetch("/api/payments/create-order", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ amount: finalPrice, planName, autoRenew: selectedAutoRenew }),
+      });
+      const orderData = await orderRes.json();
+      if (orderData.error) throw new Error(orderData.error);
+
+      setShowBillingModal(false);
+
+      const options = {
+        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+        amount: orderData.amount,
+        currency: "INR",
+        name: "Pinglly CRM",
+        description: `${planName} — ${selectedAutoRenew ? "Auto Pay" : "Manual Renewal"}`,
+        order_id: orderData.orderId,
+        prefill: { name: fullName, email, contact: phone },
+        handler: async (response: any) => {
+          const verifyData = await fetch("/api/payments/verify", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+              planName,
+            }),
+          }).then((t) => t.json());
+
+          if (verifyData.success) {
+            await updateSession({ paymentCompleted: true });
+            setBillingLoading(false);
+            setIsLoadingOverlay(true);
+            setTimeout(() => router.push("/onboarding"), 5000);
+          } else {
+            setError("Payment verification failed. Please contact support.");
+            setBillingLoading(false);
+          }
+        },
+        modal: {
+          ondismiss: () => setBillingLoading(false),
+        },
+        theme: { color: "#6366f1" },
+      };
+
+      const rzp = new (window as any).Razorpay(options);
+      rzp.open();
+    } catch (err: any) {
+      setError(err.message || "Payment failed.");
+      setBillingLoading(false);
     }
   };
 
@@ -268,6 +295,90 @@ export default function SignupForm() {
                 </span>
               </div>
             </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Billing Method Modal */}
+      <AnimatePresence>
+        {showBillingModal && pendingPaymentData && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm"
+          >
+            <motion.div
+              initial={{ scale: 0.92, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.92, opacity: 0 }}
+              transition={{ type: "spring", damping: 20 }}
+              className="relative w-full max-w-md rounded-3xl border border-white/10 bg-[#0a0a1a] p-8 shadow-2xl"
+            >
+              <button
+                onClick={() => { setShowBillingModal(false); setPendingPaymentData(null); }}
+                className="absolute top-5 right-5 h-8 w-8 flex items-center justify-center rounded-xl bg-white/5 text-white/40 hover:text-white hover:bg-white/10 transition-all"
+              >
+                <X className="h-4 w-4" />
+              </button>
+
+              <div className="mb-6">
+                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-indigo-500/10 border border-indigo-500/20 mb-4">
+                  <ShieldCheck className="h-3.5 w-3.5 text-indigo-400" />
+                  <span className="text-[10px] font-bold text-indigo-400 tracking-widest">PAYMENT METHOD</span>
+                </div>
+                <h2 className="text-2xl font-black text-white mb-1">Choose Billing Type</h2>
+                <p className="text-sm text-white/40">
+                  Plan: <span className="text-indigo-400 font-bold">{pendingPaymentData.planName}</span>
+                  {" · "}₹{pendingPaymentData.finalPrice}/month
+                </p>
+              </div>
+
+              <div className="space-y-3">
+                {/* AutoPay Option */}
+                <button
+                  onClick={() => proceedWithPayment(true)}
+                  disabled={billingLoading}
+                  className="w-full group relative flex items-start gap-4 p-5 rounded-2xl border border-indigo-500/30 bg-indigo-500/5 hover:bg-indigo-500/10 hover:border-indigo-500/60 transition-all text-left"
+                >
+                  <div className="h-10 w-10 rounded-xl bg-indigo-500/20 flex items-center justify-center shrink-0">
+                    <RefreshCw className="h-5 w-5 text-indigo-400" />
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="font-black text-white text-sm">Enable AutoPay</span>
+                      <span className="text-[9px] font-black bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded-full tracking-widest">RECOMMENDED</span>
+                    </div>
+                    <p className="text-xs text-white/50">Auto-renews every month. You can <strong className="text-white/70">cancel or pause anytime</strong> from your settings.</p>
+                  </div>
+                  {billingLoading && autoRenew === true && (
+                    <Loader2 className="h-4 w-4 animate-spin text-indigo-400 shrink-0 mt-1" />
+                  )}
+                </button>
+
+                {/* Manual Option */}
+                <button
+                  onClick={() => proceedWithPayment(false)}
+                  disabled={billingLoading}
+                  className="w-full group relative flex items-start gap-4 p-5 rounded-2xl border border-white/10 bg-white/[0.02] hover:bg-white/[0.05] hover:border-white/20 transition-all text-left"
+                >
+                  <div className="h-10 w-10 rounded-xl bg-white/5 flex items-center justify-center shrink-0">
+                    <Calendar className="h-5 w-5 text-white/40 group-hover:text-white/70 transition-colors" />
+                  </div>
+                  <div className="flex-1">
+                    <span className="font-black text-white text-sm block mb-1">Manual Renew</span>
+                    <p className="text-xs text-white/50">Pay once, renew manually each month. <strong className="text-white/70">You can switch to AutoPay later.</strong></p>
+                  </div>
+                  {billingLoading && autoRenew === false && (
+                    <Loader2 className="h-4 w-4 animate-spin text-white/40 shrink-0 mt-1" />
+                  )}
+                </button>
+              </div>
+
+              <p className="mt-6 text-center text-[10px] text-white/25">
+                Secured by Razorpay · 256-bit SSL encrypted
+              </p>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>

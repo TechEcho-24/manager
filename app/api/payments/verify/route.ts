@@ -67,12 +67,31 @@ export async function POST(req: Request) {
 
       const org = await Organization.findOne({ ownerId: session.user.email.toLowerCase() });
       if (org) {
-        const currentPeriodEnd = new Date();
-        currentPeriodEnd.setMonth(currentPeriodEnd.getMonth() + 1);
+        const now = new Date();
 
-        org.plan = planName?.toLowerCase().includes("enterprise") ? "enterprise" : "pro";
-        org.subscription.status = "active";
+        // 14-day free trial period after payment
+        const trialEndsAt = new Date(now);
+        trialEndsAt.setDate(trialEndsAt.getDate() + 14);
+
+        // Monthly billing starts AFTER trial ends (14 + 30 days)
+        const currentPeriodEnd = new Date(trialEndsAt);
+        currentPeriodEnd.setDate(currentPeriodEnd.getDate() + 30);
+
+        // Resolve plan name
+        const resolvedPlan = planName?.toLowerCase().includes("enterprise")
+          ? "enterprise"
+          : planName?.toLowerCase().includes("pro")
+          ? "pro"
+          : planName?.toLowerCase().includes("growth")
+          ? "growth"
+          : "starter";
+
+        org.plan = resolvedPlan;
+        org.subscription.status = "trial"; // starts as trial for 14 days
+        org.subscription.trialEndsAt = trialEndsAt;
         org.subscription.currentPeriodEnd = currentPeriodEnd;
+        org.subscription.autoRenew = payment.autoRenew === true;
+
         // Link payment to org
         payment.organizationId = org._id.toString();
         await Promise.all([org.save(), payment.save()]);
