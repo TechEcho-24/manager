@@ -40,17 +40,15 @@ function NotificationBell({ isMember }: { isMember: boolean }) {
 
   // Fetch visible notifications
   const fetchNotifications = useCallback(async () => {
-    if (isMember || orgRole === "member") return;
     try {
       const res = await fetch("/api/notifications");
       const data = await res.json();
       if (data.notifications) setNotifications(data.notifications);
     } catch { /* silent */ }
-  }, [isMember, orgRole]);
+  }, []);
 
   // 8 AM trigger: generate today's follow-up notifications once per day
   useEffect(() => {
-    if (isMember || orgRole === "member") return;
     const now = new Date();
     const todayKey = now.toISOString().slice(0, 10); // "2024-05-18"
     const storedDate = localStorage.getItem("followup_notif_date");
@@ -71,10 +69,10 @@ function NotificationBell({ isMember }: { isMember: boolean }) {
     }
   }, [isMember, orgRole, fetchNotifications]);
 
-  // Poll every 60 seconds to pick up newly displayable notifications
+  // Poll every 15 seconds to pick up new notifications (tasks, follow-ups, etc.)
   useEffect(() => {
     fetchNotifications();
-    const interval = setInterval(fetchNotifications, 60 * 1000);
+    const interval = setInterval(fetchNotifications, 15 * 1000);
     return () => clearInterval(interval);
   }, [fetchNotifications]);
 
@@ -109,8 +107,6 @@ function NotificationBell({ isMember }: { isMember: boolean }) {
   };
 
   const unreadCount = notifications.length;
-
-  if (isMember) return null;
 
   return (
     <div className="sm:relative" ref={dropdownRef}>

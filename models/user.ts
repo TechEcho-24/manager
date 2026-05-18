@@ -10,6 +10,13 @@ export interface IUser extends Document {
   organizationId?: string;
   onboardingCompleted: boolean;
   paymentCompleted: boolean;
+  pushSubscriptions?: Array<{
+    endpoint: string;
+    keys: {
+      p256dh: string;
+      auth: string;
+    };
+  }>;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -25,6 +32,13 @@ const UserSchema = new Schema<IUser>(
     organizationId: { type: String, index: true },
     onboardingCompleted: { type: Boolean, default: false },
     paymentCompleted: { type: Boolean, default: false },
+    pushSubscriptions: [{
+      endpoint: { type: String, required: true },
+      keys: {
+        p256dh: { type: String, required: true },
+        auth: { type: String, required: true }
+      }
+    }],
   },
   { timestamps: true }
 );

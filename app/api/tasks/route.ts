@@ -171,6 +171,41 @@ export async function POST(req: Request) {
       completed: status === "Completed"
     });
 
+    // Send notification to other teammates
+    try {
+      const { Notification } = await import("@/models/notification");
+      const teammates = await User.find({
+        organizationId: session.user.organizationId,
+        _id: { $ne: session.user.id }
+      }).select("_id orgRole");
+
+      if (teammates.length > 0) {
+        // Filter teammates who have access to this tab
+        const allowedTeammates = teammates.filter(member => {
+          if (member.orgRole === "owner" || member.orgRole === "staff") return true;
+          return accessCheck.tab.accessControl.some((ac: any) => ac.userId === member._id.toString());
+        });
+
+        if (allowedTeammates.length > 0) {
+          const currentUserName = session.user.name || "A team member";
+          const taskPreview = taskText ? `"${taskText.length > 30 ? taskText.slice(0, 30) + "..." : taskText}"` : "a new task with attachments";
+          
+          const notifications = allowedTeammates.map(member => ({
+            userId: member._id.toString(),
+            organizationId: session.user.organizationId,
+            type: "general",
+            title: "New Task Added",
+            message: `${currentUserName} added ${taskPreview} in ${accessCheck.tab.name || "a tab"}`,
+            isRead: false,
+          }));
+          
+          await Notification.insertMany(notifications);
+        }
+      }
+    } catch (notifErr) {
+      console.error("Failed to send task notifications:", notifErr);
+    }
+
     return NextResponse.json({ success: true, task });
   } catch (error: any) {
     console.error("POST Tasks API Error:", error);
