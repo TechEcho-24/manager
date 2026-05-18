@@ -56,6 +56,14 @@ const leadFormSchema = z.object({
   city: z.string().optional(),
   state: z.string().optional(),
   address: z.string().optional(),
+  
+  // Real Estate specific fields
+  leadType: z.string().optional(),
+  propertyType: z.string().optional(),
+  purpose: z.string().optional(),
+  bhkRequirement: z.string().optional(),
+  preferredLocation: z.string().optional(),
+
   assignedTo: z.string().optional(),
   priority: z.enum(["Low", "Medium", "High"]),
   nextFollowupDate: z.string().optional(),
@@ -129,6 +137,11 @@ export function LeadFormPanel({
       city: "",
       state: "",
       address: "",
+      leadType: "",
+      propertyType: "",
+      purpose: "",
+      bhkRequirement: "",
+      preferredLocation: "",
       assignedTo: "Admin User",
       priority: "Medium",
       nextFollowupDate: "",
@@ -171,6 +184,11 @@ export function LeadFormPanel({
         city: leadData.city || "",
         state: leadData.state || "",
         address: leadData.address || "",
+        leadType: leadData.leadType || "",
+        propertyType: leadData.propertyType || "",
+        purpose: leadData.purpose || "",
+        bhkRequirement: leadData.bhkRequirement || "",
+        preferredLocation: leadData.preferredLocation || "",
         assignedTo: leadData.assignedTo || "Admin User",
         priority: leadData.priority || "Medium",
         nextFollowupDate: leadData.nextFollowupDate
@@ -215,6 +233,8 @@ export function LeadFormPanel({
   );
   const unscheduledMilestoneAmount = Math.max(remainingDealAmount - milestoneTotal, 0);
   const isMilestonePlan = watchedPaymentPlan === "milestones";
+  
+  const isRealEstate = planConfig?.industry === "Real Estate";
 
   const handleAddTag = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" && tagInput.trim()) {
@@ -617,19 +637,21 @@ export function LeadFormPanel({
                       </FormItem>
                     )}
                   />
-                  <FormField
-                    control={form.control}
-                    name='company'
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-xs font-semibold tracking-wider text-muted-foreground">Company Name</FormLabel>
-                        <FormControl>
-                          <Input className="h-10 rounded-xl bg-muted/10 border-border focus:bg-background focus:ring-4 focus:ring-primary/10 transition-all" placeholder='Acme Inc' {...field} value={field.value ?? ""} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                  {!isRealEstate && (
+                    <FormField
+                      control={form.control}
+                      name='company'
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-xs font-semibold tracking-wider text-muted-foreground">Company Name</FormLabel>
+                          <FormControl>
+                            <Input className="h-10 rounded-xl bg-muted/10 border-border focus:bg-background focus:ring-4 focus:ring-primary/10 transition-all" placeholder='Acme Inc' {...field} value={field.value ?? ""} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  )}
                   <FormField
                     control={form.control}
                     name='phone'
@@ -648,7 +670,7 @@ export function LeadFormPanel({
                     name='alternatePhone'
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Alternate Phone</FormLabel>
+                        <FormLabel>{isRealEstate ? "WhatsApp Number" : "Alternate Phone"}</FormLabel>
                         <FormControl>
                           <Input placeholder='9876543211' {...field} value={field.value ?? ""} />
                         </FormControl>
@@ -669,19 +691,21 @@ export function LeadFormPanel({
                       </FormItem>
                     )}
                   />
-                  <FormField
-                    control={form.control}
-                    name='designation'
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Designation</FormLabel>
-                        <FormControl>
-                          <Input placeholder='CEO' {...field} value={field.value ?? ""} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                  {!isRealEstate && (
+                    <FormField
+                      control={form.control}
+                      name='designation'
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Designation</FormLabel>
+                          <FormControl>
+                            <Input placeholder='CEO' {...field} value={field.value ?? ""} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  )}
                 </div>
               </div>
 
@@ -719,15 +743,26 @@ export function LeadFormPanel({
                                 field.onChange(e);
                               }}
                             >
-                              <option value='Website Form'>Website Form</option>
-                              <option value='Manual Entry'>Manual Entry</option>
-                              <option value='Cold Call'>Cold Call</option>
-                              <option value='Referral'>Referral</option>
-                              <option value='Voice Chatbot'>Voice Chatbot {planConfig?.plan === 'starter' ? '🔒' : ''}</option>
-                              <option value='AI Capture'>AI Capture {planConfig?.plan !== 'pro' ? '🔒' : ''}</option>
-                              <option value='Social Media'>Social Media</option>
-                              <option value='Email Campaign'>Email Campaign</option>
-                              <option value='Other'>Other</option>
+                              {isRealEstate ? (
+                                <>
+                                  <option value='Website Form'>Website</option>
+                                  <option value='Social Media'>Facebook</option>
+                                  <option value='Referral'>Referral</option>
+                                  <option value='Walk-in'>Walk-in</option>
+                                </>
+                              ) : (
+                                <>
+                                  <option value='Website Form'>Website Form</option>
+                                  <option value='Manual Entry'>Manual Entry</option>
+                                  <option value='Cold Call'>Cold Call</option>
+                                  <option value='Referral'>Referral</option>
+                                  <option value='Voice Chatbot'>Voice Chatbot {planConfig?.plan === 'starter' ? '🔒' : ''}</option>
+                                  <option value='AI Capture'>AI Capture {planConfig?.plan !== 'pro' ? '🔒' : ''}</option>
+                                  <option value='Social Media'>Social Media</option>
+                                  <option value='Email Campaign'>Email Campaign</option>
+                                  <option value='Other'>Other</option>
+                                </>
+                              )}
                             </Select>
                           </div>
                         </FormControl>
@@ -735,20 +770,22 @@ export function LeadFormPanel({
                       </FormItem>
                     )}
                   />
-                  <FormField
-                    control={form.control}
-                    name='campaignName'
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Campaign Name</FormLabel>
-                        <FormControl>
-                          <Input placeholder='Summer Sale 2026' {...field} value={field.value ?? ""} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  {watchLeadSource === "Referral" && (
+                  {!isRealEstate && (
+                    <FormField
+                      control={form.control}
+                      name='campaignName'
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Campaign Name</FormLabel>
+                          <FormControl>
+                            <Input placeholder='Summer Sale 2026' {...field} value={field.value ?? ""} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  )}
+                  {!isRealEstate && watchLeadSource === "Referral" && (
                     <FormField
                       control={form.control}
                       name='referredBy'
@@ -772,26 +809,111 @@ export function LeadFormPanel({
                   Requirement Details
                 </h3>
                 <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-                  <FormField
-                    control={form.control}
-                    name='product'
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Interested Product/Service</FormLabel>
-                        <FormControl>
-                          <Select {...field}>
-                            <option value=''>Select product/service</option>
-                            <option value='Shopify'>Shopify</option>
-                            <option value='WordPress'>WordPress</option>
-                            <option value='Custom Website'>Custom Website</option>
-                            <option value='Organic Marketing'>Organic Marketing</option>
-                            <option value='Digital Marketing'>Digital Marketing</option>
-                          </Select>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                  {isRealEstate ? (
+                    <>
+                      <FormField
+                        control={form.control}
+                        name='leadType'
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Lead Type</FormLabel>
+                            <FormControl>
+                              <Select {...field}>
+                                <option value=''>Select lead type</option>
+                                <option value='Buyer'>Buyer</option>
+                                <option value='Seller'>Seller</option>
+                                <option value='Tenant'>Tenant</option>
+                              </Select>
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name='propertyType'
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Property Type</FormLabel>
+                            <FormControl>
+                              <Select {...field}>
+                                <option value=''>Select property type</option>
+                                <option value='Apartment'>Apartment</option>
+                                <option value='Villa'>Villa</option>
+                                <option value='Plot'>Plot</option>
+                                <option value='Commercial'>Commercial</option>
+                              </Select>
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name='purpose'
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Purpose</FormLabel>
+                            <FormControl>
+                              <Select {...field}>
+                                <option value=''>Select purpose</option>
+                                <option value='Buy'>Buy</option>
+                                <option value='Rent'>Rent</option>
+                              </Select>
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name='bhkRequirement'
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>BHK Requirement</FormLabel>
+                            <FormControl>
+                              <Input placeholder='e.g. 2BHK, 3BHK' {...field} value={field.value ?? ""} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name='preferredLocation'
+                        render={({ field }) => (
+                          <FormItem className='md:col-span-2'>
+                            <FormLabel>Preferred Location</FormLabel>
+                            <FormControl>
+                              <Input placeholder='e.g. Andheri West, Bandra' {...field} value={field.value ?? ""} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </>
+                  ) : (
+                    <FormField
+                      control={form.control}
+                      name='product'
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Interested Product/Service</FormLabel>
+                          <FormControl>
+                            <Select {...field}>
+                              <option value=''>Select product/service</option>
+                              <option value='Shopify'>Shopify</option>
+                              <option value='WordPress'>WordPress</option>
+                              <option value='Custom Website'>Custom Website</option>
+                              <option value='Organic Marketing'>Organic Marketing</option>
+                              <option value='Digital Marketing'>Digital Marketing</option>
+                            </Select>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  )}
                   <FormField
                     control={form.control}
                     name='budget'
@@ -811,7 +933,7 @@ export function LeadFormPanel({
                       </FormItem>
                     )}
                   />
-                  {["Converted (Won)", "Follow-up Required", "Proposal Sent"].includes(watchLeadStatus) && (
+                  {!isRealEstate && ["Converted (Won)", "Follow-up Required", "Proposal Sent"].includes(watchLeadStatus) && (
                     <FormField
                       control={form.control}
                       name='requirementDescription'
@@ -829,69 +951,73 @@ export function LeadFormPanel({
                       )}
                     />
                   )}
-                  <FormField
-                    control={form.control}
-                    name='quantity'
-                    render={({ field }) => (
-                      <FormItem className='md:col-span-2'>
-                        <FormLabel>Quantity/Scope</FormLabel>
-                        <FormControl>
-                          <Input placeholder='e.g. 50 licenses' {...field} value={field.value ?? ""} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                  {!isRealEstate && (
+                    <FormField
+                      control={form.control}
+                      name='quantity'
+                      render={({ field }) => (
+                        <FormItem className='md:col-span-2'>
+                          <FormLabel>Quantity/Scope</FormLabel>
+                          <FormControl>
+                            <Input placeholder='e.g. 50 licenses' {...field} value={field.value ?? ""} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  )}
                 </div>
               </div>
 
               {/* Location Details */}
-              <div className='space-y-4'>
-                <h3 className='text-sm font-semibold text-[oklch(0.60_0.22_260)] tracking-wider'>
-                  Location Details
-                </h3>
-                <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-                  <FormField
-                    control={form.control}
-                    name='city'
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>City</FormLabel>
-                        <FormControl>
-                          <Input placeholder='Mumbai' {...field} value={field.value ?? ""} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name='state'
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>State</FormLabel>
-                        <FormControl>
-                          <Input placeholder='Maharashtra' {...field} value={field.value ?? ""} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name='address'
-                    render={({ field }) => (
-                      <FormItem className='md:col-span-2'>
-                        <FormLabel>Address</FormLabel>
-                        <FormControl>
-                          <Textarea placeholder='Full address' {...field} value={field.value ?? ""} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+              {!isRealEstate && (
+                <div className='space-y-4'>
+                  <h3 className='text-sm font-semibold text-[oklch(0.60_0.22_260)] tracking-wider'>
+                    Location Details
+                  </h3>
+                  <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+                    <FormField
+                      control={form.control}
+                      name='city'
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>City</FormLabel>
+                          <FormControl>
+                            <Input placeholder='Mumbai' {...field} value={field.value ?? ""} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name='state'
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>State</FormLabel>
+                          <FormControl>
+                            <Input placeholder='Maharashtra' {...field} value={field.value ?? ""} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name='address'
+                      render={({ field }) => (
+                        <FormItem className='md:col-span-2'>
+                          <FormLabel>Address</FormLabel>
+                          <FormControl>
+                            <Textarea placeholder='Full address' {...field} value={field.value ?? ""} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
                 </div>
-              </div>
+              )}
 
               {/* Additional Information */}
               <div className='space-y-4'>
@@ -1017,11 +1143,22 @@ export function LeadFormPanel({
                             }
                           }}
                         >
-                          {LEAD_STATUSES.map((status) => (
-                            <option key={status} value={status}>
-                              {status}
-                            </option>
-                          ))}
+                          {isRealEstate ? (
+                            <>
+                              <option value='New'>New</option>
+                              <option value='Contacted'>Contacted</option>
+                              <option value='Follow-up'>Follow-up</option>
+                              <option value='Site Visit'>Site Visit</option>
+                              <option value='Closed'>Closed</option>
+                              <option value='Lost'>Lost</option>
+                            </>
+                          ) : (
+                            LEAD_STATUSES.map((status) => (
+                              <option key={status} value={status}>
+                                {status}
+                              </option>
+                            ))
+                          )}
                         </Select>
                       </FormControl>
                       <FormMessage />
