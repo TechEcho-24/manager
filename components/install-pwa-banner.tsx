@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Download, X } from "lucide-react";
+import { Download, X, Share, PlusSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export function InstallPWABanner() {
@@ -9,21 +9,19 @@ export function InstallPWABanner() {
   const [showBanner, setShowBanner] = useState(false);
   const [isIOS, setIsIOS] = useState(false);
   const [isStandalone, setIsStandalone] = useState(false);
+  const [showIOSInstructions, setShowIOSInstructions] = useState(false);
 
   useEffect(() => {
-    // Check if already installed
     if (window.matchMedia("(display-mode: standalone)").matches) {
       setIsStandalone(true);
       return;
     }
 
-    // iOS detection
     const ua = window.navigator.userAgent;
     const isIOSDevice = /iPad|iPhone|iPod/.test(ua) && !(window as any).MSStream;
     setIsIOS(isIOSDevice);
 
     if (isIOSDevice) {
-      // Show for iOS since they don't support beforeinstallprompt
       const hasDismissed = localStorage.getItem("dismissed_pwa_banner");
       if (!hasDismissed) setShowBanner(true);
     }
@@ -46,7 +44,7 @@ export function InstallPWABanner() {
 
   const handleInstallClick = async () => {
     if (isIOS) {
-      alert('To install, tap the "Share" icon at the bottom of your screen and select "Add to Home Screen".');
+      setShowIOSInstructions(true);
       return;
     }
 
@@ -63,13 +61,49 @@ export function InstallPWABanner() {
 
   const handleDismiss = () => {
     setShowBanner(false);
+    setShowIOSInstructions(false);
     localStorage.setItem("dismissed_pwa_banner", "true");
   };
 
   if (!showBanner || isStandalone) return null;
 
+  if (showIOSInstructions) {
+    return (
+      <div className="fixed bottom-[100px] left-4 right-4 z-[200] rounded-2xl border border-border/40 bg-card/95 p-4 shadow-2xl backdrop-blur-xl sm:bottom-4 sm:left-4 sm:right-auto sm:max-w-sm sm:rounded-2xl sm:border animate-in slide-in-from-bottom-2">
+        <div className="flex items-start justify-between gap-4 mb-4">
+          <div>
+            <h4 className="text-sm font-black text-foreground">Install on iOS</h4>
+            <p className="text-[11px] text-muted-foreground">Follow these 2 quick steps</p>
+          </div>
+          <button 
+            onClick={() => setShowIOSInstructions(false)} 
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+        
+        <div className="space-y-3">
+          <div className="flex items-center gap-3 rounded-xl bg-muted/50 p-3 border border-border/40">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-background shadow-sm border border-border">
+              <Share className="h-4 w-4 text-primary" />
+            </div>
+            <p className="text-xs font-medium text-muted-foreground">1. Tap the <strong className="text-foreground">Share</strong> icon at the bottom of Safari.</p>
+          </div>
+          
+          <div className="flex items-center gap-3 rounded-xl bg-muted/50 p-3 border border-border/40">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-background shadow-sm border border-border">
+              <PlusSquare className="h-4 w-4 text-primary" />
+            </div>
+            <p className="text-xs font-medium text-muted-foreground">2. Scroll down and tap <strong className="text-foreground">Add to Home Screen</strong>.</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-[200] border-t border-border/40 bg-card/95 p-4 shadow-2xl backdrop-blur-xl sm:bottom-4 sm:left-4 sm:right-auto sm:max-w-sm sm:rounded-2xl sm:border">
+    <div className="fixed bottom-[100px] left-4 right-4 z-[200] rounded-2xl border border-border/40 bg-card/95 p-4 shadow-2xl backdrop-blur-xl sm:bottom-4 sm:left-4 sm:right-auto sm:max-w-sm sm:rounded-2xl sm:border animate-in slide-in-from-bottom-2">
       <div className="flex items-start justify-between gap-4">
         <div className="flex flex-1 items-center gap-3">
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-orange-500/10">

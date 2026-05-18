@@ -107,15 +107,7 @@ export default function SignupForm() {
       const registerData = await registerRes.json();
 
       if (registerRes.status === 409 && registerData.error === "USER_EXISTS") {
-        const signInRes = await signIn("credentials", {
-          redirect: false,
-          email,
-          password,
-        });
-        if (signInRes?.error)
-          throw new Error(
-            "Account already exists but login failed. Check your password.",
-          );
+        throw new Error("This email is already registered. Please sign in instead.");
       } else if (!registerRes.ok) {
         throw new Error(registerData.error || "Registration failed");
       } else {

@@ -39,8 +39,8 @@ export default function LoginForm() {
       });
 
       if (result?.error) {
-        setError("Invalid credentials. Please verify your email and password.");
-      } else if (inviteToken) {
+        setError("Incorrect email or password. Please try again.");
+      } else if (inviteToken && result?.ok) {
         // If user came from an invite link, redirect to join
         router.push(`/invite/${inviteToken}`);
         router.refresh();
@@ -48,8 +48,8 @@ export default function LoginForm() {
         router.push("/dashboard");
         router.refresh();
       }
-    } catch {
-      setError("An unexpected error occurred. Please try again.");
+    } catch (err: any) {
+      setError("Incorrect email or password. Please check your credentials and try again.");
     } finally {
       setIsLoading(false);
     }
