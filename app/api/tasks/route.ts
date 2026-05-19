@@ -231,7 +231,7 @@ export async function POST(req: Request) {
         // Filter teammates who have access to this tab
         const allowedTeammates = teammates.filter(member => {
           if (member.orgRole === "owner" || member.orgRole === "staff") return true;
-          return accessCheck.tab.accessControl.some((ac: any) => ac.userId === member._id.toString());
+          return accessCheck.tab?.accessControl.some((ac: any) => ac.userId === member._id.toString());
         });
 
         if (allowedTeammates.length > 0) {
@@ -243,7 +243,7 @@ export async function POST(req: Request) {
             organizationId: session.user.organizationId,
             type: "general",
             title: "New Task Added",
-            message: `${currentUserName} added ${taskPreview} in ${accessCheck.tab.name || "a tab"}`,
+            message: `${currentUserName} added ${taskPreview} in ${accessCheck.tab?.name || "a tab"}`,
             isRead: false,
           }));
           

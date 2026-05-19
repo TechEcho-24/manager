@@ -10,8 +10,17 @@ interface PopoverContextType {
 
 const PopoverContext = React.createContext<PopoverContextType | undefined>(undefined);
 
-export function Popover({ children }: { children: React.ReactNode }) {
-  const [open, setOpen] = React.useState(false);
+export function Popover({ children, open: controlledOpen, onOpenChange }: { children: React.ReactNode; open?: boolean; onOpenChange?: React.Dispatch<React.SetStateAction<boolean>> }) {
+  const [internalOpen, setInternalOpen] = React.useState(false);
+  const isControlled = controlledOpen !== undefined;
+  const open = isControlled ? controlledOpen : internalOpen;
+  const setOpen: React.Dispatch<React.SetStateAction<boolean>> = React.useCallback(
+    (value) => {
+      if (onOpenChange) onOpenChange(value);
+      if (!isControlled) setInternalOpen(value);
+    },
+    [onOpenChange, isControlled]
+  );
   const ref = React.useRef<HTMLDivElement>(null);
 
   React.useEffect(() => {
@@ -22,7 +31,7 @@ export function Popover({ children }: { children: React.ReactNode }) {
     };
     if (open) document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [open]);
+  }, [open, setOpen]);
 
   return (
     <PopoverContext.Provider value={{ open, setOpen }}>
@@ -56,7 +65,7 @@ export function PopoverTrigger({ children, className, asChild = false }: { child
   );
 }
 
-export function PopoverContent({ children, className, align = "center" }: { children: React.ReactNode; className?: string; align?: "start" | "center" | "end" }) {
+export function PopoverContent({ children, className, align = "center", sideOffset }: { children: React.ReactNode; className?: string; align?: "start" | "center" | "end"; sideOffset?: number }) {
   const context = React.useContext(PopoverContext);
   if (!context) throw new Error("PopoverContent must be used within Popover");
 
@@ -75,6 +84,7 @@ export function PopoverContent({ children, className, align = "center" }: { chil
         alignments[align],
         className
       )}
+      style={sideOffset !== undefined ? { marginTop: `${sideOffset}px` } : undefined}
     >
       {children}
     </div>
