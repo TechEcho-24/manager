@@ -8,6 +8,7 @@ export interface INotification extends Document {
   message: string;
   leadId?: string;
   leadName?: string;
+  targetUrl?: string;
   isRead: boolean;
   displayAfter: Date;
   createdAt: Date;
@@ -23,6 +24,7 @@ const NotificationSchema = new Schema<INotification>(
     message: { type: String, required: true },
     leadId: { type: String },
     leadName: { type: String },
+    targetUrl: { type: String },
     isRead: { type: Boolean, default: false },
     displayAfter: { type: Date, default: Date.now },
   },

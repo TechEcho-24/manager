@@ -81,6 +81,7 @@ const leadFormSchema = z.object({
     receivedAmount: z.coerce.number(),
     paymentPlan: z.enum(['one-time', 'monthly', 'milestones']),
     monthlyPaymentDate: z.coerce.number().min(1).max(31).optional(),
+    monthlyStartDate: z.string().optional(),
     paymentDate: z.string().optional(),
     installments: z.array(z.object({
       amount: z.coerce.number(),
@@ -165,6 +166,7 @@ export function LeadFormPanel({
         paymentPlan: 'one-time',
         paymentDate: new Date().toISOString().split('T')[0],
         monthlyPaymentDate: 1,
+        monthlyStartDate: new Date().toISOString().split('T')[0],
         installments: [],
       },
     },
@@ -216,6 +218,9 @@ export function LeadFormPanel({
             ? new Date(leadData.dealDetails.paymentDate).toISOString().split("T")[0]
             : new Date().toISOString().split("T")[0],
           monthlyPaymentDate: Number(leadData.dealDetails?.monthlyPaymentDate) || 1,
+          monthlyStartDate: leadData.dealDetails?.monthlyStartDate
+            ? new Date(leadData.dealDetails.monthlyStartDate).toISOString().split("T")[0]
+            : new Date().toISOString().split("T")[0],
           installments: (leadData.dealDetails?.installments || []).map((inst: DealInstallmentInput) => ({
             amount: Number(inst.amount) || 0,
             dueDate: inst.dueDate
@@ -368,6 +373,8 @@ export function LeadFormPanel({
           ...values.dealDetails,
           totalValue: Number(values.dealDetails.totalValue) || 0,
           receivedAmount: Number(values.dealDetails.receivedAmount) || 0,
+          monthlyPaymentDate: Number(values.dealDetails.monthlyPaymentDate) || 1,
+          monthlyStartDate: values.dealDetails.monthlyStartDate || undefined,
           installments: values.dealDetails.paymentPlan === "milestones"
             ? (values.dealDetails.installments || []).map((inst) => ({
               ...inst,
@@ -471,6 +478,9 @@ export function LeadFormPanel({
                     if (e.target.value === "one-time") {
                       form.setValue("dealDetails.paymentDate", new Date().toISOString().split('T')[0], { shouldDirty: true, shouldTouch: true, shouldValidate: true });
                     }
+                    if (e.target.value === "monthly") {
+                      form.setValue("dealDetails.monthlyStartDate", new Date().toISOString().split('T')[0], { shouldDirty: true, shouldTouch: true, shouldValidate: true });
+                    }
                   }}
                 >
                   <option value='one-time'>One-time</option>
@@ -496,18 +506,32 @@ export function LeadFormPanel({
           />
         )}
         {watchedPaymentPlan === "monthly" && (
-          <FormField
-            control={form.control}
-            name='dealDetails.monthlyPaymentDate'
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-xs font-semibold tracking-wider text-muted-foreground">Payment Date of Month (1-31)</FormLabel>
-                <FormControl>
-                  <Input type="number" min={1} max={31} className="h-10 rounded-xl" {...field} value={field.value ?? ""} />
-                </FormControl>
-              </FormItem>
-            )}
-          />
+          <>
+            <FormField
+              control={form.control}
+              name='dealDetails.monthlyPaymentDate'
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-xs font-semibold tracking-wider text-muted-foreground">Billing Date (1-31)</FormLabel>
+                  <FormControl>
+                    <Input type="number" min={1} max={31} className="h-10 rounded-xl" {...field} value={field.value ?? ""} />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name='dealDetails.monthlyStartDate'
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-xs font-semibold tracking-wider text-muted-foreground">Start Date</FormLabel>
+                  <FormControl>
+                    <Input type="date" className="h-10 rounded-xl" {...field} value={field.value ?? ""} />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+          </>
         )}
       </div>
 

@@ -1,13 +1,12 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import useSWR from "swr";
-import { Handshake, Plus, TrendingUp, Wallet, Clock, Mail, Eye, Edit2, Search, Filter, ArrowUpRight } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Handshake, Plus, TrendingUp, Wallet, Clock, Mail, Eye, Search, ArrowUpRight, ReceiptText } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { cn } from "@/lib/utils";
 import { LeadFormPanel } from "@/components/lead-form-panel";
 import { AnimatedNumber } from "@/components/animated-number";
 import { format } from "date-fns";
@@ -220,6 +219,12 @@ export default function DealsPage() {
                     >
                       <Eye className="h-3.5 w-3.5 mr-2" /> View & Add Info
                     </Button>
+                    <Link
+                      href={`/deals/${deal.id}/payments`}
+                      className="inline-flex flex-1 items-center justify-center rounded-xl border border-primary/20 bg-primary/5 px-3 text-xs font-bold tracking-widest text-primary transition-colors hover:bg-primary/10"
+                    >
+                      <ReceiptText className="h-3.5 w-3.5 mr-2" /> Ledger
+                    </Link>
                     <Button 
                       className="flex-1 rounded-xl h-10 bg-primary text-white hover:bg-primary/90 text-xs font-bold tracking-widest shadow-lg shadow-primary/10"
                       onClick={() => {

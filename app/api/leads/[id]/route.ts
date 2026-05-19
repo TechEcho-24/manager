@@ -67,6 +67,12 @@ export async function PATCH(
           dueDate: installment.dueDate ? new Date(installment.dueDate) : new Date(),
           status: installment.status === "paid" ? "paid" : "pending",
         })),
+        monthlyAmount: data.dealDetails.paymentPlan === "monthly"
+          ? Number(data.dealDetails.totalValue) || 0
+          : 0,
+        monthlyStartDate: data.dealDetails.monthlyStartDate
+          ? new Date(data.dealDetails.monthlyStartDate)
+          : undefined,
       };
     }
     
@@ -150,4 +156,3 @@ export async function PATCH(
     );
   }
 }
-

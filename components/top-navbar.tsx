@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import useSWR from "swr";
 import { useDebounce } from "use-debounce";
 import { MobileSidebar } from "@/components/mobile-sidebar";
-import { Bell, Search, Zap, Loader2, LogOut, PhoneCall, Check, X } from "lucide-react";
+import { Bell, Search, Loader2, LogOut, PhoneCall, Check, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -23,9 +23,44 @@ interface Notification {
   message: string;
   leadId?: string;
   leadName?: string;
+  targetUrl?: string;
   isRead: boolean;
   displayAfter: string;
   createdAt: string;
+}
+
+type SessionUserWithRole = {
+  orgRole?: string;
+};
+
+type SearchLead = {
+  _id: string;
+  fullName: string;
+  company?: string;
+  phone?: string;
+  status?: string;
+};
+
+type SearchResponse = {
+  leads?: SearchLead[];
+};
+
+function getNotificationTarget(notif: Notification, orgRole: string) {
+  if (notif.targetUrl) return notif.targetUrl;
+
+  if (notif.type === "payment") {
+    if (orgRole === "client") return "/tasks";
+    return notif.leadId ? `/deals/${notif.leadId}/payments` : "/deals";
+  }
+
+  if (notif.type === "followup") {
+    return notif.leadId ? `/leads?edit=${notif.leadId}` : "/follow-ups";
+  }
+
+  if (notif.type === "renewal") return "/settings";
+  if (notif.type === "general") return "/tasks";
+
+  return notif.leadId ? `/leads?edit=${notif.leadId}` : "/dashboard";
 }
 
 // ─── Notification Bell ───────────────────────────────────────────────────────
@@ -37,7 +72,7 @@ function NotificationBell({ isMember }: { isMember: boolean }) {
   const [markingAll, setMarkingAll] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const orgRole = (session?.user as any)?.orgRole || "owner";
+  const orgRole = (session?.user as SessionUserWithRole | undefined)?.orgRole || "owner";
 
   // Fetch visible notifications
   const fetchNotifications = useCallback(async () => {
@@ -72,9 +107,12 @@ function NotificationBell({ isMember }: { isMember: boolean }) {
 
   // Poll every 15 seconds to pick up new notifications (tasks, follow-ups, etc.)
   useEffect(() => {
-    fetchNotifications();
+    const timeout = window.setTimeout(fetchNotifications, 0);
     const interval = setInterval(fetchNotifications, 15 * 1000);
-    return () => clearInterval(interval);
+    return () => {
+      window.clearTimeout(timeout);
+      clearInterval(interval);
+    };
   }, [fetchNotifications]);
 
   // Close on outside click
@@ -102,9 +140,10 @@ function NotificationBell({ isMember }: { isMember: boolean }) {
   };
 
   const handleNotifClick = async (notif: Notification) => {
+    const target = getNotificationTarget(notif, orgRole);
     await markSingleRead(notif._id);
     setOpen(false);
-    if (notif.leadId) router.push(`/leads?edit=${notif.leadId}`);
+    router.push(target);
   };
 
   const unreadCount = notifications.length;
@@ -217,7 +256,7 @@ function NotificationBell({ isMember }: { isMember: boolean }) {
             {notifications.length > 0 && (
               <div className="px-4 py-2.5 border-t border-border/30 bg-muted/20">
                 <p className="text-[9px] text-center text-muted-foreground/40 font-medium">
-                  Follow-ups show every 5 minutes · Click to open lead
+                  Click a notification to open the related page
                 </p>
               </div>
             )}
@@ -254,10 +293,11 @@ export function TopNavbar({ isMember = false }: { isMember?: boolean }) {
     });
   }, []);
 
-  const { data, isLoading } = useSWR(
+  const { data, isLoading } = useSWR<SearchResponse>(
     debouncedQuery ? `/api/leads?search=${encodeURIComponent(debouncedQuery)}&limit=5` : null,
     fetcher
   );
+  const searchLeads = data?.leads || [];
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -330,18 +370,18 @@ export function TopNavbar({ isMember = false }: { isMember?: boolean }) {
                 </div>
               )}
               
-              {!isLoading && data?.leads?.length === 0 && (
+              {!isLoading && searchLeads.length === 0 && (
                 <div className="p-4 text-sm text-muted-foreground text-center">
-                  No leads found for "{debouncedQuery}"
+                  No leads found for &quot;{debouncedQuery}&quot;
                 </div>
               )}
 
-              {!isLoading && data?.leads?.length > 0 && (
+              {!isLoading && searchLeads.length > 0 && (
                 <div className="py-2">
                   <div className="px-3 pb-2 text-xs font-semibold text-muted-foreground/80 tracking-wider">
                     Leads
                   </div>
-                  {data.leads.map((lead: any) => (
+                  {searchLeads.map((lead) => (
                     <button
                       key={lead._id}
                       className="w-full px-4 py-2 text-left hover:bg-white/5 flex flex-col items-start gap-1 transition-colors"
