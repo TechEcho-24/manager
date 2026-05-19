@@ -2,8 +2,23 @@ import { NextResponse } from "next/server";
 import dbConnect from "@/lib/db";
 import { Lead } from "@/models/lead";
 import { auth } from "@/auth";
+import { DealPaymentLedger } from "@/models/deal-payment-ledger";
+import { getLedgerSummary, materializeLedgerCycles } from "@/lib/deal-payment-ledger";
 
 export const dynamic = "force-dynamic";
+
+type ClientSessionUser = {
+  id?: string;
+  orgRole?: string;
+  organizationId?: string;
+};
+
+type PortalInstallment = {
+  amount: number;
+  dueDate: string | Date;
+  status: "pending" | "paid";
+  paidAt?: string | Date;
+};
 
 // GET: Fetch client portal data for the currently logged-in client user
 export async function GET() {
@@ -13,15 +28,16 @@ export async function GET() {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const orgRole = (session.user as any)?.orgRole;
+    const sessionUser = session.user as ClientSessionUser;
+    const orgRole = sessionUser.orgRole;
     if (orgRole !== "client") {
       return NextResponse.json({ error: "Not a client user" }, { status: 403 });
     }
 
     await dbConnect();
 
-    const userId = (session.user as any)?.id;
-    const organizationId = (session.user as any)?.organizationId;
+    const userId = sessionUser.id;
+    const organizationId = sessionUser.organizationId;
 
     if (!userId || !organizationId) {
       return NextResponse.json({ error: "Missing user context" }, { status: 400 });
@@ -53,12 +69,76 @@ export async function GET() {
     const balanceRemaining = Math.max(totalValue - receivedAmount, 0);
     const paymentPlan = dealDetails.paymentPlan || "one-time";
     const monthlyPaymentDate = dealDetails.monthlyPaymentDate;
-    const installments = (dealDetails.installments || []).map((inst: any) => ({
+    const installments = ((dealDetails.installments || []) as PortalInstallment[]).map((inst) => ({
       amount: inst.amount,
       dueDate: inst.dueDate,
       status: inst.status,
       paidAt: inst.paidAt,
     }));
+
+    let ledger = await DealPaymentLedger.findOne({ leadId: lead._id.toString() });
+    const monthlyAmount = Number(totalValue || 0);
+    if (!ledger && paymentPlan === "monthly" && monthlyAmount > 0) {
+      const startDate = dealDetails.monthlyStartDate || dealDetails.paymentDate || lead.createdAt || new Date();
+      ledger = await DealPaymentLedger.create({
+        leadId: lead._id.toString(),
+        organizationId,
+        clientUserId: userId,
+        plan: {
+          planType: "monthly",
+          monthlyAmount,
+          billingDay: Number(monthlyPaymentDate || new Date(startDate).getDate() || 1),
+          startDate,
+          totalDealValue: Number(totalValue || 0),
+          currency: "INR",
+          active: true,
+        },
+        cycles: [],
+        payments: [],
+        advanceBalance: 0,
+      });
+    }
+    let ledgerPayment: Record<string, unknown> | null = null;
+    if (ledger) {
+      const changed = materializeLedgerCycles(ledger);
+      if (changed) await ledger.save();
+      const summary = getLedgerSummary(ledger);
+      ledgerPayment = {
+        source: "ledger",
+        totalValue: summary.totalDealValue,
+        receivedAmount: summary.totalReceived,
+        balanceRemaining: summary.outstandingBalance,
+        progressPercent: summary.progressPercent,
+        advanceBalance: summary.advanceBalance,
+        nextDue: summary.nextDueCycle
+          ? {
+            amount: summary.nextDueCycle.remainingBalance,
+            dueDate: summary.nextDueCycle.dueDate,
+            monthLabel: summary.nextDueCycle.monthLabel,
+            status: summary.nextDueCycle.status,
+            previousDue: summary.nextDueCycle.previousDue,
+            currentMonthAmount: summary.nextDueCycle.expectedAmount,
+            totalDue: summary.nextDueCycle.totalDue,
+          }
+          : null,
+        lastPayment: summary.lastPayment
+          ? {
+            amount: summary.lastPayment.amount,
+            paidAt: summary.lastPayment.paidAt,
+            method: summary.lastPayment.method,
+          }
+          : null,
+        previousCarryForward: summary.previousCarryForward,
+        nextDueBreakdown: summary.nextDueBreakdown,
+        pendingBreakdown: summary.pendingBreakdown,
+        status:
+          summary.outstandingBalance <= 0
+            ? "paid"
+            : summary.nextDueCycle?.status === "overdue"
+              ? "overdue"
+              : "partial",
+      };
+    }
 
     // Calculate payment alerts
     const now = new Date();
@@ -81,7 +161,7 @@ export async function GET() {
     }
 
     if (paymentPlan === "milestones") {
-      const pendingInstallments = installments.filter((inst: any) => inst.status === "pending");
+      const pendingInstallments = installments.filter((inst) => inst.status === "pending");
       for (const inst of pendingInstallments) {
         const dueDate = new Date(inst.dueDate);
         const diffDays = Math.ceil((dueDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
@@ -120,6 +200,7 @@ export async function GET() {
         monthlyPaymentDate,
         paymentDate: dealDetails.paymentDate,
         installments,
+        ...(ledgerPayment || {}),
       },
       alerts,
     });

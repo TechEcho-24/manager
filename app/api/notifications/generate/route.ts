@@ -2,10 +2,35 @@ import { NextResponse } from "next/server";
 import connectDB from "@/lib/db";
 import { Notification } from "@/models/notification";
 import { Lead } from "@/models/lead";
-import { Organization } from "@/models/organization";
 import { auth } from "@/auth";
 
 export const dynamic = "force-dynamic";
+
+type SessionUser = {
+  id?: string;
+  email?: string | null;
+  organizationId?: string;
+  orgRole?: string;
+};
+
+type NotificationPayload = {
+  userId: string;
+  organizationId: string;
+  type: "followup" | "payment";
+  title: string;
+  message: string;
+  leadId: string;
+  leadName: string;
+  targetUrl: string;
+  isRead: boolean;
+  displayAfter: Date;
+};
+
+type LeadNotificationSource = {
+  _id: { toString: () => string };
+  fullName: string;
+  status?: string;
+};
 
 export async function POST() {
   try {
@@ -16,13 +41,15 @@ export async function POST() {
 
     await connectDB();
 
-    const orgId = (session.user as any).organizationId;
+    const sessionUser = session.user as SessionUser;
+    const orgId = sessionUser.organizationId;
     if (!orgId) {
       return NextResponse.json({ created: 0, message: "No org found" });
     }
 
-    const userId = session.user.id || session.user.email;
-    const userRole = (session.user as any).orgRole || "owner";
+    const userId = sessionUser.id || sessionUser.email;
+    const userRole = sessionUser.orgRole || "owner";
+    if (!userId) return NextResponse.json({ error: "Missing user context" }, { status: 400 });
 
     // Today's date range (IST-aware: midnight to midnight)
     const now = new Date();
@@ -44,7 +71,7 @@ export async function POST() {
     }
 
     // Find all leads with nextFollowupDate = today
-    const followupQuery: any = {
+    const followupQuery: Record<string, unknown> = {
       organizationId: orgId,
       nextFollowupDate: { $gte: todayStart, $lte: todayEnd },
     };
@@ -55,7 +82,7 @@ export async function POST() {
       .lean();
 
     // Find all leads with payments due today
-    const paymentQuery: any = {
+    const paymentQuery: Record<string, unknown> = {
       organizationId: orgId,
       "dealDetails.installments": {
         $elemMatch: {
@@ -79,10 +106,10 @@ export async function POST() {
     eightAM.setHours(8, 0, 0, 0);
     const baseTime = now > eightAM ? now : eightAM;
 
-    let notifs: any[] = [];
+    let notifs: NotificationPayload[] = [];
     
     // Followup Notifications
-    notifs = notifs.concat(leadsToday.map((lead: any, idx: number) => ({
+    notifs = notifs.concat((leadsToday as LeadNotificationSource[]).map((lead, idx) => ({
       userId,
       organizationId: orgId,
       type: "followup",
@@ -90,12 +117,13 @@ export async function POST() {
       message: `Aaj ${lead.fullName} ka follow-up scheduled hai. Status: ${lead.status}.`,
       leadId: lead._id.toString(),
       leadName: lead.fullName,
+      targetUrl: `/leads?edit=${lead._id.toString()}`,
       isRead: false,
       displayAfter: new Date(baseTime.getTime() + idx * 5 * 60 * 1000), // +5min each
     })));
 
     // Payment Notifications
-    notifs = notifs.concat(paymentLeadsToday.map((lead: any, idx: number) => ({
+    notifs = notifs.concat((paymentLeadsToday as LeadNotificationSource[]).map((lead, idx) => ({
       userId,
       organizationId: orgId,
       type: "payment",
@@ -103,6 +131,7 @@ export async function POST() {
       message: `Aaj ${lead.fullName} ki payment (installment) due hai.`,
       leadId: lead._id.toString(),
       leadName: lead.fullName,
+      targetUrl: `/deals/${lead._id.toString()}/payments`,
       isRead: false,
       displayAfter: new Date(baseTime.getTime() + (leadsToday.length + idx) * 5 * 60 * 1000),
     })));
@@ -115,8 +144,8 @@ export async function POST() {
       created: notifs.length,
       message: `${notifs.length} notifications generated`,
     });
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("Generate Notifications Error:", err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    return NextResponse.json({ error: err instanceof Error ? err.message : "Failed to generate notifications" }, { status: 500 });
   }
 }

@@ -1113,44 +1113,34 @@ function ClientPortalSection() {
 
   if (!data?.found) return null;
 
-  const { payment, alerts, contractDocument, leadName, company } = data;
-  const progressPercent = payment.totalValue > 0
-    ? Math.min(100, Math.round((payment.receivedAmount / payment.totalValue) * 100))
-    : 0;
+  const { payment, contractDocument, leadName, company } = data;
+  const progressPercent = payment.progressPercent ?? (
+    payment.totalValue > 0
+      ? Math.min(100, Math.round((payment.receivedAmount / payment.totalValue) * 100))
+      : 0
+  );
+  const status = payment.status || (payment.balanceRemaining <= 0 ? "paid" : "partial");
+  const statusClass =
+    status === "paid"
+      ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-600"
+      : status === "overdue"
+        ? "border-red-500/20 bg-red-500/10 text-red-600"
+        : "border-amber-500/20 bg-amber-500/10 text-amber-600";
+  const nextDueDate = payment.nextDue?.dueDate
+    ? new Date(payment.nextDue.dueDate).toLocaleDateString("en-IN", { day: "numeric", month: "short" })
+    : null;
+  const pendingBreakdown = payment.pendingBreakdown || [];
 
   return (
     <div className="space-y-4 animate-in fade-in slide-in-from-bottom-3 duration-500">
-      {/* Payment Alerts */}
-      {alerts && alerts.length > 0 && (
-        <div className="space-y-2">
-          {alerts.map((alert: any, idx: number) => (
-            <div
-              key={idx}
-              className={cn(
-                "flex items-center gap-3 rounded-xl border px-4 py-3 text-sm font-medium",
-                alert.type === "danger"
-                  ? "border-red-500/20 bg-red-500/5 text-red-600"
-                  : alert.type === "warning"
-                    ? "border-amber-500/20 bg-amber-500/5 text-amber-600"
-                    : "border-sky-500/20 bg-sky-500/5 text-sky-600"
-              )}
-            >
-              <AlertTriangle className={cn(
-                "h-4 w-4 shrink-0",
-                alert.type === "danger" ? "text-red-500" : alert.type === "warning" ? "text-amber-500" : "text-sky-500"
-              )} />
-              {alert.message}
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* Payment Overview */}
       <Card className="border-border overflow-hidden">
-        <CardHeader className="pb-3 bg-gradient-to-r from-primary/5 via-transparent to-indigo-500/5">
-          <CardTitle className="text-base font-bold flex items-center gap-2">
+        <CardHeader className="pb-3 bg-gradient-to-r from-primary/5 via-transparent to-emerald-500/5">
+          <CardTitle className="text-base font-bold flex flex-wrap items-center gap-2">
             <CreditCard className="h-4.5 w-4.5 text-primary" />
-            Payment Overview
+            Payment Status
+            <span className={cn("rounded-full border px-2.5 py-1 text-[10px] font-black uppercase tracking-widest", statusClass)}>
+              {status === "paid" ? "Paid" : status === "overdue" ? "Overdue" : "Partial Payment"}
+            </span>
             {leadName && (
               <span className="text-xs font-normal text-muted-foreground ml-auto">
                 {company ? `${company} • ` : ""}{leadName}
@@ -1158,8 +1148,24 @@ function ClientPortalSection() {
             )}
           </CardTitle>
         </CardHeader>
-        <CardContent className="p-4 space-y-4">
-          {/* Stats Grid */}
+        <CardContent className="p-4 space-y-5">
+          {nextDueDate && (
+            <div className={cn(
+              "flex flex-col gap-2 rounded-xl border px-4 py-3 sm:flex-row sm:items-center sm:justify-between",
+              status === "overdue" ? "border-red-500/20 bg-red-500/5" : "border-primary/15 bg-primary/5"
+            )}>
+              <div className="flex items-center gap-3">
+                <AlertTriangle className={cn("h-4 w-4 shrink-0", status === "overdue" ? "text-red-500" : "text-primary")} />
+                <span className="text-sm font-bold text-foreground">Next payment due on {nextDueDate}</span>
+              </div>
+              {payment.previousCarryForward > 0 && (
+                <span className="text-xs font-black text-amber-600">
+                  Outstanding from previous cycle: ₹{payment.previousCarryForward.toLocaleString("en-IN")}
+                </span>
+              )}
+            </div>
+          )}
+
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div className="rounded-xl border border-primary/10 bg-primary/5 p-4">
               <div className="flex items-center gap-2 text-[10px] font-bold tracking-wider text-muted-foreground uppercase">
@@ -1190,7 +1196,6 @@ function ClientPortalSection() {
             </div>
           </div>
 
-          {/* Progress Bar */}
           <div className="space-y-1.5">
             <div className="flex items-center justify-between text-xs">
               <span className="font-bold text-muted-foreground">Payment Progress</span>
@@ -1204,68 +1209,98 @@ function ClientPortalSection() {
             </div>
           </div>
 
-          {/* Payment Plan Details */}
-          {payment.paymentPlan === "monthly" && payment.monthlyPaymentDate && (
+          {payment.previousCarryForward > 0 && (
+            <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 px-4 py-3 text-sm font-bold text-amber-700">
+              ₹{payment.previousCarryForward.toLocaleString("en-IN")} carried forward from previous cycle
+            </div>
+          )}
+
+          {payment.nextDueBreakdown?.previousDue > 0 && (
+            <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-4">
+              <h4 className="text-xs font-black uppercase tracking-widest text-amber-700">Next Due Split</h4>
+              <div className="mt-3 space-y-2">
+                <div className="flex items-center justify-between rounded-lg bg-background px-3 py-2">
+                  <span className="text-sm text-muted-foreground">Previous month pending</span>
+                  <span className="text-sm font-black text-amber-700">
+                    ₹{payment.nextDueBreakdown.previousDue.toLocaleString("en-IN")}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between rounded-lg bg-background px-3 py-2">
+                  <span className="text-sm text-muted-foreground">Current month amount</span>
+                  <span className="text-sm font-black text-foreground">
+                    ₹{payment.nextDueBreakdown.currentMonthAmount.toLocaleString("en-IN")}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between rounded-lg bg-amber-500/10 px-3 py-2">
+                  <span className="text-sm font-black text-amber-700">Total due now</span>
+                  <span className="text-sm font-black text-amber-700">
+                    ₹{payment.nextDueBreakdown.totalDue.toLocaleString("en-IN")}
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {pendingBreakdown.length > 0 && (
+            <div className="rounded-xl border border-border bg-muted/10 p-4">
+              <h4 className="text-xs font-black uppercase tracking-widest text-muted-foreground">Outstanding Breakdown</h4>
+              <div className="space-y-2">
+                {pendingBreakdown.map((item: any) => (
+                  <div key={item.cycleKey} className="mt-3 rounded-lg bg-background px-3 py-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-muted-foreground">Pending from {item.month}</span>
+                      <span className="text-sm font-black text-foreground">₹{item.amount.toLocaleString("en-IN")}</span>
+                    </div>
+                    {item.previousDue > 0 && (
+                      <div className="mt-1 text-[11px] font-bold text-amber-600">
+                        Includes ₹{item.previousDue.toLocaleString("en-IN")} previous pending + ₹{item.currentMonthAmount.toLocaleString("en-IN")} current cycle
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {payment.lastPayment ? (
+            <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-4">
+              <div className="flex items-center gap-3">
+                <CheckCircle2 className="h-5 w-5 text-emerald-600" />
+                <div>
+                  <p className="text-sm font-black text-emerald-700">
+                    ₹{payment.lastPayment.amount.toLocaleString("en-IN")} received on{" "}
+                    {new Date(payment.lastPayment.paidAt).toLocaleDateString("en-IN", { day: "numeric", month: "short" })} via {payment.lastPayment.method}
+                  </p>
+                  <p className="text-xs text-muted-foreground">Last payment received</p>
+                </div>
+              </div>
+            </div>
+          ) : payment.paymentPlan === "monthly" && payment.monthlyPaymentDate ? (
             <div className="flex items-center gap-2 rounded-xl border border-sky-500/10 bg-sky-500/5 px-4 py-3">
               <Calendar className="h-4 w-4 text-sky-500" />
               <span className="text-sm font-medium text-sky-700">
                 Monthly payment due on the <span className="font-black">{payment.monthlyPaymentDate}{getOrdinalSuffix(payment.monthlyPaymentDate)}</span> of every month
               </span>
             </div>
-          )}
-
-          {/* Installments / Milestones */}
-          {payment.paymentPlan === "milestones" && payment.installments.length > 0 && (
-            <div className="space-y-2">
-              <h4 className="text-xs font-bold tracking-wider text-muted-foreground uppercase">
-                Payment Milestones
-              </h4>
-              <div className="space-y-2">
-                {payment.installments.map((inst: any, idx: number) => {
-                  const dueDate = new Date(inst.dueDate);
-                  const isPaid = inst.status === "paid";
-                  const isOverdue = !isPaid && dueDate < new Date();
-
-                  return (
-                    <div
-                      key={idx}
-                      className={cn(
-                        "flex items-center justify-between rounded-xl border px-4 py-3",
-                        isPaid
-                          ? "border-emerald-500/20 bg-emerald-500/5"
-                          : isOverdue
-                            ? "border-red-500/20 bg-red-500/5"
-                            : "border-border bg-muted/10"
-                      )}
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className={cn(
-                          "h-2.5 w-2.5 rounded-full",
-                          isPaid ? "bg-emerald-500" : isOverdue ? "bg-red-500 animate-pulse" : "bg-amber-500"
-                        )} />
-                        <div>
-                          <div className="text-sm font-bold">
-                            ₹{inst.amount.toLocaleString("en-IN")}
-                          </div>
-                          <div className="text-[10px] text-muted-foreground">
-                            Due: {dueDate.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
-                          </div>
-                        </div>
-                      </div>
-                      <span className={cn(
-                        "text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded-lg",
-                        isPaid
-                          ? "text-emerald-600 bg-emerald-500/10"
-                          : isOverdue
-                            ? "text-red-600 bg-red-500/10"
-                            : "text-amber-600 bg-amber-500/10"
-                      )}>
-                        {isPaid ? "Paid" : isOverdue ? "Overdue" : "Pending"}
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
+          ) : payment.paymentPlan === "milestones" && payment.installments.length > 0 && (
+            <div className="space-y-2 rounded-xl border border-border bg-muted/10 p-4">
+              <h4 className="text-xs font-bold tracking-wider text-muted-foreground uppercase">Payment Milestones</h4>
+              {payment.installments.map((inst: any, idx: number) => {
+                const dueDate = new Date(inst.dueDate);
+                const isPaid = inst.status === "paid";
+                const isOverdue = !isPaid && dueDate < new Date();
+                return (
+                  <div key={idx} className="flex items-center justify-between rounded-lg bg-background px-3 py-2">
+                    <span className="text-sm font-bold">₹{inst.amount.toLocaleString("en-IN")}</span>
+                    <span className={cn("text-[10px] font-bold uppercase tracking-widest", isPaid ? "text-emerald-600" : isOverdue ? "text-red-600" : "text-amber-600")}>
+                      {isPaid ? "Paid" : isOverdue ? "Overdue" : "Pending"}
+                    </span>
+                    <span className="text-xs text-muted-foreground">
+                      {dueDate.toLocaleDateString("en-IN", { day: "numeric", month: "short" })}
+                    </span>
+                  </div>
+                );
+              })}
             </div>
           )}
         </CardContent>

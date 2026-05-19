@@ -244,6 +244,7 @@ export async function POST(req: Request) {
             type: "general",
             title: "New Task Added",
             message: `${currentUserName} added ${taskPreview} in ${accessCheck.tab?.name || "a tab"}`,
+            targetUrl: "/tasks",
             isRead: false,
           }));
           
