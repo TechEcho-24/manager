@@ -29,13 +29,13 @@ export default function TeamPage() {
   const { data: invitesData } = useSWR("/api/organization/team/invites", fetcher);
   const [showInviteModal, setShowInviteModal] = useState(false);
 
-  const team = teamData?.members || [];
+  const allMembers = teamData?.members || [];
+  const team = allMembers.filter((m: any) => m.orgRole !== "client");
   const pendingInvites = invitesData?.invites || [];
 
   const owners = team.filter((m: any) => m.orgRole === "owner");
   const staff = team.filter((m: any) => m.orgRole === "staff");
   const members = team.filter((m: any) => m.orgRole === "member");
-  const clients = team.filter((m: any) => m.orgRole === "client");
 
   if (isLoading) {
     return (
@@ -66,7 +66,7 @@ export default function TeamPage() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         <Card className="border-border bg-card shadow-sm">
           <CardContent className="p-5">
             <div className="flex items-center gap-4">
@@ -102,19 +102,6 @@ export default function TeamPage() {
               <div>
                 <p className="text-2xl font-extrabold">{members.length}</p>
                 <p className="text-xs font-medium text-muted-foreground">Task Members</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="border-border bg-card shadow-sm">
-          <CardContent className="p-5">
-            <div className="flex items-center gap-4">
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-sky-500/10">
-                <Briefcase className="h-6 w-6 text-sky-500" />
-              </div>
-              <div>
-                <p className="text-2xl font-extrabold">{clients.length}</p>
-                <p className="text-xs font-medium text-muted-foreground">Clients</p>
               </div>
             </div>
           </CardContent>

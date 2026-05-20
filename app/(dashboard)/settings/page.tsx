@@ -197,7 +197,8 @@ export default function SettingsPage() {
 
 function TeamManagement() {
   const { data: teamData, isLoading, mutate } = useSWR("/api/organization/team", fetcher);
-  const team = teamData?.members || [];
+  const allMembers = teamData?.members || [];
+  const team = allMembers.filter((m: any) => m.orgRole !== "client");
   
   const [inviteLink, setInviteLink] = useState("");
   const [generating, setGenerating] = useState(false);
