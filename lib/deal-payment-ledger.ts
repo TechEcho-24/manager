@@ -164,7 +164,12 @@ export function applyPaymentToLedger(ledger: IDealPaymentLedger, input: LedgerPa
 export function getLedgerSummary(ledger: IDealPaymentLedger) {
   const totalDealValue = ledger.plan.totalDealValue || 0;
   const totalReceived = (ledger.payments || []).reduce((sum, payment) => sum + (payment.amount || 0), 0);
-  const outstandingBalance = (ledger.cycles || []).reduce((sum, cycle) => sum + Math.max(cycle.remainingBalance || 0, 0), 0);
+  // Sum only each cycle's own expectedAmount (not remainingBalance) to avoid
+  // double-counting carry-forward. e.g. May ₹15k unpaid → carried into June's
+  // totalDue, so summing remainingBalance would count it twice (₹15k + ₹30k = ₹45k).
+  // Correct outstanding = total expected across all cycles − total received.
+  const totalExpected = (ledger.cycles || []).reduce((sum, cycle) => sum + Math.max(cycle.expectedAmount || 0, 0), 0);
+  const outstandingBalance = Math.max(totalExpected - totalReceived, 0);
   const nextDueCycle = (ledger.cycles || [])
     .filter((cycle) => cycle.remainingBalance > 0)
     .sort((a, b) => a.dueDate.getTime() - b.dueDate.getTime())[0];
