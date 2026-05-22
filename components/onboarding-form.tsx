@@ -475,8 +475,8 @@ export function OnboardingForm() {
       </div>
 
       {/* Right Side - Form Content */}
-      <div className='flex-1 relative h-screen overflow-y-auto custom-scrollbar flex flex-col'>
-        <div className="flex-1 flex flex-col justify-start pt-12 lg:pt-20 px-6 lg:px-16 pb-32">
+      <div className='flex-1 relative lg:h-screen lg:overflow-y-auto lg:custom-scrollbar flex flex-col'>
+        <div className="flex-1 flex flex-col justify-start pt-12 lg:pt-20 px-4 sm:px-6 lg:px-16 pb-32">
           <AnimatePresence mode='wait'>
             {!isFinished ? (
               <motion.div
@@ -1093,7 +1093,7 @@ export function OnboardingForm() {
                       </Label>
 
                       {/* Chatbot Preview Rendering */}
-                      <div className='relative mx-auto w-[340px] h-[550px] rounded-[2.5rem] bg-black border-[8px] border-white/5 shadow-2xl overflow-hidden'>
+                      <div className='relative mx-auto w-full max-w-[340px] h-[550px] rounded-[2.5rem] bg-black border-[8px] border-white/5 shadow-2xl overflow-hidden'>
                         <div
                           className='h-24 w-full flex items-center px-6 gap-3 transition-colors duration-300'
                           style={{ backgroundColor: formData.primaryColor }}
@@ -1150,13 +1150,13 @@ export function OnboardingForm() {
                 )}
 
                 {/* Navigation - Always visible at the bottom of the scrollable area */}
-                <div className='flex items-center justify-between pt-10 mt-12 border-t border-white/10'>
-                  <div className="flex items-center gap-2">
+                <div className='flex items-center justify-between pt-10 mt-12 border-t border-white/10 gap-2'>
+                  <div className="flex items-center gap-1.5 sm:gap-2">
                     <Button
                       variant='ghost'
                       onClick={prevStep}
                       disabled={currentStep === 1}
-                      className='h-14 px-4 md:px-10 text-[10px] font-black tracking-widest text-white/40 hover:text-white disabled:opacity-0'
+                      className='h-12 sm:h-14 px-3 sm:px-4 md:px-10 text-[9px] sm:text-[10px] font-black tracking-wider sm:tracking-widest text-white/40 hover:text-white disabled:opacity-0'
                     >
                       Back
                     </Button>
@@ -1164,9 +1164,9 @@ export function OnboardingForm() {
                     <Button
                       variant='outline'
                       onClick={() => setIsFillLaterOpen(true)}
-                      className='h-14 rounded-2xl border-white/20 bg-white/[0.06] px-4 md:px-6 text-[10px] font-black tracking-widest text-white shadow-[0_10px_30px_rgba(0,0,0,0.25)] hover:border-white/40 hover:bg-white/[0.1] hover:text-white'
+                      className='h-12 sm:h-14 rounded-xl sm:rounded-2xl border-white/20 bg-white/[0.06] px-3 sm:px-4 md:px-6 text-[9px] sm:text-[10px] font-black tracking-wider sm:tracking-widest text-white shadow-[0_10px_30px_rgba(0,0,0,0.25)] hover:border-white/40 hover:bg-white/[0.1] hover:text-white'
                     >
-                      <LogOut className="h-3 w-3 md:mr-2" />
+                      <LogOut className="h-3.5 w-3.5 sm:h-3 sm:w-3 md:mr-2" />
                       <span className="hidden md:inline">Fill Later</span>
                     </Button>
                   </div>
@@ -1175,19 +1175,24 @@ export function OnboardingForm() {
                     onClick={nextStep}
                     disabled={!isStepValid()}
                     className={cn(
-                      "h-14 md:h-16 px-6 md:px-12 rounded-2xl bg-white text-black font-black transition-all shadow-[0_20px_40px_rgba(255,255,255,0.1)]",
+                      "h-12 sm:h-14 md:h-16 px-4 sm:px-6 md:px-12 rounded-xl sm:rounded-2xl bg-white text-black font-black transition-all shadow-[0_20px_40px_rgba(255,255,255,0.1)]",
                       !isStepValid()
                         ? "opacity-50 cursor-not-allowed"
                         : "hover:scale-105",
                     )}
                   >
-                    <div className='flex items-center gap-2 md:gap-3'>
-                      <span className='tracking-[0.1em] md:tracking-[0.2em] text-xs md:text-sm'>
-                        {currentStep === STEPS.length
-                          ? "Initialize Setup"
-                          : "Next Phase"}
+                    <div className='flex items-center gap-1.5 sm:gap-2 md:gap-3'>
+                      <span className='tracking-[0.05em] sm:tracking-[0.1em] md:tracking-[0.2em] text-[10px] sm:text-xs md:text-sm'>
+                        {currentStep === STEPS.length ? (
+                          <>
+                            <span className="inline sm:hidden">Finish</span>
+                            <span className="hidden sm:inline">Initialize Setup</span>
+                          </>
+                        ) : (
+                          "Next Phase"
+                        )}
                       </span>
-                      <ChevronRight className='h-4 w-4 md:h-5 md:w-5' />
+                      <ChevronRight className='h-3.5 w-3.5 sm:h-4 sm:w-4 md:h-5 md:w-5' />
                     </div>
                   </Button>
                 </div>

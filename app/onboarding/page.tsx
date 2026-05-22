@@ -8,7 +8,7 @@ export const metadata: Metadata = {
 
 export default function OnboardingPage() {
   return (
-    <div className="h-screen w-full bg-[#050510] fixed inset-0 z-[9999] overflow-hidden">
+    <div className="fixed inset-0 z-[9999] w-full min-h-screen lg:h-screen bg-[#050510] overflow-y-auto lg:overflow-hidden">
       <OnboardingForm />
     </div>
   );
