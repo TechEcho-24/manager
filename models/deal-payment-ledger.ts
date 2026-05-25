@@ -13,6 +13,7 @@ export interface IDealLedgerCycle {
   receivedAmount: number;
   remainingBalance: number;
   status: DealLedgerCycleStatus;
+  reminderSentAt?: Date;
 }
 
 export interface IDealPaymentAllocation {
@@ -66,6 +67,7 @@ const DealLedgerCycleSchema = new Schema<IDealLedgerCycle>(
       enum: ["pending", "paid", "partial", "overdue", "advance"],
       default: "pending",
     },
+    reminderSentAt: { type: Date },
   },
   { _id: false },
 );

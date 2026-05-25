@@ -9,6 +9,7 @@ export const dynamic = "force-dynamic";
 
 type SessionUser = {
   role?: string;
+  orgRole?: string;
   organizationId?: string;
 };
 
@@ -29,7 +30,9 @@ export async function PATCH(
     if (!lead) return NextResponse.json({ error: "Lead not found" }, { status: 404 });
     const isAdmin = user.role === "admin";
     const sameOrg = user.organizationId && lead.organizationId === user.organizationId;
-    if (!isAdmin && !sameOrg) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    if (!isAdmin && (!sameOrg || user.orgRole === "client")) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
 
     const billingDay = Math.min(Math.max(Number(data.billingDay) || 1, 1), 31);
     const startDate = data.startDate ? new Date(data.startDate) : new Date();

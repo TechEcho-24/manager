@@ -3,7 +3,8 @@
 import { useState } from "react";
 import Link from "next/link";
 import useSWR from "swr";
-import { Handshake, Plus, TrendingUp, Wallet, Clock, Mail, Eye, Search, ArrowUpRight, ReceiptText } from "lucide-react";
+import { Handshake, Plus, TrendingUp, Wallet, Clock, Mail, Eye, Search, ArrowUpRight, ReceiptText, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -37,6 +38,7 @@ export default function DealsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingDealId, setEditingDealId] = useState<string | undefined>();
+  const [sendingReminderId, setSendingReminderId] = useState<string | null>(null);
 
   const deals: Deal[] = data?.leads || [];
   
@@ -48,6 +50,24 @@ export default function DealsPage() {
   const totalValue = deals.reduce((acc, curr) => acc + (curr.dealDetails?.totalValue || 0), 0);
   const totalReceived = deals.reduce((acc, curr) => acc + (curr.dealDetails?.receivedAmount || 0), 0);
   const totalPending = totalValue - totalReceived;
+
+  const sendPaymentReminder = async (dealId: string) => {
+    setSendingReminderId(dealId);
+    try {
+      const res = await fetch(`/api/leads/${dealId}/payment-ledger/reminder`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({}),
+      });
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.error || "Failed to send payment reminder");
+      toast.success("Payment reminder emailed");
+    } catch (error: unknown) {
+      toast.error(error instanceof Error ? error.message : "Failed to send payment reminder");
+    } finally {
+      setSendingReminderId(null);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -227,12 +247,15 @@ export default function DealsPage() {
                     </Link>
                     <Button 
                       className="flex-1 rounded-xl h-10 bg-primary text-white hover:bg-primary/90 text-xs font-bold tracking-widest shadow-lg shadow-primary/10"
-                      onClick={() => {
-                         setEditingDealId(deal.id);
-                         setIsFormOpen(true);
-                      }}
+                      onClick={() => sendPaymentReminder(deal.id)}
+                      disabled={!!sendingReminderId}
                     >
-                      <Mail className="h-3.5 w-3.5 mr-2" /> Send Reminder
+                      {sendingReminderId === deal.id ? (
+                        <Loader2 className="h-3.5 w-3.5 mr-2 animate-spin" />
+                      ) : (
+                        <Mail className="h-3.5 w-3.5 mr-2" />
+                      )}
+                      Send Reminder
                     </Button>
                   </div>
                 </CardContent>

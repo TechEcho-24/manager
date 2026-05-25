@@ -16,6 +16,7 @@ import {
   FileImage,
   IndianRupee,
   Loader2,
+  Mail,
   Plus,
   ReceiptText,
   RotateCcw,
@@ -49,6 +50,7 @@ type LedgerCycle = {
   receivedAmount: number;
   remainingBalance: number;
   status: "pending" | "paid" | "partial" | "overdue" | "advance";
+  reminderSentAt?: string;
 };
 
 type LedgerPayment = {
@@ -162,6 +164,7 @@ export default function DealPaymentLedgerClient({ leadId }: { leadId: string }) 
   const [planOpen, setPlanOpen] = useState(false);
   const [detailCycle, setDetailCycle] = useState<LedgerCycle | null>(null);
   const [saving, setSaving] = useState(false);
+  const [sendingReminder, setSendingReminder] = useState<string | null>(null);
   const [screenshot, setScreenshot] = useState<{ url: string; publicId?: string } | null>(null);
 
   const ledger = data?.ledger;
@@ -256,6 +259,28 @@ export default function DealPaymentLedgerClient({ leadId }: { leadId: string }) 
     }
   };
 
+  const sendPaymentReminder = async (cycleKey?: string) => {
+    const key = cycleKey || ledger?.summary.nextDueCycle?.cycleKey;
+    if (!key) return;
+
+    setSendingReminder(key);
+    try {
+      const res = await fetch(`/api/leads/${leadId}/payment-ledger/reminder`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ cycleKey: key }),
+      });
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.error || "Failed to send payment reminder");
+      toast.success("Payment reminder emailed");
+      mutate();
+    } catch (error: unknown) {
+      toast.error(getErrorMessage(error, "Failed to send payment reminder"));
+    } finally {
+      setSendingReminder(null);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex min-h-[50vh] items-center justify-center">
@@ -278,6 +303,15 @@ export default function DealPaymentLedgerClient({ leadId }: { leadId: string }) 
           </p>
         </div>
         <div className="flex gap-2">
+          <Button
+            variant="outline"
+            className="h-10 rounded-xl"
+            onClick={() => sendPaymentReminder()}
+            disabled={!ledger?.summary.nextDueCycle || !!sendingReminder}
+          >
+            {sendingReminder === ledger?.summary.nextDueCycle?.cycleKey ? <Loader2 className="h-4 w-4 animate-spin" /> : <Mail className="h-4 w-4" />}
+            Send Reminder
+          </Button>
           <Button variant="outline" className="h-10 rounded-xl" onClick={openPlanDialog}>
             <RotateCcw className="h-4 w-4" />
             {ledger ? "Update Plan" : "Setup Plan"}
@@ -380,6 +414,16 @@ export default function DealPaymentLedgerClient({ leadId }: { leadId: string }) 
                           <Button size="sm" variant="outline" className="rounded-lg" onClick={() => setDetailCycle(cycle)}>
                             <Eye className="h-3.5 w-3.5" />
                             Details
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="rounded-lg"
+                            onClick={() => sendPaymentReminder(cycle.cycleKey)}
+                            disabled={cycle.remainingBalance <= 0 || !!sendingReminder}
+                          >
+                            {sendingReminder === cycle.cycleKey ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Mail className="h-3.5 w-3.5" />}
+                            Email
                           </Button>
                         </div>
                       </TableCell>

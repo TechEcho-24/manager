@@ -131,7 +131,7 @@ export async function POST() {
       message: `Aaj ${lead.fullName} ki payment (installment) due hai.`,
       leadId: lead._id.toString(),
       leadName: lead.fullName,
-      targetUrl: `/deals/${lead._id.toString()}/payments`,
+      targetUrl: userRole === "client" ? "/payments" : `/deals/${lead._id.toString()}/payments`,
       isRead: false,
       displayAfter: new Date(baseTime.getTime() + (leadsToday.length + idx) * 5 * 60 * 1000),
     })));
