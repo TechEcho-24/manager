@@ -47,8 +47,8 @@ export default function InvitePage({ params }: { params: Promise<{ token: string
 
       setSuccess(true);
 
-      // Members go to /tasks, staff/owners go to /dashboard
-      const redirectTo = data.role === "member" ? "/tasks" : "/dashboard";
+      // Send invited users to their role-specific landing page.
+      const redirectTo = data.role === "client" ? "/payments" : data.role === "member" ? "/tasks" : "/dashboard";
       setTimeout(() => {
         router.push(redirectTo);
       }, 2000);

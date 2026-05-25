@@ -11,6 +11,10 @@ import useSWR from "swr";
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
+type DashboardSessionUser = {
+  orgRole?: string;
+};
+
 export default function DashboardLayout({
   children,
 }: {
@@ -22,15 +26,20 @@ export default function DashboardLayout({
   const pathname = usePathname();
   const router = useRouter();
 
-  const orgRole = (session?.user as any)?.orgRole || "owner";
-  const isMember = orgRole === "member" || orgRole === "client";
+  const orgRole = (session?.user as DashboardSessionUser | undefined)?.orgRole || "owner";
+  const isMember = orgRole === "member";
+  const isClient = orgRole === "client";
+  const isRestrictedUser = isMember || isClient;
 
-  // Redirect members away from non-tasks pages
+  // Keep limited-role users inside the pages intended for their role.
   useEffect(() => {
     if (isMember && !pathname.startsWith("/tasks")) {
       router.replace("/tasks");
     }
-  }, [session, pathname, router, isMember]);
+    if (isClient && !pathname.startsWith("/tasks") && !pathname.startsWith("/payments")) {
+      router.replace("/payments");
+    }
+  }, [session, pathname, router, isMember, isClient]);
 
   // Apply branding color
   useEffect(() => {
@@ -45,7 +54,7 @@ export default function DashboardLayout({
     <Suspense fallback={<div className="min-h-dvh bg-background" />}>
       <div className="min-h-dvh bg-background">
         {/* Desktop sidebar — hidden for members */}
-        {!isMember && (
+        {!isRestrictedUser && (
           <Sidebar
             collapsed={sidebarCollapsed}
             onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
@@ -56,12 +65,12 @@ export default function DashboardLayout({
         <div
           className={cn(
             "flex min-h-dvh flex-col transition-all duration-300",
-            !isMember && (sidebarCollapsed ? "lg:pl-[68px]" : "lg:pl-[240px]")
+            !isRestrictedUser && (sidebarCollapsed ? "lg:pl-[68px]" : "lg:pl-[240px]")
           )}
         >
           {/* Hide trial banner for members */}
-          {!isMember && <TrialBanner />}
-          <TopNavbar isMember={isMember} />
+          {!isRestrictedUser && <TrialBanner />}
+          <TopNavbar isMember={isRestrictedUser} />
           <main className="flex-1 p-4 lg:p-6">{children}</main>
         </div>
       </div>

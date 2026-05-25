@@ -27,8 +27,10 @@ export async function proxy(req: NextRequest) {
     pathname.startsWith("/dashboard") ||
     pathname.startsWith("/leads") ||
     pathname.startsWith("/contacts") ||
+    pathname.startsWith("/lead-clients") ||
     pathname.startsWith("/deals") ||
     pathname.startsWith("/tasks") ||
+    pathname.startsWith("/payments") ||
     pathname.startsWith("/calendar") ||
     pathname.startsWith("/reports") ||
     pathname.startsWith("/settings") ||

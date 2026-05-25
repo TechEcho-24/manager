@@ -75,7 +75,7 @@ export function WorkspaceSwitcher({ collapsed, inNavbar }: { collapsed?: boolean
         await mutate();
         
         // Hard refresh the current page to ensure all data scoped to the new org is loaded
-        window.location.href = result.role === "member" ? "/tasks" : "/dashboard";
+        window.location.href = result.role === "client" ? "/payments" : result.role === "member" ? "/tasks" : "/dashboard";
       }
     } catch (err) {
       console.error("Failed to switch workspace", err);

@@ -138,9 +138,9 @@ export default function SignupForm() {
           organizationId: joinData.organizationId,
           orgRole: joinData.role,
         });
-        // Redirect member to tasks, staff to dashboard
+        // Send invited users to their role-specific landing page.
         setIsLoading(false);
-        const redirectTo = joinData.role === "member" ? "/tasks" : "/dashboard";
+        const redirectTo = joinData.role === "client" ? "/payments" : joinData.role === "member" ? "/tasks" : "/dashboard";
         router.push(redirectTo);
         return;
       }

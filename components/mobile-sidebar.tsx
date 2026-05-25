@@ -8,7 +8,6 @@ import {
   Sheet,
   SheetContent,
   SheetHeader,
-  SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
 import {
@@ -17,16 +16,16 @@ import {
   PhoneCall,
   Calendar,
   Contact,
+  Building2,
   Handshake,
   CheckSquare,
+  CreditCard,
   BarChart3,
   Settings,
   Menu,
-  Zap,
   UserCheck,
 } from "lucide-react";
 import { useState } from "react";
-import useSWR from "swr";
 import { WorkspaceSwitcher } from "./workspace-switcher";
 
 const navItems = [
@@ -35,25 +34,34 @@ const navItems = [
   { title: "Follow-ups", href: "/follow-ups", icon: PhoneCall },
   { title: "Calendar", href: "/calendar", icon: Calendar },
   { title: "Contacts", href: "/contacts", icon: Contact },
+  { title: "Clients", href: "/lead-clients", icon: Building2 },
   { title: "Deals", href: "/deals", icon: Handshake },
+  { title: "Payments", href: "/payments", icon: CreditCard },
   { title: "Tasks", href: "/tasks", icon: CheckSquare },
   { title: "Team", href: "/team", icon: UserCheck },
   { title: "Reports", href: "/reports", icon: BarChart3 },
   { title: "Settings", href: "/settings", icon: Settings },
 ];
 
-const fetcher = (url: string) => fetch(url).then((res) => res.json());
+type NavigationSessionUser = {
+  role?: string;
+  orgRole?: string;
+};
 
 export function MobileSidebar() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const { data: session } = useSession();
-  const { data: branding } = useSWR("/api/organization/branding", fetcher);
 
-  const orgRole = (session?.user as any)?.orgRole || "owner";
+  const user = session?.user as NavigationSessionUser | undefined;
+  const orgRole = user?.orgRole || "owner";
+  const role = user?.role || "client";
 
   const visibleNavItems = navItems.filter(item => {
-    if ((orgRole === "member" || orgRole === "client") && item.href !== "/tasks") return false;
+    if (orgRole === "member" && item.href !== "/tasks") return false;
+    if (orgRole === "client" && item.href !== "/payments" && item.href !== "/tasks") return false;
+    if (item.href === "/payments" && orgRole !== "client") return false;
+    if (item.href === "/lead-clients" && role === "admin") return false;
     return true;
   });
 

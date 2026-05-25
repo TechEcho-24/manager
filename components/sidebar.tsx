@@ -15,7 +15,6 @@ import {
   Settings,
   ChevronLeft,
   ChevronRight,
-  Zap,
   DollarSign,
   UserCheck,
   Building2,
@@ -29,7 +28,6 @@ import {
 
 import { useSession } from "next-auth/react";
 
-import useSWR from "swr";
 import { WorkspaceSwitcher } from "./workspace-switcher";
 
 const allNavItems = [
@@ -38,6 +36,7 @@ const allNavItems = [
   { title: "Follow-ups", href: "/follow-ups", icon: PhoneCall, role: "client" },
   { title: "Calendar", href: "/calendar", icon: Calendar, role: "client" },
   { title: "Contacts", href: "/contacts", icon: Contact, role: "client" },
+  { title: "Clients", href: "/lead-clients", icon: Building2, role: "client" },
   { title: "Deals", href: "/deals", icon: Handshake, role: "client" },
   { title: "Tasks", href: "/tasks", icon: CheckSquare, role: "client" },
   { title: "Team", href: "/team", icon: UserCheck, role: "client" },
@@ -56,7 +55,10 @@ interface SidebarProps {
   onToggle: () => void;
 }
 
-const fetcher = (url: string) => fetch(url).then((res) => res.json());
+type SidebarSessionUser = {
+  role?: string;
+  orgRole?: string;
+};
 
 function NavLink({
   href,
@@ -119,9 +121,9 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const { data: session } = useSession();
-  const { data: branding } = useSWR("/api/organization/branding", fetcher);
-  const role = (session?.user as any)?.role || "client";
-  const orgRole = (session?.user as any)?.orgRole || "owner";
+  const user = session?.user as SidebarSessionUser | undefined;
+  const role = user?.role || "client";
+  const orgRole = user?.orgRole || "owner";
 
   const fullCurrentPath = searchParams.toString() 
     ? `${pathname}?${searchParams.toString()}` 

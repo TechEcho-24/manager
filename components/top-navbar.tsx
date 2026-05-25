@@ -1,11 +1,12 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import useSWR from "swr";
 import { useDebounce } from "use-debounce";
 import { MobileSidebar } from "@/components/mobile-sidebar";
-import { Bell, Search, Loader2, LogOut, PhoneCall, Check, X } from "lucide-react";
+import { Bell, Search, Loader2, LogOut, PhoneCall, Check, X, CheckSquare, CreditCard } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -46,10 +47,10 @@ type SearchResponse = {
 };
 
 function getNotificationTarget(notif: Notification, orgRole: string) {
+  if (notif.type === "payment" && orgRole === "client") return "/payments";
   if (notif.targetUrl) return notif.targetUrl;
 
   if (notif.type === "payment") {
-    if (orgRole === "client") return "/tasks";
     return notif.leadId ? `/deals/${notif.leadId}/payments` : "/deals";
   }
 
@@ -285,6 +286,7 @@ export function TopNavbar({ isMember = false }: { isMember?: boolean }) {
   const searchRef = useRef<HTMLDivElement>(null);
   const [plan, setPlan] = useState<string>("");
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
+  const orgRole = (session?.user as SessionUserWithRole | undefined)?.orgRole || "owner";
 
   useEffect(() => {
     fetch("/api/plan/config").then(r => r.json()).then(data => {
@@ -341,6 +343,19 @@ export function TopNavbar({ isMember = false }: { isMember?: boolean }) {
         <div className="hidden lg:block ml-4 w-[240px]">
           <WorkspaceSwitcher inNavbar={true} collapsed={false} />
         </div>
+      )}
+
+      {orgRole === "client" && (
+        <nav className="hidden items-center gap-1 lg:flex">
+          <Link href="/payments" className="inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-bold text-muted-foreground transition-colors hover:bg-muted hover:text-primary">
+            <CreditCard className="h-4 w-4" />
+            Payments
+          </Link>
+          <Link href="/tasks" className="inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-bold text-muted-foreground transition-colors hover:bg-muted hover:text-primary">
+            <CheckSquare className="h-4 w-4" />
+            Tasks
+          </Link>
+        </nav>
       )}
 
       {/* Search bar — hidden for members */}

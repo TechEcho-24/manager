@@ -159,7 +159,7 @@ pinglly/
 
 ### Prerequisites
 
-- **Node.js** ≥ 18.x
+- **Node.js** ≥ 20.x
 - **npm** ≥ 9.x
 - **MongoDB Atlas** account (or local MongoDB)
 
@@ -205,9 +205,15 @@ cp .env.example .env.local
 | `AUTH_SECRET`         | NextAuth session encryption key     | ✅       |
 | `ADMIN_EMAIL`        | Super admin email address           | ✅       |
 | `ADMIN_PASSWORD_HASH`| Bcrypt hash of admin password       | ✅       |
+| `RESEND_API_KEY`     | Resend API key for server-side email | ✅ for email |
+| `RESEND_FROM_EMAIL`  | Verified sender address from your Resend domain | ✅ for email |
+| `RESEND_FROM_NAME`   | Fallback sender name if a workspace has no company name | Optional |
+| `RESEND_REPLY_TO_EMAIL` | Reply-to address for outgoing email | Optional |
 
 > Generate `AUTH_SECRET` with: `openssl rand -base64 32`
 > Generate password hash with: `npx tsx scripts/hash-password.ts`
+
+For Resend, verify your sending domain in Resend first, then set `RESEND_FROM_EMAIL` to an address on that verified domain. Do not use `onboarding@resend.dev` in production.
 
 ---
 

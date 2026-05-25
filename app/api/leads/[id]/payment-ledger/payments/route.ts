@@ -11,6 +11,7 @@ const methods = ["UPI", "Bank Transfer", "Cash", "Card", "Cheque", "Other"] as c
 type PaymentMethod = typeof methods[number];
 type SessionUser = {
   role?: string;
+  orgRole?: string;
   organizationId?: string;
 };
 
@@ -31,7 +32,9 @@ export async function POST(
     if (!lead) return NextResponse.json({ error: "Lead not found" }, { status: 404 });
     const isAdmin = user.role === "admin";
     const sameOrg = user.organizationId && lead.organizationId === user.organizationId;
-    if (!isAdmin && !sameOrg) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    if (!isAdmin && (!sameOrg || user.orgRole === "client")) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
 
     const ledger = await DealPaymentLedger.findOne({ leadId: lead._id.toString() });
     if (!ledger) return NextResponse.json({ error: "Payment ledger not found" }, { status: 404 });
